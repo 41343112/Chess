@@ -1,34 +1,34 @@
-# Chess Game - Like Chess.com
+# 國際象棋遊戲 - 類似 Chess.com
 
-A complete chess game implementation in Qt/C++ with a graphical user interface, similar to Chess.com.
+使用 Qt/C++ 開發的完整國際象棋遊戲，具有圖形化使用者介面，類似 Chess.com。
 
-## 🎉 New Features
-- **Flip Board Button**: Swap board orientation to view from either player's perspective! ⭐ NEW
-- **Move Sound Effects**: Audio feedback for moves and captures ⭐ NEW
-- **Drag-and-Drop Movement**: Move pieces by dragging them with your mouse!
-- **King Check Highlighting**: King's square turns red when under attack
-- **Enhanced Visual Feedback**: Clear visual indicators for all game states
-- **Square Grid Maintained**: Chess board keeps perfect squares when resizing window
+## 🎉 新功能
+- **翻轉棋盤按鈕**：切換棋盤方向，從任一玩家視角查看！⭐ 新功能
+- **移動音效**：移動和吃子時的音頻回饋 ⭐ 新功能
+- **拖放移動**：用滑鼠拖曳棋子進行移動！
+- **將軍高亮顯示**：王被攻擊時方格變紅色
+- **增強的視覺回饋**：所有遊戲狀態都有清晰的視覺指示
+- **保持方格網格**：調整視窗大小時棋盤保持完美的正方形
 
-See [NEW_FEATURES.md](NEW_FEATURES.md) and [FEATURE_SUMMARY.md](FEATURE_SUMMARY.md) for detailed documentation of the new features.
+詳細的新功能文件請參閱 [NEW_FEATURES.md](NEW_FEATURES.md) 和 [FEATURE_SUMMARY.md](FEATURE_SUMMARY.md)。
 
-## 📚 Documentation
-- **[GAMEPLAY.md](GAMEPLAY.md)** - Complete gameplay guide with rules, controls, and strategies
-- [NEW_FEATURES.md](NEW_FEATURES.md) - Recent feature additions and implementation details
-- [UI_MOCKUP.md](UI_MOCKUP.md) - User interface design and mockups
+## 📚 文件說明
+- **[GAMEPLAY.md](GAMEPLAY.md)** - 完整的遊戲指南，包含規則、操作和策略
+- [NEW_FEATURES.md](NEW_FEATURES.md) - 最新功能新增和實作細節
+- [UI_MOCKUP.md](UI_MOCKUP.md) - 使用者介面設計和模型
 
-## Table of Contents
-- [中文玩法說明](#中文玩法說明) ⭐ Chinese Gameplay Instructions
-- [Features](#features)
-- [Architecture](#architecture)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [Building and Running](#building-and-running)
-  - [Troubleshooting](#troubleshooting)
-- [How to Play](#how-to-play)
-- [Game Status Messages](#game-status-messages)
-- [Technical Implementation Details](#technical-implementation-details)
-- [Future Enhancements](#future-enhancements)
+## 目錄
+- [中文玩法說明](#中文玩法說明) ⭐ 中文遊戲說明
+- [功能特色](#功能特色)
+- [架構](#架構)
+- [入門指南](#入門指南)
+  - [系統需求](#系統需求)
+  - [建置與執行](#建置與執行)
+  - [疑難排解](#疑難排解)
+- [如何遊玩](#如何遊玩)
+- [遊戲狀態訊息](#遊戲狀態訊息)
+- [技術實作細節](#技術實作細節)
+- [未來改進](#未來改進)
 
 ## 中文玩法說明
 
@@ -89,76 +89,76 @@ See [NEW_FEATURES.md](NEW_FEATURES.md) and [FEATURE_SUMMARY.md](FEATURE_SUMMARY.
 5. 保護好你的后，它是最強大的棋子
 6. 嘗試創造攻擊對方國王的機會
 
-## Features
+## 功能特色
 
-### Complete Chess Rules Implementation
-- ✅ All piece movements (Pawn, Rook, Knight, Bishop, Queen, King)
-- ✅ Special moves:
-  - Castling (kingside and queenside)
-  - En passant capture
-  - Pawn promotion to Queen
-- ✅ Check detection
-- ✅ Checkmate detection
-- ✅ Stalemate detection
-- ✅ Move validation (prevents illegal moves)
-- ✅ Turn-based gameplay (White/Black alternating)
+### 完整的國際象棋規則實作
+- ✅ 所有棋子移動（兵、車、馬、象、后、王）
+- ✅ 特殊走法：
+  - 王車易位（王翼和后翼）
+  - 吃過路兵
+  - 兵升變為后
+- ✅ 將軍偵測
+- ✅ 將死偵測
+- ✅ 逼和偵測
+- ✅ 移動驗證（防止非法移動）
+- ✅ 回合制遊戲（白方/黑方輪流）
 
-### User Interface
-- ✅ 8x8 chessboard with alternating light and dark squares
-- ✅ Unicode chess piece symbols (♔ ♕ ♖ ♗ ♘ ♙)
-- ✅ Visual feedback:
-  - Selected piece highlighting (gold)
-  - Valid move highlighting (green)
-  - **King in check highlighting (red)** ⭐ NEW
-  - Turn indicator
-  - Game status display
-- ✅ Click-to-select, click-to-move interface
-- ✅ **Drag-and-drop piece movement** ⭐ NEW
-- ✅ **Flip board button** - View from either player's perspective ⭐ NEW
-- ✅ **Move sound effects** - Audio feedback for moves and captures ⭐ NEW
-- ✅ New Game button
-- ✅ Game over dialog
+### 使用者介面
+- ✅ 8x8 棋盤，淺色和深色方格交替
+- ✅ Unicode 國際象棋符號（♔ ♕ ♖ ♗ ♘ ♙）
+- ✅ 視覺回饋：
+  - 選中棋子高亮顯示（金色）
+  - 有效移動高亮顯示（綠色）
+  - **王被將軍高亮顯示（紅色）** ⭐ 新功能
+  - 回合指示器
+  - 遊戲狀態顯示
+- ✅ 點擊選擇、點擊移動介面
+- ✅ **拖放移動棋子** ⭐ 新功能
+- ✅ **翻轉棋盤按鈕** - 從任一玩家視角查看 ⭐ 新功能
+- ✅ **移動音效** - 移動和吃子的音頻回饋 ⭐ 新功能
+- ✅ 新遊戲按鈕
+- ✅ 遊戲結束對話框
 
-## Architecture
+## 架構
 
-### Class Structure
+### 類別結構
 
-**ChessPiece** (Abstract Base Class)
-- Base class for all chess pieces
-- Defines common properties: type, color, position, movement status
-- Pure virtual method `isValidMove()` for piece-specific move validation
+**ChessPiece（抽象基底類別）**
+- 所有棋子的基底類別
+- 定義共同屬性：類型、顏色、位置、移動狀態
+- 純虛擬方法 `isValidMove()` 用於特定棋子的移動驗證
 
-**Piece Subclasses**
-- `Pawn` - Forward movement, diagonal capture, en passant, promotion
-- `Rook` - Horizontal and vertical movement
-- `Knight` - L-shaped movement
-- `Bishop` - Diagonal movement
-- `Queen` - Combined rook and bishop movement
-- `King` - One square in any direction, castling
+**棋子子類別**
+- `Pawn`（兵） - 向前移動、斜向吃子、吃過路兵、升變
+- `Rook`（車） - 水平和垂直移動
+- `Knight`（馬） - L 形移動
+- `Bishop`（象） - 對角線移動
+- `Queen`（后） - 結合車和象的移動
+- `King`（王） - 任意方向移動一格、王車易位
 
 **ChessBoard**
-- Manages 8x8 board state
-- Handles move execution and validation
-- Tracks game state (turn, check, checkmate, stalemate)
-- Maintains move history
-- Implements special move logic (castling, en passant)
+- 管理 8x8 棋盤狀態
+- 處理移動執行和驗證
+- 追蹤遊戲狀態（回合、將軍、將死、逼和）
+- 維護移動歷史
+- 實作特殊移動邏輯（王車易位、吃過路兵）
 
-**myChess (Main Window)**
-- Qt-based GUI
-- ChessSquare buttons for board interaction
-- Game controls (New Game, Undo)
-- Status and turn displays
+**myChess（主視窗）**
+- 基於 Qt 的圖形介面
+- ChessSquare 按鈕用於棋盤互動
+- 遊戲控制（新遊戲、悔棋）
+- 狀態和回合顯示
 
 **ChessSquare**
-- Custom QPushButton for each board square
-- Visual states: normal, selected, highlighted
-- Displays piece symbols
+- 每個棋盤方格的自訂 QPushButton
+- 視覺狀態：正常、選中、高亮
+- 顯示棋子符號
 
-## Getting Started
+## 入門指南
 
-### Quick Start Guide
+### 快速入門指南
 
-**For experienced Qt developers:**
+**對於有經驗的 Qt 開發者：**
 ```bash
 git clone https://github.com/41343112/Chess.git
 cd Chess
@@ -167,269 +167,269 @@ make
 ./Chess
 ```
 
-**For beginners:** Follow the detailed instructions below.
+**對於初學者：** 請遵循以下詳細說明。
 
-### Prerequisites
+### 系統需求
 
-Before building the chess game, you need to install the following:
+在建置國際象棋遊戲之前，您需要安裝以下軟體：
 
-#### 1. Qt Framework (Qt 5.12+ or Qt 6.x)
+#### 1. Qt 框架（Qt 5.12+ 或 Qt 6.x）
 
-**Linux (Ubuntu/Debian):**
+**Linux（Ubuntu/Debian）：**
 ```bash
-# For Qt 5
+# 對於 Qt 5
 sudo apt-get update
 sudo apt-get install qt5-default qtbase5-dev qttools5-dev-tools
 
-# For Qt 6
+# 對於 Qt 6
 sudo apt-get update
 sudo apt-get install qt6-base-dev qt6-tools-dev
 ```
 
-**macOS:**
+**macOS：**
 ```bash
-# Using Homebrew
+# 使用 Homebrew
 brew install qt@5
-# or
+# 或
 brew install qt@6
 
-# Add Qt to PATH (add to ~/.zshrc or ~/.bash_profile)
-export PATH="/opt/homebrew/opt/qt@5/bin:$PATH"  # for Qt 5
-# or
-export PATH="/opt/homebrew/opt/qt@6/bin:$PATH"  # for Qt 6
+# 將 Qt 加入 PATH（加入到 ~/.zshrc 或 ~/.bash_profile）
+export PATH="/opt/homebrew/opt/qt@5/bin:$PATH"  # 對於 Qt 5
+# 或
+export PATH="/opt/homebrew/opt/qt@6/bin:$PATH"  # 對於 Qt 6
 ```
 
-**Windows:**
-1. Download Qt Online Installer from [qt.io/download](https://www.qt.io/download-qt-installer)
-2. Run the installer and select:
-   - Qt 5.15.x or Qt 6.x
-   - MinGW compiler (or MSVC if you have Visual Studio)
+**Windows：**
+1. 從 [qt.io/download](https://www.qt.io/download-qt-installer) 下載 Qt 線上安裝程式
+2. 執行安裝程式並選擇：
+   - Qt 5.15.x 或 Qt 6.x
+   - MinGW 編譯器（或如果您有 Visual Studio，則選擇 MSVC）
    - Qt Creator IDE
-3. Complete the installation
+3. 完成安裝
 
-#### 2. C++ Compiler
+#### 2. C++ 編譯器
 
-**Linux:**
+**Linux：**
 ```bash
-# GCC (usually pre-installed)
+# GCC（通常已預先安裝）
 sudo apt-get install build-essential
-g++ --version  # Verify installation
+g++ --version  # 驗證安裝
 ```
 
-**macOS:**
+**macOS：**
 ```bash
-# Xcode Command Line Tools
+# Xcode 命令列工具
 xcode-select --install
 ```
 
-**Windows:**
-- MinGW comes with Qt installer, or
-- Install Visual Studio 2019/2022 with C++ workload
+**Windows：**
+- MinGW 隨 Qt 安裝程式附帶，或
+- 安裝 Visual Studio 2019/2022 並包含 C++ 工作負載
 
-#### 3. Verify Installation
+#### 3. 驗證安裝
 
-Check that Qt tools are available:
+檢查 Qt 工具是否可用：
 ```bash
 qmake --version
 ```
 
-Expected output should show Qt version 5.x or 6.x.
+預期輸出應顯示 Qt 版本 5.x 或 6.x。
 
-### Building and Running
+### 建置與執行
 
-#### Method 1: Command Line (Quick Start)
+#### 方法 1：命令列（快速入門）
 
-**Step 1: Clone or Download the Repository**
+**步驟 1：複製或下載儲存庫**
 ```bash
-# If using git
+# 如果使用 git
 git clone https://github.com/41343112/Chess.git
 cd Chess
 
-# Or download and extract ZIP, then navigate to the directory
+# 或下載並解壓縮 ZIP，然後導航到目錄
 ```
 
-**Step 2: Build the Project**
+**步驟 2：建置專案**
 ```bash
-# Generate Makefile
+# 產生 Makefile
 qmake Chess.pro
 
-# Compile the project
+# 編譯專案
 make
 
-# On Windows with MinGW, use:
+# 在 Windows 使用 MinGW 時，使用：
 # mingw32-make
 ```
 
-**Step 3: Run the Application**
+**步驟 3：執行應用程式**
 ```bash
 # Linux/macOS
 ./Chess
 
 # Windows
 Chess.exe
-# or double-click Chess.exe in the build directory
+# 或在建置目錄中雙擊 Chess.exe
 ```
 
-#### Method 2: Qt Creator (Recommended for Beginners)
+#### 方法 2：Qt Creator（推薦初學者使用）
 
-**Step 1: Open the Project**
-1. Launch Qt Creator
-2. Click "File" → "Open File or Project"
-3. Navigate to the Chess directory
-4. Select `Chess.pro` and click "Open"
+**步驟 1：開啟專案**
+1. 啟動 Qt Creator
+2. 點擊「檔案」→「開啟檔案或專案」
+3. 導航到 Chess 目錄
+4. 選擇 `Chess.pro` 並點擊「開啟」
 
-**Step 2: Configure Project**
-1. Qt Creator will show "Configure Project" screen
-2. Select a Qt kit (e.g., "Desktop Qt 5.15.2 MinGW 64-bit")
-3. Click "Configure Project"
+**步驟 2：配置專案**
+1. Qt Creator 會顯示「配置專案」畫面
+2. 選擇一個 Qt 套件（例如「Desktop Qt 5.15.2 MinGW 64-bit」）
+3. 點擊「配置專案」
 
-**Step 3: Build and Run**
-1. Click the green "Run" button (▶) in the bottom-left corner, or
-2. Press `Ctrl+R` (Windows/Linux) or `Cmd+R` (macOS)
-3. The chess game window will appear
+**步驟 3：建置和執行**
+1. 點擊左下角的綠色「執行」按鈕（▶），或
+2. 按 `Ctrl+R`（Windows/Linux）或 `Cmd+R`（macOS）
+3. 國際象棋遊戲視窗將會出現
 
-### Troubleshooting
+### 疑難排解
 
-**Issue: "qmake: command not found"**
-- Solution: Ensure Qt bin directory is in your PATH
-- Linux/macOS: Add Qt path to ~/.bashrc or ~/.zshrc
-- Windows: Add Qt bin directory to System Environment Variables
+**問題：「qmake: command not found」**
+- 解決方案：確保 Qt bin 目錄在您的 PATH 中
+- Linux/macOS：將 Qt 路徑加入 ~/.bashrc 或 ~/.zshrc
+- Windows：將 Qt bin 目錄加入系統環境變數
 
-**Issue: "Project ERROR: Unknown module(s) in QT: widgets"**
-- Solution: Install Qt widgets module:
+**問題：「Project ERROR: Unknown module(s) in QT: widgets」**
+- 解決方案：安裝 Qt widgets 模組：
   ```bash
   # Linux
   sudo apt-get install qtbase5-dev
   ```
 
-**Issue: Build fails with C++17 errors**
-- Solution: Ensure your compiler supports C++17
-- Update GCC to version 7+ or use Clang 5+
+**問題：建置失敗並出現 C++17 錯誤**
+- 解決方案：確保您的編譯器支援 C++17
+- 將 GCC 更新到版本 7+ 或使用 Clang 5+
 
-**Issue: Application doesn't start on Windows**
-- Solution: Copy Qt DLLs to the executable directory:
+**問題：應用程式在 Windows 上無法啟動**
+- 解決方案：將 Qt DLL 複製到可執行檔目錄：
   ```bash
-  # Navigate to Qt bin directory and copy required DLLs
-  # For MinGW Qt 5.15:
-  Qt5Core.dll, Qt5Gui.dll, Qt5Widgets.dll
-  # Plus platform plugin: platforms/qwindows.dll
+  # 導航到 Qt bin 目錄並複製所需的 DLL
+  # 對於 MinGW Qt 5.15：
+  Qt5Core.dll、Qt5Gui.dll、Qt5Widgets.dll
+  # 加上平台外掛：platforms/qwindows.dll
   ```
-  Or run from Qt Creator which handles this automatically.
+  或從 Qt Creator 執行，它會自動處理這個問題。
 
-**Issue: Black screen or UI issues**
-- Solution: Update graphics drivers
-- Try running with software rendering: `export QT_QPA_PLATFORM=offscreen`
+**問題：黑色畫面或介面問題**
+- 解決方案：更新顯示卡驅動程式
+- 嘗試使用軟體渲染執行：`export QT_QPA_PLATFORM=offscreen`
 
-### What You'll See
+### 您將看到什麼
 
-Once the application is running, you'll see:
+一旦應用程式執行，您將看到：
 
-**Game Board:**
-- 8×8 chessboard with alternating light (cream #F0D9B5) and dark (brown #B58863) squares
-- Unicode chess pieces: ♔ ♕ ♖ ♗ ♘ ♙ (white) and ♚ ♛ ♜ ♝ ♞ ♟ (black)
-- Clean, professional appearance similar to Chess.com
+**遊戲棋盤：**
+- 8×8 棋盤，淺色（米色 #F0D9B5）和深色（棕色 #B58863）方格交替
+- Unicode 國際象棋符號：♔ ♕ ♖ ♗ ♘ ♙（白色）和 ♚ ♛ ♜ ♝ ♞ ♟（黑色）
+- 清爽、專業的外觀，類似 Chess.com
 
-**Interactive Elements:**
-- Click any piece to select it (highlighted in gold)
-- Valid moves are highlighted in light green
-- Turn indicator shows "Turn: White" or "Turn: Black"
-- Status bar displays game state (check, checkmate, stalemate)
-- "New Game" button to restart
-- "Undo" button (placeholder for future functionality)
+**互動元素：**
+- 點擊任意棋子選擇它（以金色高亮顯示）
+- 有效移動以淺綠色高亮顯示
+- 回合指示器顯示「回合：白方」或「回合：黑方」
+- 狀態列顯示遊戲狀態（將軍、將死、逼和）
+- 「新遊戲」按鈕重新開始
+- 「悔棋」按鈕（未來功能的占位符）
 
-**Example Game State:**
+**範例遊戲狀態：**
 ```
-Initial position with standard chess setup:
-Rank 8: ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
-Rank 7: ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
-Rank 6-3: Empty squares
-Rank 2: ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
-Rank 1: ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+標準國際象棋初始位置：
+第 8 列：♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
+第 7 列：♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
+第 6-3 列：空方格
+第 2 列：♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+第 1 列：♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
 ```
 
-For detailed UI mockups, see [UI_MOCKUP.md](UI_MOCKUP.md).
+詳細的介面設計模型請參閱 [UI_MOCKUP.md](UI_MOCKUP.md)。
 
-## How to Play
+## 如何遊玩
 
-**For a complete gameplay guide with detailed rules, strategies, and tips, see [GAMEPLAY.md](GAMEPLAY.md).**
+**完整的遊戲指南，包含詳細規則、策略和技巧，請參閱 [GAMEPLAY.md](GAMEPLAY.md)。**
 
-### Quick Start
+### 快速入門
 
-1. **Starting a Game**
-   - White moves first
-   - Select a piece by clicking on it OR by starting to drag it
-   - Valid moves will be highlighted in green
-   - Move the piece by clicking on a highlighted square OR by dragging and dropping
+1. **開始遊戲**
+   - 白方先行
+   - 點擊選擇棋子或開始拖曳棋子
+   - 有效移動將以綠色高亮顯示
+   - 點擊高亮的方格或拖放來移動棋子
 
-2. **Making Moves - Two Methods:**
-   - **Click-to-Move**: Click a piece to select it, then click the destination square
-   - **Drag-and-Drop**: Click and hold a piece, drag it to the destination, then release ⭐ NEW
-   - Both methods work seamlessly together!
+2. **移動方式 - 兩種方法：**
+   - **點擊移動**：點擊棋子選擇它，然後點擊目標方格
+   - **拖放移動**：點擊並按住棋子，拖曳到目標位置，然後放開 ⭐ 新功能
+   - 兩種方法可以無縫配合使用！
 
-3. **Visual Indicators**
-   - **Gold highlighting**: Selected piece
-   - **Green highlighting**: Valid move destinations
-   - **Red highlighting**: King is in check ⭐ NEW
-   - Only pieces of the current player can be moved
-   - The game prevents illegal moves that would put your king in check
-   - **Sound feedback**: Hear distinct sounds for regular moves and captures ⭐ NEW
+3. **視覺指示**
+   - **金色高亮**：選中的棋子
+   - **綠色高亮**：有效的移動目標
+   - **紅色高亮**：王被將軍 ⭐ 新功能
+   - 只能移動當前玩家的棋子
+   - 遊戲會防止會讓自己的王被將軍的非法移動
+   - **音效回饋**：移動和吃子時會聽到不同的聲音 ⭐ 新功能
 
-4. **Special Moves**
-   - **Castling**: Click on your king, then click two squares toward the rook (or drag)
-   - **En Passant**: Available when opponent's pawn moves two squares forward
-   - **Pawn Promotion**: Pawns automatically promote to Queens upon reaching the opposite end
+4. **特殊移動**
+   - **王車易位**：點擊您的王，然後點擊向車移動兩格的位置（或拖曳）
+   - **吃過路兵**：當對手的兵向前移動兩格時可以使用
+   - **兵升變**：兵到達對面底線時自動升變為后
 
-5. **Winning**
-   - Checkmate: Opponent's king is in check with no legal moves
-   - Stalemate: Current player has no legal moves but is not in check (Draw)
+5. **獲勝**
+   - 將死：對手的王被將軍且沒有合法移動
+   - 逼和：當前玩家沒有合法移動但未被將軍（平局）
 
-6. **Game Controls**
-   - **New Game**: Start a fresh game
-   - **Undo**: (Note: Feature placeholder in current version)
-   - **Flip Board**: Rotate the board 180° to view from the other player's perspective ⭐ NEW
+6. **遊戲控制**
+   - **新遊戲**：開始新的遊戲
+   - **悔棋**：（注意：目前版本中的功能占位符）
+   - **翻轉棋盤**：將棋盤旋轉 180° 以從另一位玩家的視角查看 ⭐ 新功能
 
-## Game Status Messages
+## 遊戲狀態訊息
 
-- "Game in progress" - Normal play
-- "White is in check!" / "Black is in check!" - King under attack
-- "White wins by checkmate!" / "Black wins by checkmate!" - Game over
-- "Stalemate - Draw!" - Game ends in a draw
+- "Game in progress" - 正常進行中
+- "White is in check!" / "Black is in check!" - 白方/黑方被將軍
+- "White wins by checkmate!" / "Black wins by checkmate!" - 白方/黑方獲勝
+- "Stalemate - Draw!" - 逼和平局
 
-## Technical Implementation Details
+## 技術實作細節
 
-### Move Validation
-- Two-stage validation:
-  1. Piece-specific rules (each piece class)
-  2. Board-level checks (wouldn't put king in check)
+### 移動驗證
+- 兩階段驗證：
+  1. 棋子特定規則（每個棋子類別）
+  2. 棋盤層級檢查（不會讓自己的王被將軍）
 
-### Check Detection
-- Scans all opponent pieces to see if they can attack the king
-- Prevents moves that would leave own king in check
+### 將軍偵測
+- 掃描所有對手棋子，檢查是否能攻擊王
+- 防止會讓自己的王被將軍的移動
 
-### Checkmate Detection
-- King is in check
-- No legal moves available to escape check
+### 將死偵測
+- 王被將軍
+- 沒有合法移動可以逃脫將軍
 
-### Stalemate Detection
-- King is not in check
-- No legal moves available
+### 逼和偵測
+- 王未被將軍
+- 沒有可用的合法移動
 
-## Future Enhancements
+## 未來改進
 
-Possible additions for future versions:
-- Full undo/redo functionality
-- Move history display with algebraic notation
-- Timer/clock for timed games
-- Save/load game state
-- Piece promotion choice dialog (currently auto-promotes to Queen)
-- Volume control for sound effects
-- Additional sound effects (check, checkmate, castling)
-- Sound on/off toggle
-- Animated board flip transition
-- Opening book and game analysis
-- Online multiplayer
-- AI opponent
+未來版本可能的新增功能：
+- 完整的悔棋/重做功能
+- 使用代數記譜法的移動歷史顯示
+- 計時遊戲的計時器/時鐘
+- 儲存/載入遊戲狀態
+- 棋子升變選擇對話框（目前自動升變為后）
+- 音效音量控制
+- 額外的音效（將軍、將死、王車易位）
+- 音效開關切換
+- 動畫棋盤翻轉過渡效果
+- 開局庫和遊戲分析
+- 線上多人對戰
+- AI 對手
 
-## License
+## 授權
 
-This project is open source and available for educational purposes.
+本專案為開源專案，可用於教育目的。
