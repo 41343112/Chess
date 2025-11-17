@@ -282,6 +282,12 @@ void myChess::highlightValidMoves(QPoint from) {
     ChessPiece* piece = m_chessBoard->getPieceAt(from);
     if (piece == nullptr) return;
     
+    // Iterate through all squares on the board and highlight only valid moves
+    // This implementation ensures that blocked squares are not highlighted because:
+    // 1. Each piece's isValidMove() checks if the path is clear
+    // 2. If a piece blocks the path, isValidMove() returns false for that square
+    // 3. Consequently, all squares beyond the blocking piece also return false
+    // Result: Only truly reachable squares are highlighted in green
     for (int row = 0; row < 8; ++row) {
         for (int col = 0; col < 8; ++col) {
             QPoint to(col, row);

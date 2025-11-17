@@ -42,11 +42,13 @@ bool Pawn::isValidMove(QPoint newPos, ChessBoard* board) const {
             return true;
         }
         // Initial two-square move
+        // This also checks for blocking: the middle square must be empty
         if (dy == 2 * direction && !m_hasMoved && targetPiece == nullptr) {
             QPoint middlePos(m_position.x(), m_position.y() + direction);
             if (board->getPieceAt(middlePos) == nullptr) {
-                return true;
+                return true;  // Both middle and target squares are empty
             }
+            // If middle square is blocked, the pawn cannot move two squares
         }
     }
     // Diagonal capture
@@ -78,25 +80,29 @@ bool Rook::isValidMove(QPoint newPos, ChessBoard* board) const {
     // Must move in straight line
     if (dx != 0 && dy != 0) return false;
     
-    // Check if path is clear
+    // Check if path is clear (requirement: blocked squares should not be shown as valid)
+    // This ensures that when a piece blocks the path, all squares beyond it are invalid
     int stepX = (dx != 0) ? (dx > 0 ? 1 : -1) : 0;
     int stepY = (dy != 0) ? (dy > 0 ? 1 : -1) : 0;
     
     int currentX = m_position.x() + stepX;
     int currentY = m_position.y() + stepY;
     
+    // Check each square along the path (excluding start and target)
     while (currentX != newPos.x() || currentY != newPos.y()) {
         if (board->getPieceAt(currentX, currentY) != nullptr) {
+            // Path is blocked! This piece cannot move to the target square.
+            // Consequently, all squares beyond this point are also invalid.
             return false;
         }
         currentX += stepX;
         currentY += stepY;
     }
     
-    // Check target square
+    // Check target square - can move to empty square or capture enemy piece
     ChessPiece* targetPiece = board->getPieceAt(newPos);
     if (targetPiece != nullptr && targetPiece->getColor() == m_color) {
-        return false;
+        return false;  // Cannot capture own piece
     }
     
     return true;
@@ -142,25 +148,29 @@ bool Bishop::isValidMove(QPoint newPos, ChessBoard* board) const {
     // Must move diagonally
     if (abs(dx) != abs(dy)) return false;
     
-    // Check if path is clear
+    // Check if path is clear (requirement: blocked squares should not be shown as valid)
+    // This ensures that when a piece blocks the path, all squares beyond it are invalid
     int stepX = dx > 0 ? 1 : -1;
     int stepY = dy > 0 ? 1 : -1;
     
     int currentX = m_position.x() + stepX;
     int currentY = m_position.y() + stepY;
     
+    // Check each square along the diagonal path (excluding start and target)
     while (currentX != newPos.x() || currentY != newPos.y()) {
         if (board->getPieceAt(currentX, currentY) != nullptr) {
+            // Path is blocked! This piece cannot move to the target square.
+            // Consequently, all squares beyond this point are also invalid.
             return false;
         }
         currentX += stepX;
         currentY += stepY;
     }
     
-    // Check target square
+    // Check target square - can move to empty square or capture enemy piece
     ChessPiece* targetPiece = board->getPieceAt(newPos);
     if (targetPiece != nullptr && targetPiece->getColor() == m_color) {
-        return false;
+        return false;  // Cannot capture own piece
     }
     
     return true;
@@ -181,25 +191,29 @@ bool Queen::isValidMove(QPoint newPos, ChessBoard* board) const {
     // Must move in straight line or diagonal
     if (dx != 0 && dy != 0 && abs(dx) != abs(dy)) return false;
     
-    // Check if path is clear
+    // Check if path is clear (requirement: blocked squares should not be shown as valid)
+    // This ensures that when a piece blocks the path, all squares beyond it are invalid
     int stepX = (dx != 0) ? (dx > 0 ? 1 : -1) : 0;
     int stepY = (dy != 0) ? (dy > 0 ? 1 : -1) : 0;
     
     int currentX = m_position.x() + stepX;
     int currentY = m_position.y() + stepY;
     
+    // Check each square along the path (excluding start and target)
     while (currentX != newPos.x() || currentY != newPos.y()) {
         if (board->getPieceAt(currentX, currentY) != nullptr) {
+            // Path is blocked! This piece cannot move to the target square.
+            // Consequently, all squares beyond this point are also invalid.
             return false;
         }
         currentX += stepX;
         currentY += stepY;
     }
     
-    // Check target square
+    // Check target square - can move to empty square or capture enemy piece
     ChessPiece* targetPiece = board->getPieceAt(newPos);
     if (targetPiece != nullptr && targetPiece->getColor() == m_color) {
-        return false;
+        return false;  // Cannot capture own piece
     }
     
     return true;
