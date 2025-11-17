@@ -78,7 +78,6 @@ public:
     void setHighlight(HighlightType type);
     void setSelected(bool selected);
     void setInCheck(bool inCheck);
-    void setRightClickMarked(bool marked);
     
     int getRow() const { return m_row; }
     int getCol() const { return m_col; }
@@ -97,7 +96,6 @@ private:
     HighlightType m_highlightType;
     bool m_isSelected;
     bool m_isInCheck;
-    bool m_isRightClickMarked;
     QPoint m_dragStartPosition;
     QString m_draggedPieceText;  // Store piece text during drag
     bool m_isDragging;  // Track if currently dragging
@@ -144,7 +142,6 @@ private:
     void setupUI();
     void updateBoard();
     void clearHighlights();
-    void clearRightClickMarkers();
     void highlightValidMoves(QPoint from);
     void showGameOverDialog();
     void playMoveSound(bool isCapture);
