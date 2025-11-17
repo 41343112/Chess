@@ -25,6 +25,8 @@ See [NEW_FEATURES.md](NEW_FEATURES.md) for detailed documentation of the new fea
 
 ### Complete Chess Rules Implementation
 - ✅ All piece movements (Pawn, Rook, Knight, Bishop, Queen, King)
+- ✅ **Path blocking for sliding pieces** - Squares beyond blocking pieces are not shown as valid moves
+  - See [PATH_BLOCKING_IMPLEMENTATION.md](PATH_BLOCKING_IMPLEMENTATION.md) for technical details
 - ✅ Special moves:
   - Castling (kingside and queenside)
   - En passant capture
@@ -349,6 +351,23 @@ Possible additions for future versions:
 - Opening book and game analysis
 - Online multiplayer
 - AI opponent
+
+## Documentation
+
+### Technical Documentation
+- [PATH_BLOCKING_IMPLEMENTATION.md](PATH_BLOCKING_IMPLEMENTATION.md) - Detailed explanation of path blocking feature (路徑阻擋功能)
+- [FEATURE_VERIFICATION_SUMMARY.md](FEATURE_VERIFICATION_SUMMARY.md) - Verification report for path blocking implementation
+- [NEW_FEATURES.md](NEW_FEATURES.md) - Documentation of new features (drag-and-drop, check highlighting)
+- [IMPLEMENTATION.md](IMPLEMENTATION.md) - Overall implementation details
+- [DEVELOPER_NOTES.md](DEVELOPER_NOTES.md) - Notes for developers
+
+### Bug Fix Documentation
+- [BUG_FIXES_SUMMARY.md](BUG_FIXES_SUMMARY.md) - Summary of bug fixes
+- [DRAG_FIX_SUMMARY.md](DRAG_FIX_SUMMARY.md) - Drag-and-drop implementation details
+
+### UI Documentation
+- [UI_MOCKUP.md](UI_MOCKUP.md) - UI design mockups
+- [UI_MOCKUP_NEW_FEATURES.md](UI_MOCKUP_NEW_FEATURES.md) - UI mockups for new features
 
 ## License
 
