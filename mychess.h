@@ -14,6 +14,7 @@
 #include <QMimeData>
 #include <QDragEnterEvent>
 #include <QDropEvent>
+#include <QResizeEvent>
 #include "chessboard.h"
 
 QT_BEGIN_NAMESPACE
@@ -21,6 +22,44 @@ namespace Ui {
 class myChess;
 }
 QT_END_NAMESPACE
+
+// Helper widget to maintain square aspect ratio for the board
+class SquareBoardWidget : public QWidget {
+    Q_OBJECT
+    
+public:
+    explicit SquareBoardWidget(QWidget* parent = nullptr) : QWidget(parent) {
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    }
+    
+    QSize sizeHint() const override {
+        // Suggest a square size
+        int size = qMin(width(), height());
+        if (size <= 0) size = 600;
+        return QSize(size, size);
+    }
+    
+protected:
+    void resizeEvent(QResizeEvent* event) override {
+        QWidget::resizeEvent(event);
+        
+        // Get the available space
+        int w = width();
+        int h = height();
+        
+        // Calculate the maximum square size that fits
+        int size = qMin(w, h);
+        
+        // Center the layout within the widget
+        int x = (w - size) / 2;
+        int y = (h - size) / 2;
+        
+        // If there's a layout, apply geometry to maintain square aspect
+        if (layout()) {
+            layout()->setGeometry(QRect(x, y, size, size));
+        }
+    }
+};
 
 class ChessSquare : public QPushButton {
     Q_OBJECT
