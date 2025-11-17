@@ -9,6 +9,11 @@
 #include <QHBoxLayout>
 #include <QGridLayout>
 #include <QMessageBox>
+#include <QMouseEvent>
+#include <QDrag>
+#include <QMimeData>
+#include <QDragEnterEvent>
+#include <QDropEvent>
 #include "chessboard.h"
 
 QT_BEGIN_NAMESPACE
@@ -26,9 +31,17 @@ public:
     void setPiece(ChessPiece* piece);
     void setHighlight(bool highlight);
     void setSelected(bool selected);
+    void setInCheck(bool inCheck);
     
     int getRow() const { return m_row; }
     int getCol() const { return m_col; }
+    
+protected:
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void dragEnterEvent(QDragEnterEvent* event) override;
+    void dropEvent(QDropEvent* event) override;
     
 private:
     int m_row;
@@ -36,6 +49,8 @@ private:
     bool m_isLight;
     bool m_isHighlighted;
     bool m_isSelected;
+    bool m_isInCheck;
+    QPoint m_dragStartPosition;
     
     void updateStyle();
 };
@@ -47,6 +62,9 @@ class myChess : public QMainWindow
 public:
     myChess(QWidget *parent = nullptr);
     ~myChess();
+    
+    void onSquareDragStarted(int row, int col);
+    void onSquareDragEnded(int row, int col);
 
 private slots:
     void onSquareClicked();
