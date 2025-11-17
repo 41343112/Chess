@@ -6,11 +6,12 @@
 // ChessSquare implementation
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     : QPushButton(parent), m_row(row), m_col(col),
-      m_highlightType(None), m_isSelected(false), m_isInCheck(false),
-      m_isDragging(false) {
+    m_highlightType(None), m_isSelected(false), m_isInCheck(false),
+    m_isDragging(false) {
     m_isLight = (row + col) % 2 == 0;
-    // Remove setFixedSize to allow scaling
+    // Avoid fixed sizes so squares can scale, but give a reasonable minimum
     setMinimumSize(40, 40);
+    // Use Expanding so grid cells expand to fill the board; enable height-for-width
     QSizePolicy policy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     policy.setHeightForWidth(true);  // Enable height-for-width aspect ratio
     setSizePolicy(policy);
@@ -68,7 +69,7 @@ void ChessSquare::updateStyle() {
     }
 
     setStyleSheet(QString("QPushButton { background-color: %1; border: %2px solid %3; }")
-                  .arg(bgColor).arg(borderWidth).arg(borderColor));
+                      .arg(bgColor).arg(borderWidth).arg(borderColor));
 }
 
 QSize ChessSquare::sizeHint() const {
@@ -88,7 +89,7 @@ int ChessSquare::heightForWidth(int width) const {
 
 void ChessSquare::resizeEvent(QResizeEvent* event) {
     QPushButton::resizeEvent(event);
-    
+
     // Adjust font size based on square size to keep text readable
     int size = qMin(width(), height());
     int fontSize = qMax(12, size / 2);
@@ -253,6 +254,9 @@ void myChess::setupUI() {
     // Create central widget with layout
     QWidget* centralWidget = new QWidget(this);
     QVBoxLayout* mainLayout = new QVBoxLayout(centralWidget);
+    // Use small margins so the board area can be sized square by height-for-width
+    mainLayout->setContentsMargins(6, 6, 6, 6);
+    mainLayout->setSpacing(6);
 
     // Status labels
     QHBoxLayout* statusLayout = new QHBoxLayout();
@@ -267,7 +271,9 @@ void myChess::setupUI() {
 
     // Chess board - with equal row and column stretch for proportional scaling
     QGridLayout* boardLayout = new QGridLayout();
+    // Crucial: no spacing or margins so grid cells can divide the board area exactly
     boardLayout->setSpacing(0);
+    boardLayout->setContentsMargins(0, 0, 0, 0);
 
     for (int row = 0; row < 8; ++row) {
         for (int col = 0; col < 8; ++col) {
@@ -286,6 +292,8 @@ void myChess::setupUI() {
     }
 
     SquareBoardWidget* boardWidget = new SquareBoardWidget(this);
+    // Ensure boardWidget expands and participates in height-for-width negotiation
+    boardWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     boardWidget->setLayout(boardLayout);
     mainLayout->addWidget(boardWidget, 1);  // Stretch factor 1 to take available space
 
@@ -317,6 +325,155 @@ void myChess::setupUI() {
     resize(700, 800);
 }
 
+void myChess::onNewGame() {
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this, "New Game", "Start a new game?",
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        m_chessBoard->reset();
+        m_hasSelection = false;
+        clearHighlights();
+        updateBoard();
+    }
+}
+
+void myChess::onUndo() {
+    // This is a simplified version - a full implementation would need to restore
+    // the previous board state from move history
+    QMessageBox::information(this, "Undo",
+                             "Undo feature is not fully implemented in this version.\n"
+                             "Use 'New Game' to start over.");
+}
+
+void myChess::showGameOverDialog() {
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle("Game Over");
+    msgBox.setText(m_chessBoard->getGameStatus());
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.exec();
+}
+
+bool myChess::onSquareDragStarted(int row, int col) {
+    if (m_chessBoard->isGameOver()) {
+        return false;
+    }
+
+    QPoint clickedPos(col, row);
+    ChessPiece* piece = m_chessBoard->getPieceAt(clickedPos);
+
+    // Only allow dragging pieces of the current player
+    if (piece != nullptr && piece->getColor() == m_chessBoard->getCurrentTurn()) {
+        m_selectedSquare = clickedPos;
+        m_hasSelection = true;
+        clearHighlights();
+        m_squares[row][col]->setSelected(true);
+        highlightValidMoves(clickedPos);
+        return true;
+    }
+
+    return false;
+}
+
+void myChess::onSquareDragEnded(int row, int col) {
+    if (m_chessBoard->isGameOver() || !m_hasSelection) {
+        return;
+    }
+
+    QPoint targetPos(col, row);
+
+    // Check if there's a piece at the destination for capture sound
+    ChessPiece* targetPiece = m_chessBoard->getPieceAt(targetPos);
+    bool isCapture = (targetPiece != nullptr);
+
+    // Try to make the move
+    bool moveSuccess = m_chessBoard->movePiece(m_selectedSquare, targetPos);
+    m_hasSelection = false;
+    clearHighlights();
+    if (moveSuccess) {
+        // Clear red markers when a move is made
+        playMoveSound(isCapture);  // Play appropriate sound
+    }
+    updateBoard();
+
+    if (!moveSuccess) {
+        // Invalid move - check if selecting a different piece
+        ChessPiece* piece = m_chessBoard->getPieceAt(targetPos);
+        if (piece != nullptr && piece->getColor() == m_chessBoard->getCurrentTurn()) {
+            m_selectedSquare = targetPos;
+            m_hasSelection = true;
+            m_squares[row][col]->setSelected(true);
+            highlightValidMoves(targetPos);
+        }
+    }
+}
+
+void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
+    // Drag was cancelled via right-click
+    m_hasSelection = false;
+    clearHighlights();
+    updateBoard();
+}
+
+void myChess::playMoveSound(bool isCapture) {
+    if (isCapture) {
+        m_captureSound->play();
+    } else {
+        m_moveSound->play();
+    }
+}
+
+void myChess::onFlipBoard() {
+    m_isBoardFlipped = !m_isBoardFlipped;
+
+    // Clear any current selection and highlights
+    m_hasSelection = false;
+    clearHighlights();
+
+
+    // Re-create the board layout with flipped orientation
+    // We need to remove all widgets from the layout and re-add them
+    QGridLayout* boardLayout = nullptr;
+
+    // Find the board layout
+    QWidget* centralWidget = this->centralWidget();
+    if (centralWidget) {
+        QVBoxLayout* mainLayout = qobject_cast<QVBoxLayout*>(centralWidget->layout());
+        if (mainLayout) {
+            // The board widget is at index 1 (after status layout)
+            QLayoutItem* item = mainLayout->itemAt(1);
+            if (item && item->widget()) {
+                SquareBoardWidget* boardWidget = qobject_cast<SquareBoardWidget*>(item->widget());
+                if (boardWidget) {
+                    boardLayout = qobject_cast<QGridLayout*>(boardWidget->layout());
+                }
+            }
+        }
+    }
+
+    if (boardLayout) {
+        // Remove all squares from the layout
+        for (int row = 0; row < 8; ++row) {
+            for (int col = 0; col < 8; ++col) {
+                boardLayout->removeWidget(m_squares[row][col]);
+            }
+        }
+
+        // Re-add squares with flipped coordinates
+        for (int row = 0; row < 8; ++row) {
+            for (int col = 0; col < 8; ++col) {
+                int displayRow = m_isBoardFlipped ? (7 - row) : row;
+                int displayCol = m_isBoardFlipped ? (7 - col) : col;
+                boardLayout->addWidget(m_squares[row][col], displayRow, displayCol);
+            }
+        }
+    }
+
+    // Update the board display
+    updateBoard();
+}
+
 void myChess::updateBoard() {
     // First, clear all check highlights
     for (int row = 0; row < 8; ++row) {
@@ -342,7 +499,7 @@ void myChess::updateBoard() {
 
     // Update turn label
     QString turnText = (m_chessBoard->getCurrentTurn() == PieceColor::WHITE) ?
-        "Turn: White" : "Turn: Black";
+                           "Turn: White" : "Turn: Black";
     m_turnLabel->setText(turnText);
 
     // Update status label
@@ -438,153 +595,3 @@ void myChess::onSquareClicked() {
         }
     }
 }
-
-void myChess::onNewGame() {
-    QMessageBox::StandardButton reply = QMessageBox::question(
-        this, "New Game", "Start a new game?",
-        QMessageBox::Yes | QMessageBox::No);
-
-    if (reply == QMessageBox::Yes) {
-        m_chessBoard->reset();
-        m_hasSelection = false;
-        clearHighlights();
-        updateBoard();
-    }
-}
-
-void myChess::onUndo() {
-    // This is a simplified version - a full implementation would need to restore
-    // the previous board state from move history
-    QMessageBox::information(this, "Undo",
-        "Undo feature is not fully implemented in this version.\n"
-        "Use 'New Game' to start over.");
-}
-
-void myChess::showGameOverDialog() {
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle("Game Over");
-    msgBox.setText(m_chessBoard->getGameStatus());
-    msgBox.setIcon(QMessageBox::Information);
-    msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.exec();
-}
-
-bool myChess::onSquareDragStarted(int row, int col) {
-    if (m_chessBoard->isGameOver()) {
-        return false;
-    }
-
-    QPoint clickedPos(col, row);
-    ChessPiece* piece = m_chessBoard->getPieceAt(clickedPos);
-
-    // Only allow dragging pieces of the current player
-    if (piece != nullptr && piece->getColor() == m_chessBoard->getCurrentTurn()) {
-        m_selectedSquare = clickedPos;
-        m_hasSelection = true;
-        clearHighlights();
-        m_squares[row][col]->setSelected(true);
-        highlightValidMoves(clickedPos);
-        return true;
-    }
-
-    return false;
-}
-
-void myChess::onSquareDragEnded(int row, int col) {
-    if (m_chessBoard->isGameOver() || !m_hasSelection) {
-        return;
-    }
-
-    QPoint targetPos(col, row);
-
-    // Check if there's a piece at the destination for capture sound
-    ChessPiece* targetPiece = m_chessBoard->getPieceAt(targetPos);
-    bool isCapture = (targetPiece != nullptr);
-
-    // Try to make the move
-    bool moveSuccess = m_chessBoard->movePiece(m_selectedSquare, targetPos);
-    m_hasSelection = false;
-    clearHighlights();
-    if (moveSuccess) {
-       // Clear red markers when a move is made
-        playMoveSound(isCapture);  // Play appropriate sound
-    }
-    updateBoard();
-
-    if (!moveSuccess) {
-        // Invalid move - check if selecting a different piece
-        ChessPiece* piece = m_chessBoard->getPieceAt(targetPos);
-        if (piece != nullptr && piece->getColor() == m_chessBoard->getCurrentTurn()) {
-            m_selectedSquare = targetPos;
-            m_hasSelection = true;
-            m_squares[row][col]->setSelected(true);
-            highlightValidMoves(targetPos);
-        }
-    }
-}
-
-void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
-    // Drag was cancelled via right-click
-    m_hasSelection = false;
-    clearHighlights();
-    updateBoard();
-}
-
-void myChess::playMoveSound(bool isCapture) {
-    if (isCapture) {
-        m_captureSound->play();
-    } else {
-        m_moveSound->play();
-    }
-}
-
-void myChess::onFlipBoard() {
-    m_isBoardFlipped = !m_isBoardFlipped;
-
-    // Clear any current selection and highlights
-    m_hasSelection = false;
-    clearHighlights();
-
-
-    // Re-create the board layout with flipped orientation
-    // We need to remove all widgets from the layout and re-add them
-    QGridLayout* boardLayout = nullptr;
-
-    // Find the board layout
-    QWidget* centralWidget = this->centralWidget();
-    if (centralWidget) {
-        QVBoxLayout* mainLayout = qobject_cast<QVBoxLayout*>(centralWidget->layout());
-        if (mainLayout) {
-            // The board widget is at index 1 (after status layout)
-            QLayoutItem* item = mainLayout->itemAt(1);
-            if (item && item->widget()) {
-                SquareBoardWidget* boardWidget = qobject_cast<SquareBoardWidget*>(item->widget());
-                if (boardWidget) {
-                    boardLayout = qobject_cast<QGridLayout*>(boardWidget->layout());
-                }
-            }
-        }
-    }
-
-    if (boardLayout) {
-        // Remove all squares from the layout
-        for (int row = 0; row < 8; ++row) {
-            for (int col = 0; col < 8; ++col) {
-                boardLayout->removeWidget(m_squares[row][col]);
-            }
-        }
-
-        // Re-add squares with flipped coordinates
-        for (int row = 0; row < 8; ++row) {
-            for (int col = 0; col < 8; ++col) {
-                int displayRow = m_isBoardFlipped ? (7 - row) : row;
-                int displayCol = m_isBoardFlipped ? (7 - col) : col;
-                boardLayout->addWidget(m_squares[row][col], displayRow, displayCol);
-            }
-        }
-    }
-
-    // Update the board display
-    updateBoard();
-}
-
