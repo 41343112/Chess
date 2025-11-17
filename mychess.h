@@ -148,7 +148,5 @@ private:
     void highlightValidMoves(QPoint from);
     void showGameOverDialog();
     void playMoveSound(bool isCapture);
-    int getDisplayRow(int logicalRow) const;
-    int getDisplayCol(int logicalCol) const;
 };
 #endif // MYCHESS_H

@@ -532,20 +532,6 @@ void myChess::playMoveSound(bool isCapture) {
     }
 }
 
-int myChess::getDisplayRow(int logicalRow) const {
-    if (m_isBoardFlipped) {
-        return logicalRow;
-    }
-    return logicalRow;
-}
-
-int myChess::getDisplayCol(int logicalCol) const {
-    if (m_isBoardFlipped) {
-        return logicalCol;
-    }
-    return logicalCol;
-}
-
 void myChess::onFlipBoard() {
     m_isBoardFlipped = !m_isBoardFlipped;
     
