@@ -2,6 +2,7 @@
 #include "ui_mychess.h"
 #include <QApplication>
 #include <QPainter>
+#include <QIcon>
 
 // ChessSquare implementation
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
@@ -18,12 +19,29 @@ ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     setFont(QFont("Arial", 32));
     updateStyle();
     setAcceptDrops(true);
+
+    // Ensure button displays icon centered
+    setIcon(QIcon());
+    setIconSize(size());
 }
 
 void ChessSquare::setPiece(ChessPiece* piece) {
     if (piece != nullptr) {
-        setText(piece->getSymbol());
+        QPixmap pix = piece->getPixmap();
+        if (!pix.isNull()) {
+            // Use icon (scaled to fit)
+            int s = qMin(width(), height());
+            QPixmap scaled = pix.scaled(s, s, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            setIcon(QIcon(scaled));
+            setIconSize(scaled.size());
+            setText("");
+        } else {
+            // fallback to text symbol
+            setIcon(QIcon());
+            setText(piece->getSymbol());
+        }
     } else {
+        setIcon(QIcon());
         setText("");
     }
 }
@@ -94,6 +112,11 @@ void ChessSquare::resizeEvent(QResizeEvent* event) {
     int size = qMin(width(), height());
     int fontSize = qMax(8, size / 2);
     setFont(QFont("Arial", fontSize));
+
+    // Update icon size if present
+    if (!icon().isNull()) {
+        setIconSize(QSize(size, size));
+    }
 }
 
 void ChessSquare::mousePressEvent(QMouseEvent* event) {
@@ -102,8 +125,8 @@ void ChessSquare::mousePressEvent(QMouseEvent* event) {
     } else if (event->button() == Qt::RightButton) {
         // Right-click: cancel drag if currently dragging
         if (m_isDragging) {
-            // Cancel drag - restore the piece text
-            setText(m_draggedPieceText);
+            // Cancel drag - restore the piece text/icon
+            if (!m_draggedPieceText.isEmpty()) setText(m_draggedPieceText);
             m_draggedPieceText.clear();
             m_isDragging = false;
 
@@ -130,8 +153,8 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
         return;
     }
 
-    // Only allow dragging if there's a piece on this square
-    if (text().isEmpty()) {
+    // Only allow dragging if there's a piece on this square (text or icon)
+    if (text().isEmpty() && icon().isNull()) {
         return;
     }
 
@@ -161,18 +184,23 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     mimeData->setText(QString("%1,%2").arg(m_row).arg(m_col));
     drag->setMimeData(mimeData);
 
-    // Create a pixmap showing only the piece symbol (not the background)
-    QPixmap pixmap(size());
-    pixmap.fill(Qt::transparent);
-    QPainter painter(&pixmap);
-    painter.setFont(font());
-    painter.setPen(Qt::black);
+    // Create a pixmap for the drag: prefer icon/pixmap if present
+    QPixmap dragPixmap;
+    if (!icon().isNull()) {
+        dragPixmap = icon().pixmap(iconSize());
+    } else {
+        dragPixmap = QPixmap(size());
+        dragPixmap.fill(Qt::transparent);
+        QPainter painter(&dragPixmap);
+        painter.setFont(font());
+        painter.setPen(Qt::black);
 
-    // Draw the piece symbol centered
-    QRect textRect = rect();
-    painter.drawText(textRect, Qt::AlignCenter, m_draggedPieceText);
+        // Draw the piece symbol centered
+        QRect textRect = rect();
+        painter.drawText(textRect, Qt::AlignCenter, m_draggedPieceText);
+    }
 
-    drag->setPixmap(pixmap);
+    drag->setPixmap(dragPixmap);
     drag->setHotSpot(event->pos());
 
     Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
@@ -180,7 +208,7 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     // Clear dragging flag
     m_isDragging = false;
 
-    // If drag was not accepted (cancelled or failed), restore the piece text
+    // If drag was not accepted (cancelled or failed), restore the piece text/icon
     if (dropAction == Qt::IgnoreAction) {
         setText(m_draggedPieceText);
     }
@@ -255,9 +283,8 @@ myChess::~myChess()
 void myChess::setMinBoardSize(int px) {
     if (px < 0) px = 0;
     m_minBoardSize = px;
-    // 立即更新佈局（如果已建立）
+    // 立即更新佈局（如已建立）
     if (m_boardWidget) {
-        // 觸發一次 resizeEvent 的處理
         QResizeEvent fakeEvent(size(), size());
         resizeEvent(&fakeEvent);
     }
@@ -531,9 +558,7 @@ void myChess::onFlipBoard() {
     m_hasSelection = false;
     clearHighlights();
 
-
     // Re-create the board layout with flipped orientation
-    // We need to remove all widgets from the layout and re-add them
     QGridLayout* boardLayout = nullptr;
 
     // Find the board layout

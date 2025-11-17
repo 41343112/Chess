@@ -3,4 +3,21 @@
         <file>sounds/move.wav</file>
         <file>sounds/capture.wav</file>
     </qresource>
+
+    <!-- 新增 images 資源 (請把對應檔案放到專案 images/ 目錄) -->
+    <qresource prefix="/images">
+        <file>images/pawn.png</file>
+        <file>images/rook.png</file>
+        <file>images/knight.png</file>
+        <file>images/biship.png</file>
+        <file>images/queen.png</file>
+        <file>images/king.png</file>
+
+        <file>images/b_pawn.png</file>
+        <file>images/b_rook.png</file>
+        <file>images/b_knight.png</file>
+        <file>images/b_biship.png</file>
+        <file>images/b_queen.png</file>
+        <file>images/b_king.png</file>
+    </qresource>
 </RCC>

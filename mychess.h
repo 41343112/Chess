@@ -121,7 +121,7 @@ public:
     void onSquareDragEnded(int row, int col);
     void onSquareDragCancelled(int row, int col);
 
-    // 設定/取得棋盤最小尺寸（像素）
+    // 設定/取得棋盤最小尺寸(像素)
     void setMinBoardSize(int px);
     int  minBoardSize() const;
 
@@ -156,7 +156,7 @@ private:
     // Make the board widget a member so resizeEvent can control it
     SquareBoardWidget* m_boardWidget;
 
-    // 可設定的最小棋盤尺寸（像素），預設 40
+    // 可設定的最小棋盤尺寸(像素)，預設 40
     int m_minBoardSize;
 
     void setupUI();

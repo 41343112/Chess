@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QPoint>
+#include <QPixmap>    // 新增
 
 enum class PieceType {
     PAWN,
@@ -29,9 +30,12 @@ public:
     void setPosition(QPoint pos) { m_position = pos; }
     bool hasMoved() const { return m_hasMoved; }
     void setMoved(bool moved) { m_hasMoved = moved; }
-    
+
     QString getSymbol() const;
-    
+
+    // 新增：回傳棋子圖像（若無對應圖像可回傳 null pixmap）
+    QPixmap getPixmap() const;
+
     // Virtual method for checking valid moves
     virtual bool isValidMove(QPoint newPos, class ChessBoard* board) const = 0;
 

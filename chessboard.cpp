@@ -1,9 +1,9 @@
 #include "chessboard.h"
 #include <QDebug>
 
-              ChessBoard::ChessBoard()
+ChessBoard::ChessBoard()
     : m_currentTurn(PieceColor::WHITE), m_enPassantTarget(-1, -1),
-m_isGameOver(false) {
+    m_isGameOver(false) {
     for (int i = 0; i < 8; ++i) {
         for (int j = 0; j < 8; ++j) {
             m_board[i][j] = nullptr;
@@ -97,16 +97,16 @@ bool ChessBoard::canMove(QPoint from, QPoint to) const {
 
     // Check if the piece can move according to its rules
     if (!piece->isValidMove(to, const_cast<ChessBoard*>(this))) return false;
-    
+
     // Additional validation for castling moves
     if (piece->getType() == PieceType::KING && abs(to.x() - from.x()) == 2) {
         bool kingSide = to.x() > from.x();
         if (!canCastle(m_currentTurn, kingSide)) return false;
     }
-    
+
     // Check if this move would leave the king in check
     if (wouldBeInCheck(from, to, m_currentTurn)) return false;
-    
+
     return true;
 }
 
@@ -428,7 +428,7 @@ bool ChessBoard::hasAnyValidMoves(PieceColor color) {
     // 1. King can move to a safe square
     // 2. A piece can capture the attacking piece
     // 3. A piece can block the attack
-    
+
     for (int fromRow = 0; fromRow < 8; ++fromRow) {
         for (int fromCol = 0; fromCol < 8; ++fromCol) {
             ChessPiece* piece = m_board[fromRow][fromCol];
@@ -441,14 +441,14 @@ bool ChessBoard::hasAnyValidMoves(PieceColor color) {
 
                     // Check if the piece can move according to its rules
                     if (!piece->isValidMove(to, this)) continue;
-                    
+
                     // Additional validation for castling moves
                     // Castling has special requirements beyond basic move validation
                     if (piece->getType() == PieceType::KING && abs(to.x() - from.x()) == 2) {
                         bool kingSide = to.x() > from.x();
                         if (!canCastle(color, kingSide)) continue;
                     }
-                    
+
                     // Check if this move would leave the king in check
                     if (!wouldBeInCheck(from, to, color)) {
                         return true;
@@ -464,7 +464,7 @@ bool ChessBoard::isCheckmate(PieceColor color) {
     // Checkmate occurs when ALL three conditions are met:
     // 1. The king is under attack (in check)
     if (!isKingInCheck(color)) return false;
-    
+
     // 2. The king cannot escape by moving to a safe square
     // 3. No piece can capture the attacking piece
     // 4. No piece can block the attack

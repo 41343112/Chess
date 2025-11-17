@@ -6,7 +6,7 @@
 #include <QPoint>
 #include <memory>
 
-              struct Move {
+struct Move {
     QPoint from;
     QPoint to;
     ChessPiece* capturedPiece;
@@ -17,7 +17,7 @@
 
     Move() : capturedPiece(nullptr), wasCastling(false), wasEnPassant(false),
         wasPromotion(false), promotedTo(PieceType::QUEEN) {}
-};
+} ;
 
 class ChessBoard {
 public:
