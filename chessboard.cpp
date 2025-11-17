@@ -154,17 +154,15 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
             switchTurn();
             
             // Check for checkmate/stalemate
-            PieceColor opponentColor = (m_currentTurn == PieceColor::WHITE) ? 
-                PieceColor::BLACK : PieceColor::WHITE;
-            if (isCheckmate(opponentColor)) {
+            if (isCheckmate(m_currentTurn)) {
                 m_isGameOver = true;
                 m_gameStatus = (m_currentTurn == PieceColor::WHITE) ? 
                     "Black wins by checkmate!" : "White wins by checkmate!";
-            } else if (isStalemate(opponentColor)) {
+            } else if (isStalemate(m_currentTurn)) {
                 m_isGameOver = true;
                 m_gameStatus = "Stalemate - Draw!";
-            } else if (isKingInCheck(opponentColor)) {
-                m_gameStatus = (opponentColor == PieceColor::WHITE) ? 
+            } else if (isKingInCheck(m_currentTurn)) {
+                m_gameStatus = (m_currentTurn == PieceColor::WHITE) ? 
                     "White is in check!" : "Black is in check!";
             } else {
                 m_gameStatus = "Game in progress";
@@ -183,17 +181,15 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
         switchTurn();
         
         // Check for checkmate/stalemate
-        PieceColor opponentColor = (m_currentTurn == PieceColor::WHITE) ? 
-            PieceColor::BLACK : PieceColor::WHITE;
-        if (isCheckmate(opponentColor)) {
+        if (isCheckmate(m_currentTurn)) {
             m_isGameOver = true;
             m_gameStatus = (m_currentTurn == PieceColor::WHITE) ? 
                 "Black wins by checkmate!" : "White wins by checkmate!";
-        } else if (isStalemate(opponentColor)) {
+        } else if (isStalemate(m_currentTurn)) {
             m_isGameOver = true;
             m_gameStatus = "Stalemate - Draw!";
-        } else if (isKingInCheck(opponentColor)) {
-            m_gameStatus = (opponentColor == PieceColor::WHITE) ? 
+        } else if (isKingInCheck(m_currentTurn)) {
+            m_gameStatus = (m_currentTurn == PieceColor::WHITE) ? 
                 "White is in check!" : "Black is in check!";
         } else {
             m_gameStatus = "Game in progress";
@@ -212,17 +208,15 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
     switchTurn();
     
     // Check for checkmate/stalemate
-    PieceColor opponentColor = (m_currentTurn == PieceColor::WHITE) ? 
-        PieceColor::BLACK : PieceColor::WHITE;
-    if (isCheckmate(opponentColor)) {
+    if (isCheckmate(m_currentTurn)) {
         m_isGameOver = true;
         m_gameStatus = (m_currentTurn == PieceColor::WHITE) ? 
             "Black wins by checkmate!" : "White wins by checkmate!";
-    } else if (isStalemate(opponentColor)) {
+    } else if (isStalemate(m_currentTurn)) {
         m_isGameOver = true;
         m_gameStatus = "Stalemate - Draw!";
-    } else if (isKingInCheck(opponentColor)) {
-        m_gameStatus = (opponentColor == PieceColor::WHITE) ? 
+    } else if (isKingInCheck(m_currentTurn)) {
+        m_gameStatus = (m_currentTurn == PieceColor::WHITE) ? 
             "White is in check!" : "Black is in check!";
     } else {
         m_gameStatus = "Game in progress";
