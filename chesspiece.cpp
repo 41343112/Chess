@@ -86,7 +86,7 @@ bool Rook::isValidMove(QPoint newPos, ChessBoard* board) const {
     int currentY = m_position.y() + stepY;
     
     while (currentX != newPos.x() || currentY != newPos.y()) {
-        if (board->getPieceAt(currentX, currentY) != nullptr) {
+        if (board->getPieceAt(currentY, currentX) != nullptr) {
             return false;
         }
         currentX += stepX;
@@ -150,7 +150,7 @@ bool Bishop::isValidMove(QPoint newPos, ChessBoard* board) const {
     int currentY = m_position.y() + stepY;
     
     while (currentX != newPos.x() || currentY != newPos.y()) {
-        if (board->getPieceAt(currentX, currentY) != nullptr) {
+        if (board->getPieceAt(currentY, currentX) != nullptr) {
             return false;
         }
         currentX += stepX;
@@ -189,7 +189,7 @@ bool Queen::isValidMove(QPoint newPos, ChessBoard* board) const {
     int currentY = m_position.y() + stepY;
     
     while (currentX != newPos.x() || currentY != newPos.y()) {
-        if (board->getPieceAt(currentX, currentY) != nullptr) {
+        if (board->getPieceAt(currentY, currentX) != nullptr) {
             return false;
         }
         currentX += stepX;

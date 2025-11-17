@@ -74,6 +74,8 @@ CMakeLists.txt.user*
 *.exe
 Chess
 moc_predefs.h
+test_*
+debug_*
 
 # Directories with generated files
 .moc/
