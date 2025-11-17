@@ -114,6 +114,12 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
     // Check if the move is valid for the piece
     if (!piece->isValidMove(to, this)) return false;
 
+    // Additional validation for castling moves
+    if (piece->getType() == PieceType::KING && abs(to.x() - from.x()) == 2) {
+        bool kingSide = to.x() > from.x();
+        if (!canCastle(m_currentTurn, kingSide)) return false;
+    }
+
     // Check if this move would leave the king in check
     if (wouldBeInCheck(from, to, m_currentTurn)) return false;
 
