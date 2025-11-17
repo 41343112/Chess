@@ -11,7 +11,9 @@ ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     m_isLight = (row + col) % 2 == 0;
     // Remove setFixedSize to allow scaling
     setMinimumSize(40, 40);
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    QSizePolicy policy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    policy.setHeightForWidth(true);  // Enable height-for-width aspect ratio
+    setSizePolicy(policy);
     setFont(QFont("Arial", 32));
     updateStyle();
     setAcceptDrops(true);
@@ -67,6 +69,30 @@ void ChessSquare::updateStyle() {
 
     setStyleSheet(QString("QPushButton { background-color: %1; border: %2px solid %3; }")
                   .arg(bgColor).arg(borderWidth).arg(borderColor));
+}
+
+QSize ChessSquare::sizeHint() const {
+    // Return a square size hint
+    int size = 60;  // Default size
+    return QSize(size, size);
+}
+
+bool ChessSquare::hasHeightForWidth() const {
+    return true;
+}
+
+int ChessSquare::heightForWidth(int width) const {
+    // Return the same value for height to maintain square aspect ratio
+    return width;
+}
+
+void ChessSquare::resizeEvent(QResizeEvent* event) {
+    QPushButton::resizeEvent(event);
+    
+    // Adjust font size based on square size to keep text readable
+    int size = qMin(width(), height());
+    int fontSize = qMax(12, size / 2);
+    setFont(QFont("Arial", fontSize));
 }
 
 void ChessSquare::mousePressEvent(QMouseEvent* event) {

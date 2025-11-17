@@ -88,6 +88,11 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event) override;
     void dragEnterEvent(QDragEnterEvent* event) override;
     void dropEvent(QDropEvent* event) override;
+    void resizeEvent(QResizeEvent* event) override;
+    QSize sizeHint() const override;
+    
+    bool hasHeightForWidth() const override;
+    int heightForWidth(int width) const override;
     
 private:
     int m_row;
