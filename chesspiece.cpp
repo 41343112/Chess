@@ -8,12 +8,12 @@ ChessPiece::ChessPiece(PieceType type, PieceColor color, QPoint position)
 
 QString ChessPiece::getSymbol() const {
     QString symbols[6][2] = {
-        {"♙", "♟"}, // Pawn
-        {"♖", "♜"}, // Rook
-        {"♘", "♞"}, // Knight
-        {"♗", "♝"}, // Bishop
-        {"♕", "♛"}, // Queen
-        {"♔", "♚"}  // King
+        {"♙", "♟"}, // 兵
+        {"♖", "♜"}, // 車
+        {"♘", "♞"}, // 馬
+        {"♗", "♝"}, // 象
+        {"♕", "♛"}, // 后
+        {"♔", "♚"}  // 王
     };
     
     int typeIndex = static_cast<int>(m_type);
@@ -21,7 +21,7 @@ QString ChessPiece::getSymbol() const {
     return symbols[typeIndex][colorIndex];
 }
 
-// Pawn implementation
+// 兵的實作
 Pawn::Pawn(PieceColor color, QPoint position)
     : ChessPiece(PieceType::PAWN, color, position) {
 }
@@ -36,12 +36,12 @@ bool Pawn::isValidMove(QPoint newPos, ChessBoard* board) const {
     
     ChessPiece* targetPiece = board->getPieceAt(newPos);
     
-    // Forward move
+    // 向前移動
     if (dx == 0) {
         if (dy == direction && targetPiece == nullptr) {
             return true;
         }
-        // Initial two-square move
+        // 初始兩格移動
         if (dy == 2 * direction && !m_hasMoved && targetPiece == nullptr) {
             QPoint middlePos(m_position.x(), m_position.y() + direction);
             if (board->getPieceAt(middlePos) == nullptr) {
@@ -49,12 +49,12 @@ bool Pawn::isValidMove(QPoint newPos, ChessBoard* board) const {
             }
         }
     }
-    // Diagonal capture
+    // 對角線吃子
     else if (abs(dx) == 1 && dy == direction) {
         if (targetPiece != nullptr && targetPiece->getColor() != m_color) {
             return true;
         }
-        // En passant
+        // 吃過路兵
         if (newPos == board->getEnPassantTarget()) {
             return true;
         }
@@ -63,7 +63,7 @@ bool Pawn::isValidMove(QPoint newPos, ChessBoard* board) const {
     return false;
 }
 
-// Rook implementation
+// 車的實作
 Rook::Rook(PieceColor color, QPoint position)
     : ChessPiece(PieceType::ROOK, color, position) {
 }
@@ -75,10 +75,10 @@ bool Rook::isValidMove(QPoint newPos, ChessBoard* board) const {
     int dx = newPos.x() - m_position.x();
     int dy = newPos.y() - m_position.y();
     
-    // Must move in straight line
+    // 必須沿直線移動
     if (dx != 0 && dy != 0) return false;
     
-    // Check if path is clear
+    // 檢查路徑是否暢通
     int stepX = (dx != 0) ? (dx > 0 ? 1 : -1) : 0;
     int stepY = (dy != 0) ? (dy > 0 ? 1 : -1) : 0;
     
@@ -93,7 +93,7 @@ bool Rook::isValidMove(QPoint newPos, ChessBoard* board) const {
         currentY += stepY;
     }
     
-    // Check target square
+    // 檢查目標格子
     ChessPiece* targetPiece = board->getPieceAt(newPos);
     if (targetPiece != nullptr && targetPiece->getColor() == m_color) {
         return false;
@@ -102,7 +102,7 @@ bool Rook::isValidMove(QPoint newPos, ChessBoard* board) const {
     return true;
 }
 
-// Knight implementation
+// 馬的實作
 Knight::Knight(PieceColor color, QPoint position)
     : ChessPiece(PieceType::KNIGHT, color, position) {
 }
@@ -114,7 +114,7 @@ bool Knight::isValidMove(QPoint newPos, ChessBoard* board) const {
     int dx = abs(newPos.x() - m_position.x());
     int dy = abs(newPos.y() - m_position.y());
     
-    // L-shape: 2 squares in one direction, 1 in the other
+    // L 形：一個方向 2 格，另一個方向 1 格
     if (!((dx == 2 && dy == 1) || (dx == 1 && dy == 2))) {
         return false;
     }
@@ -127,7 +127,7 @@ bool Knight::isValidMove(QPoint newPos, ChessBoard* board) const {
     return true;
 }
 
-// Bishop implementation
+// 象的實作
 Bishop::Bishop(PieceColor color, QPoint position)
     : ChessPiece(PieceType::BISHOP, color, position) {
 }
@@ -139,10 +139,10 @@ bool Bishop::isValidMove(QPoint newPos, ChessBoard* board) const {
     int dx = newPos.x() - m_position.x();
     int dy = newPos.y() - m_position.y();
     
-    // Must move diagonally
+    // 必須對角線移動
     if (abs(dx) != abs(dy)) return false;
     
-    // Check if path is clear
+    // 檢查路徑是否暢通
     int stepX = dx > 0 ? 1 : -1;
     int stepY = dy > 0 ? 1 : -1;
     
@@ -157,7 +157,7 @@ bool Bishop::isValidMove(QPoint newPos, ChessBoard* board) const {
         currentY += stepY;
     }
     
-    // Check target square
+    // 檢查目標格子
     ChessPiece* targetPiece = board->getPieceAt(newPos);
     if (targetPiece != nullptr && targetPiece->getColor() == m_color) {
         return false;
@@ -166,7 +166,7 @@ bool Bishop::isValidMove(QPoint newPos, ChessBoard* board) const {
     return true;
 }
 
-// Queen implementation
+// 后的實作
 Queen::Queen(PieceColor color, QPoint position)
     : ChessPiece(PieceType::QUEEN, color, position) {
 }
@@ -178,10 +178,10 @@ bool Queen::isValidMove(QPoint newPos, ChessBoard* board) const {
     int dx = newPos.x() - m_position.x();
     int dy = newPos.y() - m_position.y();
     
-    // Must move in straight line or diagonal
+    // 必須沿直線或對角線移動
     if (dx != 0 && dy != 0 && abs(dx) != abs(dy)) return false;
     
-    // Check if path is clear
+    // 檢查路徑是否暢通
     int stepX = (dx != 0) ? (dx > 0 ? 1 : -1) : 0;
     int stepY = (dy != 0) ? (dy > 0 ? 1 : -1) : 0;
     
@@ -196,7 +196,7 @@ bool Queen::isValidMove(QPoint newPos, ChessBoard* board) const {
         currentY += stepY;
     }
     
-    // Check target square
+    // 檢查目標格子
     ChessPiece* targetPiece = board->getPieceAt(newPos);
     if (targetPiece != nullptr && targetPiece->getColor() == m_color) {
         return false;
@@ -205,7 +205,7 @@ bool Queen::isValidMove(QPoint newPos, ChessBoard* board) const {
     return true;
 }
 
-// King implementation
+// 王的實作
 King::King(PieceColor color, QPoint position)
     : ChessPiece(PieceType::KING, color, position) {
 }
@@ -217,7 +217,7 @@ bool King::isValidMove(QPoint newPos, ChessBoard* board) const {
     int dx = abs(newPos.x() - m_position.x());
     int dy = abs(newPos.y() - m_position.y());
     
-    // Normal king move (one square in any direction)
+    // 普通國王移動（任意方向一格）
     if (dx <= 1 && dy <= 1) {
         ChessPiece* targetPiece = board->getPieceAt(newPos);
         if (targetPiece != nullptr && targetPiece->getColor() == m_color) {
@@ -226,7 +226,7 @@ bool King::isValidMove(QPoint newPos, ChessBoard* board) const {
         return true;
     }
     
-    // Castling (handled separately in ChessBoard)
+    // 王車易位（在 ChessBoard 中另外處理）
     if (!m_hasMoved && dy == 0 && dx == 2) {
         return true;
     }

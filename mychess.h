@@ -24,18 +24,18 @@ class myChess;
 }
 QT_END_NAMESPACE
 
-// Helper widget to maintain square aspect ratio for the board
+// 幫助維持棋盤方形比例的輔助元件
 class SquareBoardWidget : public QWidget {
     Q_OBJECT
 
 public:
     explicit SquareBoardWidget(QWidget* parent = nullptr) : QWidget(parent) {
-        // Expanding so it gets available space; do NOT force large minimum here so it can shrink
+        // 擴展以獲取可用空間；不要強制大的最小值以便可以縮小
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         setContentsMargins(0, 0, 0, 0);
     }
 
-    // Let layout system know we have a height-for-width relationship
+    // 讓佈局系統知道我們有高度隨寬度變化的關係
     bool hasHeightForWidth() const override { return true; }
     int heightForWidth(int width) const override { return width; }
 
@@ -49,7 +49,7 @@ protected:
     void resizeEvent(QResizeEvent* event) override {
         QWidget::resizeEvent(event);
 
-        // Keep inner layout square within the widget
+        // 在元件內保持內部佈局為正方形
         int w = width();
         int h = height();
         int size = qMin(w, h);
@@ -69,8 +69,8 @@ class ChessSquare : public QPushButton {
 public:
     enum HighlightType {
         None,
-        Movable,      // Blue border - empty square
-        Capturable    // Red border - has opponent piece
+        Movable,      // 藍色邊框 - 空格
+        Capturable    // 紅色邊框 - 有對手棋子
     };
 
     ChessSquare(int row, int col, QWidget* parent = nullptr);
@@ -103,8 +103,8 @@ private:
     bool m_isSelected;
     bool m_isInCheck;
     QPoint m_dragStartPosition;
-    QString m_draggedPieceText;  // Store piece text during drag
-    bool m_isDragging;  // Track if currently dragging
+    QString m_draggedPieceText;  // 拖曳期間儲存棋子文字
+    bool m_isDragging;  // 追蹤是否正在拖曳
 
     void updateStyle();
 };
@@ -126,7 +126,7 @@ public:
     int  minBoardSize() const;
 
 protected:
-    // Override to control board size when window resizes
+    // 重寫以控制視窗調整大小時的棋盤尺寸
     void resizeEvent(QResizeEvent* event) override;
 
 private slots:
@@ -153,7 +153,7 @@ private:
 
     bool m_isBoardFlipped;
 
-    // Make the board widget a member so resizeEvent can control it
+    // 將棋盤元件設為成員變數，以便 resizeEvent 可以控制它
     SquareBoardWidget* m_boardWidget;
 
     // 可設定的最小棋盤尺寸（像素），預設 40

@@ -32,7 +32,7 @@ public:
     
     QString getSymbol() const;
     
-    // Virtual method for checking valid moves
+    // 檢查有效移動的虛擬方法
     virtual bool isValidMove(QPoint newPos, class ChessBoard* board) const = 0;
 
 protected:

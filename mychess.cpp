@@ -3,17 +3,17 @@
 #include <QApplication>
 #include <QPainter>
 
-// ChessSquare implementation
+// ChessSquare 實作
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     : QPushButton(parent), m_row(row), m_col(col),
     m_highlightType(None), m_isSelected(false), m_isInCheck(false),
     m_isDragging(false) {
     m_isLight = (row + col) % 2 == 0;
-    // Lower minimum size so board can shrink more
+    // 降低最小尺寸以便棋盤可以更多縮小
     setMinimumSize(16, 16);
-    // Use Expanding so grid cells expand to fill the board; enable height-for-width
+    // 使用 Expanding 讓網格單元擴展以填充棋盤；啟用高度隨寬度變化
     QSizePolicy policy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    policy.setHeightForWidth(true);  // Enable height-for-width aspect ratio
+    policy.setHeightForWidth(true);  // 啟用高度隨寬度變化的長寬比
     setSizePolicy(policy);
     setFont(QFont("Arial", 32));
     updateStyle();
@@ -46,25 +46,25 @@ void ChessSquare::setInCheck(bool inCheck) {
 void ChessSquare::updateStyle() {
     QString baseColor = m_isLight ? "#F0D9B5" : "#B58863";
     QString selectedColor = "#FFD700";
-    QString checkColor = "#FF6B6B";  // Red color for check
+    QString checkColor = "#FF6B6B";  // 將軍時的紅色
 
     QString bgColor = baseColor;
     QString borderColor = "#000";
     int borderWidth = 1;
 
-    // Priority: check > selected > highlight
+    // 優先順序: 將軍 > 已選擇 > 高亮顯示
     if (m_isInCheck) {
         bgColor = checkColor;
     } else if (m_isSelected) {
         bgColor = selectedColor;
     }
 
-    // Add colored borders for movable and capturable squares
+    // 為可移動和可吃子的格子添加彩色邊框
     if (m_highlightType == Movable) {
-        borderColor = "#0066FF";  // Blue for movable squares
+        borderColor = "#0066FF";  // 藍色表示可移動格子
         borderWidth = 3;
     } else if (m_highlightType == Capturable) {
-        borderColor = "#FF0000";  // Red for capturable squares
+        borderColor = "#FF0000";  // 紅色表示可吃子格子
         borderWidth = 3;
     }
 
@@ -73,8 +73,8 @@ void ChessSquare::updateStyle() {
 }
 
 QSize ChessSquare::sizeHint() const {
-    // Return a square size hint
-    int size = 60;  // Default size
+    // 返回方形尺寸提示
+    int size = 60;  // 預設大小
     return QSize(size, size);
 }
 
@@ -83,14 +83,14 @@ bool ChessSquare::hasHeightForWidth() const {
 }
 
 int ChessSquare::heightForWidth(int width) const {
-    // Return the same value for height to maintain square aspect ratio
+    // 返回與寬度相同的高度值以保持方形長寬比
     return width;
 }
 
 void ChessSquare::resizeEvent(QResizeEvent* event) {
     QPushButton::resizeEvent(event);
 
-    // Adjust font size based on square size to keep text readable
+    // 根據格子大小調整字體大小以保持文字可讀性
     int size = qMin(width(), height());
     int fontSize = qMax(8, size / 2);
     setFont(QFont("Arial", fontSize));
@@ -100,14 +100,14 @@ void ChessSquare::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         m_dragStartPosition = event->pos();
     } else if (event->button() == Qt::RightButton) {
-        // Right-click: cancel drag if currently dragging
+        // 右鍵點擊：如果正在拖曳則取消拖曳
         if (m_isDragging) {
-            // Cancel drag - restore the piece text
+            // 取消拖曳 - 恢復棋子文字
             setText(m_draggedPieceText);
             m_draggedPieceText.clear();
             m_isDragging = false;
 
-            // Notify parent to cancel the drag
+            // 通知父視窗取消拖曳
             myChess* parent = qobject_cast<myChess*>(window());
             if (parent) {
                 parent->onSquareDragCancelled(m_row, m_col);
@@ -115,7 +115,7 @@ void ChessSquare::mousePressEvent(QMouseEvent* event) {
 
             return;
         }
-        // Right-click marker functionality removed
+        // 移除右鍵標記功能
         return;
     }
     QPushButton::mousePressEvent(event);
@@ -130,24 +130,24 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
         return;
     }
 
-    // Only allow dragging if there's a piece on this square
+    // 只有當此格子上有棋子時才允許拖曳
     if (text().isEmpty()) {
         return;
     }
 
-    // Store the piece text and temporarily hide it from the original square
+    // 儲存棋子文字並暫時從原格子隱藏
     m_draggedPieceText = text();
     setText("");
-    m_isDragging = true;  // Set dragging flag
+    m_isDragging = true;  // 設定拖曳標誌
 
-    // Check with parent if drag should proceed
+    // 檢查父視窗是否允許拖曳
     myChess* parent = qobject_cast<myChess*>(window());
     bool dragAllowed = false;
     if (parent) {
         dragAllowed = parent->onSquareDragStarted(m_row, m_col);
     }
 
-    // If drag not allowed (e.g., game over or wrong turn), restore text and return
+    // 如果不允許拖曳（例如：遊戲結束或錯誤回合），恢復文字並返回
     if (!dragAllowed) {
         setText(m_draggedPieceText);
         m_draggedPieceText.clear();
@@ -157,18 +157,18 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     QDrag* drag = new QDrag(this);
     QMimeData* mimeData = new QMimeData;
 
-    // Store the source position in the mime data
+    // 在 mime 資料中儲存來源位置
     mimeData->setText(QString("%1,%2").arg(m_row).arg(m_col));
     drag->setMimeData(mimeData);
 
-    // Create a pixmap showing only the piece symbol (not the background)
+    // 建立僅顯示棋子符號的像素圖（不含背景）
     QPixmap pixmap(size());
     pixmap.fill(Qt::transparent);
     QPainter painter(&pixmap);
     painter.setFont(font());
     painter.setPen(Qt::black);
 
-    // Draw the piece symbol centered
+    // 將棋子符號繪製於中心
     QRect textRect = rect();
     painter.drawText(textRect, Qt::AlignCenter, m_draggedPieceText);
 
@@ -177,10 +177,10 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
 
     Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
 
-    // Clear dragging flag
+    // 清除拖曳標誌
     m_isDragging = false;
 
-    // If drag was not accepted (cancelled or failed), restore the piece text
+    // 如果拖曳未被接受（取消或失敗），恢復棋子文字
     if (dropAction == Qt::IgnoreAction) {
         setText(m_draggedPieceText);
     }
@@ -207,7 +207,7 @@ void ChessSquare::dropEvent(QDropEvent* event) {
             int sourceRow = coords[0].toInt();
             int sourceCol = coords[1].toInt();
 
-            // Notify parent to handle the move
+            // 通知父視窗處理移動
             myChess* parent = qobject_cast<myChess*>(window());
             if (parent) {
                 parent->onSquareDragEnded(m_row, m_col);
@@ -218,7 +218,7 @@ void ChessSquare::dropEvent(QDropEvent* event) {
     }
 }
 
-// myChess implementation
+// myChess 實作
 myChess::myChess(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::myChess)
@@ -233,7 +233,7 @@ myChess::myChess(QWidget *parent)
 
     m_chessBoard = new ChessBoard();
 
-    // Initialize sound effects
+    // 初始化音效
     m_moveSound = new QSoundEffect(this);
     m_moveSound->setSource(QUrl("qrc:/sounds/sounds/move.wav"));
     m_moveSound->setVolume(0.5f);
@@ -268,14 +268,14 @@ int myChess::minBoardSize() const {
 }
 
 void myChess::setupUI() {
-    // Create central widget with layout
+    // 建立中央元件與佈局
     QWidget* centralWidget = new QWidget(this);
     QVBoxLayout* mainLayout = new QVBoxLayout(centralWidget);
-    // Use small margins so the board area can be sized square by height-for-width
+    // 使用小邊距以便棋盤區域可以根據高度與寬度的關係調整為方形
     mainLayout->setContentsMargins(6, 6, 6, 6);
     mainLayout->setSpacing(6);
 
-    // Status labels
+    // 狀態標籤
     QHBoxLayout* statusLayout = new QHBoxLayout();
     m_turnLabel = new QLabel("Turn: White", this);
     m_turnLabel->setFont(QFont("Arial", 14, QFont::Bold));
@@ -286,9 +286,9 @@ void myChess::setupUI() {
     statusLayout->addWidget(m_statusLabel);
     mainLayout->addLayout(statusLayout);
 
-    // Chess board - with equal row and column stretch for proportional scaling
+    // 棋盤 - 行列伸縮比例相同以保持比例縮放
     QGridLayout* boardLayout = new QGridLayout();
-    // Crucial: no spacing or margins so grid cells can divide the board area exactly
+    // 重要：無間距或邊距，以便網格單元能精確劃分棋盤區域
     boardLayout->setSpacing(0);
     boardLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -299,25 +299,25 @@ void myChess::setupUI() {
                     this, &myChess::onSquareClicked);
             boardLayout->addWidget(m_squares[row][col], row, col);
         }
-        // Set equal stretch for all rows to maintain square aspect
+        // 為所有列設定相同伸縮比以保持方形長寬比
         boardLayout->setRowStretch(row, 1);
     }
 
     for (int col = 0; col < 8; ++col) {
-        // Set equal stretch for all columns to maintain square aspect
+        // 為所有欄設定相同伸縮比以保持方形長寬比
         boardLayout->setColumnStretch(col, 1);
     }
 
-    // Create board widget as a member so resizeEvent can control its size
+    // 將棋盤元件建立為成員變數，以便 resizeEvent 可以控制其大小
     m_boardWidget = new SquareBoardWidget(this);
     m_boardWidget->setLayout(boardLayout);
     m_boardWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    // Add widget centered
+    // 將元件置中添加
     mainLayout->addWidget(m_boardWidget, 1, Qt::AlignCenter);
     mainLayout->setAlignment(m_boardWidget, Qt::AlignCenter);
 
-    // Control buttons
+    // 控制按鈕
     QHBoxLayout* buttonLayout = new QHBoxLayout();
     m_newGameButton = new QPushButton("New Game", this);
     m_newGameButton->setFont(QFont("Arial", 12));
@@ -348,15 +348,15 @@ void myChess::setupUI() {
 void myChess::resizeEvent(QResizeEvent* event) {
     QMainWindow::resizeEvent(event);
 
-    // Ensure we have the central widget and the board widget
+    // 確保我們有中央元件和棋盤元件
     QWidget* central = centralWidget();
     if (!central || !m_boardWidget) return;
 
     QLayout* mainLayout = central->layout();
     if (!mainLayout) return;
 
-    // Compute available width and height for the board area by subtracting
-    // the sizes of the top status and bottom button layouts (their sizeHints)
+    // 計算棋盤區域可用的寬度和高度，減去
+    // 頂部狀態和底部按鈕佈局的大小（它們的 sizeHints）
     int topH = 0;
     int bottomH = 0;
     if (mainLayout->count() >= 1 && mainLayout->itemAt(0)) {
@@ -375,49 +375,49 @@ void myChess::resizeEvent(QResizeEvent* event) {
 
     int size = qMax(0, qMin(availW, availH));
 
-    // If available square is smaller than requested minimum, enforce window minimum so user cannot shrink further
+    // 如果可用方形小於請求的最小值，強制視窗最小值以便用戶無法進一步縮小
     if (size < m_minBoardSize) {
-        // Calculate required central widget size to host m_minBoardSize
+        // 計算容納 m_minBoardSize 所需的中央元件大小
         int requiredCentralW = margins.left() + margins.right() + m_minBoardSize;
         int requiredCentralH = margins.top() + margins.bottom() + topH + bottomH + spacing*2 + m_minBoardSize;
 
-        // Estimate window frame overhead (width and height difference between window and central widget)
+        // 估計視窗框架開銷（視窗與中央元件之間的寬度和高度差）
         int deltaW = width() - central->width();
         int deltaH = height() - central->height();
 
-        // Compute required window size
+        // 計算所需的視窗大小
         int reqWindowW = requiredCentralW + deltaW;
         int reqWindowH = requiredCentralH + deltaH;
 
-        // Ensure positive
+        // 確保為正值
         reqWindowW = qMax(reqWindowW, m_minBoardSize + 100);
         reqWindowH = qMax(reqWindowH, m_minBoardSize + 200);
 
-        // Set main window minimum size and resize now to enforce
+        // 設定主視窗最小尺寸並立即調整大小以強制執行
         setMinimumSize(reqWindowW, reqWindowH);
-        // Resize immediately to at least required size
+        // 立即調整到至少所需大小
         if (width() < reqWindowW || height() < reqWindowH) {
             resize(reqWindowW, reqWindowH);
-            // After resize, availW/availH will be recalculated in next events
+            // 調整大小後，availW/availH 將在下次事件中重新計算
             return;
         }
     } else {
-        // If we are larger than minimum, it's safe to reset main window minimum to a small value so user can shrink until m_minBoardSize
-        // (keep a lower bound so nothing breaks)
+        // 如果我們大於最小值，可以安全地將主視窗最小值重設為小值，以便用戶可以縮小至 m_minBoardSize
+        // （保持下限以免損壞）
         setMinimumSize(800, 540);
     }
 
-    // Enforce board not larger than available square
+    // 強制棋盤不大於可用方形
     m_boardWidget->setMaximumSize(size, size);
 
-    // The requested minimum is m_minBoardSize, but if available size is smaller we must allow smaller (we handled above by resizing)
+    // 請求的最小值是 m_minBoardSize，但如果可用大小較小，我們必須允許較小（我們在上面透過調整大小處理）
     int minBoard = qMin(m_minBoardSize, size);
     m_boardWidget->setMinimumSize(minBoard, minBoard);
 
-    // Resize immediately to the available square (but not less than the min set above)
+    // 立即調整大小到可用方形（但不小於上面設定的最小值）
     m_boardWidget->resize(size, size);
 
-    // Re-assert center alignment
+    // 重新斷言置中對齊
     if (auto vbox = qobject_cast<QBoxLayout*>(mainLayout)) {
         vbox->setAlignment(m_boardWidget, Qt::AlignCenter);
     } else {
@@ -439,8 +439,8 @@ void myChess::onNewGame() {
 }
 
 void myChess::onUndo() {
-    // This is a simplified version - a full implementation would need to restore
-    // the previous board state from move history
+    // 這是簡化版本 - 完整實作需要從移動歷史中恢復
+    // 先前的棋盤狀態
     QMessageBox::information(this, "Undo",
                              "Undo feature is not fully implemented in this version.\n"
                              "Use 'New Game' to start over.");
@@ -463,7 +463,7 @@ bool myChess::onSquareDragStarted(int row, int col) {
     QPoint clickedPos(col, row);
     ChessPiece* piece = m_chessBoard->getPieceAt(clickedPos);
 
-    // Only allow dragging pieces of the current player
+    // 只允許拖曳當前玩家的棋子
     if (piece != nullptr && piece->getColor() == m_chessBoard->getCurrentTurn()) {
         m_selectedSquare = clickedPos;
         m_hasSelection = true;
@@ -483,22 +483,22 @@ void myChess::onSquareDragEnded(int row, int col) {
 
     QPoint targetPos(col, row);
 
-    // Check if there's a piece at the destination for capture sound
+    // 檢查目標位置是否有棋子以播放吃子音效
     ChessPiece* targetPiece = m_chessBoard->getPieceAt(targetPos);
     bool isCapture = (targetPiece != nullptr);
 
-    // Try to make the move
+    // 嘗試移動
     bool moveSuccess = m_chessBoard->movePiece(m_selectedSquare, targetPos);
     m_hasSelection = false;
     clearHighlights();
     if (moveSuccess) {
-        // Clear red markers when a move is made
-        playMoveSound(isCapture);  // Play appropriate sound
+        // 移動時清除紅色標記
+        playMoveSound(isCapture);  // 播放適當的音效
     }
     updateBoard();
 
     if (!moveSuccess) {
-        // Invalid move - check if selecting a different piece
+        // 無效移動 - 檢查是否選擇了不同的棋子
         ChessPiece* piece = m_chessBoard->getPieceAt(targetPos);
         if (piece != nullptr && piece->getColor() == m_chessBoard->getCurrentTurn()) {
             m_selectedSquare = targetPos;
@@ -510,7 +510,7 @@ void myChess::onSquareDragEnded(int row, int col) {
 }
 
 void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
-    // Drag was cancelled via right-click
+    // 透過右鍵點擊取消拖曳
     m_hasSelection = false;
     clearHighlights();
     updateBoard();
@@ -527,21 +527,21 @@ void myChess::playMoveSound(bool isCapture) {
 void myChess::onFlipBoard() {
     m_isBoardFlipped = !m_isBoardFlipped;
 
-    // Clear any current selection and highlights
+    // 清除任何當前選擇和高亮顯示
     m_hasSelection = false;
     clearHighlights();
 
 
-    // Re-create the board layout with flipped orientation
-    // We need to remove all widgets from the layout and re-add them
+    // 以翻轉方向重新建立棋盤佈局
+    // 我們需要從佈局中移除所有元件並重新添加它們
     QGridLayout* boardLayout = nullptr;
 
-    // Find the board layout
+    // 尋找棋盤佈局
     QWidget* centralWidget = this->centralWidget();
     if (centralWidget) {
         QVBoxLayout* mainLayout = qobject_cast<QVBoxLayout*>(centralWidget->layout());
         if (mainLayout) {
-            // The board widget is at index 1 (after status layout)
+            // 棋盤元件在索引 1（狀態佈局之後）
             QLayoutItem* item = mainLayout->itemAt(1);
             if (item && item->widget()) {
                 SquareBoardWidget* boardWidget = qobject_cast<SquareBoardWidget*>(item->widget());
@@ -553,14 +553,14 @@ void myChess::onFlipBoard() {
     }
 
     if (boardLayout) {
-        // Remove all squares from the layout
+        // 從佈局中移除所有格子
         for (int row = 0; row < 8; ++row) {
             for (int col = 0; col < 8; ++col) {
                 boardLayout->removeWidget(m_squares[row][col]);
             }
         }
 
-        // Re-add squares with flipped coordinates
+        // 以翻轉座標重新添加格子
         for (int row = 0; row < 8; ++row) {
             for (int col = 0; col < 8; ++col) {
                 int displayRow = m_isBoardFlipped ? (7 - row) : row;
@@ -570,25 +570,25 @@ void myChess::onFlipBoard() {
         }
     }
 
-    // Update the board display
+    // 更新棋盤顯示
     updateBoard();
 }
 
 void myChess::updateBoard() {
-    // First, clear all check highlights
+    // 首先，清除所有將軍高亮顯示
     for (int row = 0; row < 8; ++row) {
         for (int col = 0; col < 8; ++col) {
             m_squares[row][col]->setInCheck(false);
         }
     }
 
-    // Update pieces on the board
+    // 更新棋盤上的棋子
     for (int row = 0; row < 8; ++row) {
         for (int col = 0; col < 8; ++col) {
             ChessPiece* piece = m_chessBoard->getPieceAt(row, col);
             m_squares[row][col]->setPiece(piece);
 
-            // Highlight king if it's in check
+            // 如果國王被將軍則高亮顯示
             if (piece != nullptr && piece->getType() == PieceType::KING) {
                 if (m_chessBoard->isKingInCheck(piece->getColor())) {
                     m_squares[row][col]->setInCheck(true);
@@ -597,15 +597,15 @@ void myChess::updateBoard() {
         }
     }
 
-    // Update turn label
+    // 更新回合標籤
     QString turnText = (m_chessBoard->getCurrentTurn() == PieceColor::WHITE) ?
                            "Turn: White" : "Turn: Black";
     m_turnLabel->setText(turnText);
 
-    // Update status label
+    // 更新狀態標籤
     m_statusLabel->setText(m_chessBoard->getGameStatus());
 
-    // Check if game is over
+    // 檢查遊戲是否結束
     if (m_chessBoard->isGameOver()) {
         showGameOverDialog();
     }
@@ -628,13 +628,13 @@ void myChess::highlightValidMoves(QPoint from) {
         for (int col = 0; col < 8; ++col) {
             QPoint to(col, row);
             if (m_chessBoard->canMove(from, to)) {
-                // Check if destination has an opponent piece
+                // 檢查目標位置是否有對手棋子
                 ChessPiece* targetPiece = m_chessBoard->getPieceAt(to);
                 if (targetPiece != nullptr && targetPiece->getColor() != piece->getColor()) {
-                    // Capturable square - red border
+                    // 可吃子格子 - 紅色邊框
                     m_squares[row][col]->setHighlight(ChessSquare::Capturable);
                 } else {
-                    // Movable square (empty) - blue border
+                    // 可移動格子（空的）- 藍色邊框
                     m_squares[row][col]->setHighlight(ChessSquare::Movable);
                 }
             }
@@ -653,7 +653,7 @@ void myChess::onSquareClicked() {
     QPoint clickedPos(square->getCol(), square->getRow());
 
     if (!m_hasSelection) {
-        // First click - select a piece
+        // 第一次點擊 - 選擇一個棋子
         ChessPiece* piece = m_chessBoard->getPieceAt(clickedPos);
         if (piece != nullptr && piece->getColor() == m_chessBoard->getCurrentTurn()) {
             m_selectedSquare = clickedPos;
@@ -663,14 +663,14 @@ void myChess::onSquareClicked() {
             highlightValidMoves(clickedPos);
         }
     } else {
-        // Second click - try to move
+        // 第二次點擊 - 嘗試移動
         if (clickedPos == m_selectedSquare) {
-            // Deselect
+            // 取消選擇
             m_hasSelection = false;
             clearHighlights();
         } else {
-            // Try to make the move
-            // Check if there's a piece at the destination for capture sound
+            // 嘗試移動
+            // 檢查目標位置是否有棋子以播放吃子音效
             ChessPiece* targetPiece = m_chessBoard->getPieceAt(clickedPos);
             bool isCapture = (targetPiece != nullptr);
 
@@ -678,12 +678,12 @@ void myChess::onSquareClicked() {
             m_hasSelection = false;
             clearHighlights();
             if (moveSuccess) {
-                playMoveSound(isCapture);  // Play appropriate sound
+                playMoveSound(isCapture);  // 播放適當的音效
             }
             updateBoard();
 
             if (!moveSuccess) {
-                // Invalid move, maybe selecting a different piece
+                // 無效移動，可能選擇了不同的棋子
                 ChessPiece* piece = m_chessBoard->getPieceAt(clickedPos);
                 if (piece != nullptr && piece->getColor() == m_chessBoard->getCurrentTurn()) {
                     m_selectedSquare = clickedPos;

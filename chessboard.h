@@ -36,8 +36,8 @@ public:
     bool canMove(QPoint from, QPoint to) const;
 
     bool isKingInCheck(PieceColor color) const;
-    bool isCheckmate(PieceColor color);  // Checks if king is in check with no valid moves
-    bool isStalemate(PieceColor color);  // Checks if not in check but no valid moves
+    bool isCheckmate(PieceColor color);  // 檢查國王是否被將軍且沒有有效移動
+    bool isStalemate(PieceColor color);  // 檢查是否不被將軍但沒有有效移動
 
     PieceColor getCurrentTurn() const { return m_currentTurn; }
     void switchTurn();
@@ -63,11 +63,11 @@ private:
     bool m_isGameOver;
 
     void clearBoard();
-    bool wouldBeInCheck(QPoint from, QPoint to, PieceColor color) const; // const query
+    bool wouldBeInCheck(QPoint from, QPoint to, PieceColor color) const; // 常數查詢
     QPoint findKing(PieceColor color) const;
     bool hasAnyValidMoves(PieceColor color);
 
-    // helpers that operate on a provided board array:
+    // 在提供的棋盤陣列上操作的輔助函式：
     QPoint findKingOnBoard(ChessPiece* const board[8][8], PieceColor color) const;
     bool isSquareAttacked(ChessPiece* const board[8][8], QPoint square, PieceColor attackerColor) const;
 };
