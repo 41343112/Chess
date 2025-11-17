@@ -2,6 +2,18 @@
 
 A complete chess game implementation in Qt/C++ with a graphical user interface, similar to Chess.com.
 
+## Table of Contents
+- [Features](#features)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Building and Running](#building-and-running)
+  - [Troubleshooting](#troubleshooting)
+- [How to Play](#how-to-play)
+- [Game Status Messages](#game-status-messages)
+- [Technical Implementation Details](#technical-implementation-details)
+- [Future Enhancements](#future-enhancements)
+
 ## Features
 
 ### Complete Chess Rules Implementation
@@ -63,24 +75,200 @@ A complete chess game implementation in Qt/C++ with a graphical user interface, 
 - Visual states: normal, selected, highlighted
 - Displays piece symbols
 
-## Building and Running
+## Getting Started
 
-### Requirements
-- Qt 5 or Qt 6 (with widgets module)
-- C++17 compatible compiler
-- qmake or CMake
+### Quick Start Guide
 
-### Build with qmake
+**For experienced Qt developers:**
 ```bash
+git clone https://github.com/41343112/Chess.git
+cd Chess
 qmake Chess.pro
 make
 ./Chess
 ```
 
-### Build with Qt Creator
-1. Open `Chess.pro` in Qt Creator
-2. Configure project for your Qt kit
-3. Build and run
+**For beginners:** Follow the detailed instructions below.
+
+### Prerequisites
+
+Before building the chess game, you need to install the following:
+
+#### 1. Qt Framework (Qt 5.12+ or Qt 6.x)
+
+**Linux (Ubuntu/Debian):**
+```bash
+# For Qt 5
+sudo apt-get update
+sudo apt-get install qt5-default qtbase5-dev qttools5-dev-tools
+
+# For Qt 6
+sudo apt-get update
+sudo apt-get install qt6-base-dev qt6-tools-dev
+```
+
+**macOS:**
+```bash
+# Using Homebrew
+brew install qt@5
+# or
+brew install qt@6
+
+# Add Qt to PATH (add to ~/.zshrc or ~/.bash_profile)
+export PATH="/opt/homebrew/opt/qt@5/bin:$PATH"  # for Qt 5
+# or
+export PATH="/opt/homebrew/opt/qt@6/bin:$PATH"  # for Qt 6
+```
+
+**Windows:**
+1. Download Qt Online Installer from [qt.io/download](https://www.qt.io/download-qt-installer)
+2. Run the installer and select:
+   - Qt 5.15.x or Qt 6.x
+   - MinGW compiler (or MSVC if you have Visual Studio)
+   - Qt Creator IDE
+3. Complete the installation
+
+#### 2. C++ Compiler
+
+**Linux:**
+```bash
+# GCC (usually pre-installed)
+sudo apt-get install build-essential
+g++ --version  # Verify installation
+```
+
+**macOS:**
+```bash
+# Xcode Command Line Tools
+xcode-select --install
+```
+
+**Windows:**
+- MinGW comes with Qt installer, or
+- Install Visual Studio 2019/2022 with C++ workload
+
+#### 3. Verify Installation
+
+Check that Qt tools are available:
+```bash
+qmake --version
+```
+
+Expected output should show Qt version 5.x or 6.x.
+
+### Building and Running
+
+#### Method 1: Command Line (Quick Start)
+
+**Step 1: Clone or Download the Repository**
+```bash
+# If using git
+git clone https://github.com/41343112/Chess.git
+cd Chess
+
+# Or download and extract ZIP, then navigate to the directory
+```
+
+**Step 2: Build the Project**
+```bash
+# Generate Makefile
+qmake Chess.pro
+
+# Compile the project
+make
+
+# On Windows with MinGW, use:
+# mingw32-make
+```
+
+**Step 3: Run the Application**
+```bash
+# Linux/macOS
+./Chess
+
+# Windows
+Chess.exe
+# or double-click Chess.exe in the build directory
+```
+
+#### Method 2: Qt Creator (Recommended for Beginners)
+
+**Step 1: Open the Project**
+1. Launch Qt Creator
+2. Click "File" → "Open File or Project"
+3. Navigate to the Chess directory
+4. Select `Chess.pro` and click "Open"
+
+**Step 2: Configure Project**
+1. Qt Creator will show "Configure Project" screen
+2. Select a Qt kit (e.g., "Desktop Qt 5.15.2 MinGW 64-bit")
+3. Click "Configure Project"
+
+**Step 3: Build and Run**
+1. Click the green "Run" button (▶) in the bottom-left corner, or
+2. Press `Ctrl+R` (Windows/Linux) or `Cmd+R` (macOS)
+3. The chess game window will appear
+
+### Troubleshooting
+
+**Issue: "qmake: command not found"**
+- Solution: Ensure Qt bin directory is in your PATH
+- Linux/macOS: Add Qt path to ~/.bashrc or ~/.zshrc
+- Windows: Add Qt bin directory to System Environment Variables
+
+**Issue: "Project ERROR: Unknown module(s) in QT: widgets"**
+- Solution: Install Qt widgets module:
+  ```bash
+  # Linux
+  sudo apt-get install qtbase5-dev
+  ```
+
+**Issue: Build fails with C++17 errors**
+- Solution: Ensure your compiler supports C++17
+- Update GCC to version 7+ or use Clang 5+
+
+**Issue: Application doesn't start on Windows**
+- Solution: Copy Qt DLLs to the executable directory:
+  ```bash
+  # Navigate to Qt bin directory and copy required DLLs
+  # For MinGW Qt 5.15:
+  Qt5Core.dll, Qt5Gui.dll, Qt5Widgets.dll
+  # Plus platform plugin: platforms/qwindows.dll
+  ```
+  Or run from Qt Creator which handles this automatically.
+
+**Issue: Black screen or UI issues**
+- Solution: Update graphics drivers
+- Try running with software rendering: `export QT_QPA_PLATFORM=offscreen`
+
+### What You'll See
+
+Once the application is running, you'll see:
+
+**Game Board:**
+- 8×8 chessboard with alternating light (cream #F0D9B5) and dark (brown #B58863) squares
+- Unicode chess pieces: ♔ ♕ ♖ ♗ ♘ ♙ (white) and ♚ ♛ ♜ ♝ ♞ ♟ (black)
+- Clean, professional appearance similar to Chess.com
+
+**Interactive Elements:**
+- Click any piece to select it (highlighted in gold)
+- Valid moves are highlighted in light green
+- Turn indicator shows "Turn: White" or "Turn: Black"
+- Status bar displays game state (check, checkmate, stalemate)
+- "New Game" button to restart
+- "Undo" button (placeholder for future functionality)
+
+**Example Game State:**
+```
+Initial position with standard chess setup:
+Rank 8: ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
+Rank 7: ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
+Rank 6-3: Empty squares
+Rank 2: ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+Rank 1: ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+```
+
+For detailed UI mockups, see [UI_MOCKUP.md](UI_MOCKUP.md).
 
 ## How to Play
 
