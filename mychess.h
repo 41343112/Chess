@@ -105,8 +105,10 @@ private:
     QPoint m_dragStartPosition;
     QString m_draggedPieceText;  // Store piece text during drag
     bool m_isDragging;  // Track if currently dragging
+    ChessPiece* m_piece;  // Store piece pointer for icon regeneration on resize
 
     void updateStyle();
+    void updatePieceDisplay();  // Helper to update icon/text display
 };
 
 class myChess : public QMainWindow
