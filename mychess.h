@@ -130,6 +130,10 @@ public:
     void onSquareDragEnded(int row, int col);
     void onSquareDragCancelled(int row, int col);
 
+protected:
+    // Override to enforce square size for the board widget when window resizes
+    void resizeEvent(QResizeEvent* event) override;
+
 private slots:
     void onSquareClicked();
     void onNewGame();
@@ -153,6 +157,9 @@ private:
     QSoundEffect* m_captureSound;
 
     bool m_isBoardFlipped;
+
+    // Make the board widget a member so resizeEvent can control it
+    SquareBoardWidget* m_boardWidget;
 
     void setupUI();
     void updateBoard();

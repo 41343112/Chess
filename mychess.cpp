@@ -225,6 +225,7 @@ myChess::myChess(QWidget *parent)
     , m_hasSelection(false)
     , m_selectedSquare(-1, -1)
     , m_isBoardFlipped(false)
+    , m_boardWidget(nullptr)
 {
     ui->setupUi(this);
     setWindowTitle("Chess Game - Like Chess.com");
@@ -291,11 +292,17 @@ void myChess::setupUI() {
         boardLayout->setColumnStretch(col, 1);
     }
 
-    SquareBoardWidget* boardWidget = new SquareBoardWidget(this);
-    // Ensure boardWidget expands and participates in height-for-width negotiation
-    boardWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    boardWidget->setLayout(boardLayout);
-    mainLayout->addWidget(boardWidget, 1);  // Stretch factor 1 to take available space
+    // Create board widget as a member so resizeEvent can control its fixed size
+    m_boardWidget = new SquareBoardWidget(this);
+    m_boardWidget->setLayout(boardLayout);
+    // ensure expanding behavior
+    m_boardWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    // --- 變更: 加上置中對齊，確保 boardWidget 在主佈局內置中顯示 ---
+    // 使用帶對齊的 addWidget，並設定主佈局對該 widget 的對齊為置中
+    mainLayout->addWidget(m_boardWidget, 1, Qt::AlignCenter);
+    mainLayout->setAlignment(m_boardWidget, Qt::AlignCenter);
+    // ----------------------------------------------------------------
 
     // Control buttons
     QHBoxLayout* buttonLayout = new QHBoxLayout();
@@ -323,6 +330,47 @@ void myChess::setupUI() {
 
     setCentralWidget(centralWidget);
     resize(700, 800);
+}
+
+void myChess::resizeEvent(QResizeEvent* event) {
+    QMainWindow::resizeEvent(event);
+
+    // Ensure we have the central widget and the board widget
+    QWidget* central = centralWidget();
+    if (!central || !m_boardWidget) return;
+
+    QLayout* mainLayout = central->layout();
+    if (!mainLayout) return;
+
+    // Compute available width and height for the board area by subtracting
+    // the sizes of the top status and bottom button layouts (their sizeHints)
+    int topH = 0;
+    int bottomH = 0;
+    if (mainLayout->count() >= 1 && mainLayout->itemAt(0)) {
+        topH = mainLayout->itemAt(0)->sizeHint().height();
+    }
+    if (mainLayout->count() >= 3 && mainLayout->itemAt(2)) {
+        bottomH = mainLayout->itemAt(2)->sizeHint().height();
+    }
+
+    QMargins margins = static_cast<QVBoxLayout*>(mainLayout)->contentsMargins();
+    int spacing = static_cast<QVBoxLayout*>(mainLayout)->spacing();
+
+    int availW = central->width() - margins.left() - margins.right();
+    int availH = central->height() - margins.top() - margins.bottom()
+                 - topH - bottomH - spacing*2;
+
+    int size = qMax(0, qMin(availW, availH));
+    // Enforce square board by fixing board widget size to calculated square
+    m_boardWidget->setFixedSize(size, size);
+
+    // --- 變更: 再次確保主佈局將 m_boardWidget 置中（有些平台或 Qt 版本可能需要重申） ---
+    if (auto vbox = qobject_cast<QBoxLayout*>(mainLayout)) {
+        vbox->setAlignment(m_boardWidget, Qt::AlignCenter);
+    } else {
+        mainLayout->setAlignment(m_boardWidget, Qt::AlignCenter);
+    }
+    // ----------------------------------------------------------------
 }
 
 void myChess::onNewGame() {
