@@ -36,8 +36,8 @@ public:
     bool canMove(QPoint from, QPoint to) const;
 
     bool isKingInCheck(PieceColor color) const;
-    bool isCheckmate(PieceColor color);
-    bool isStalemate(PieceColor color);
+    bool isCheckmate(PieceColor color);  // Checks if king is in check with no valid moves
+    bool isStalemate(PieceColor color);  // Checks if not in check but no valid moves
 
     PieceColor getCurrentTurn() const { return m_currentTurn; }
     void switchTurn();
