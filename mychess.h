@@ -30,11 +30,9 @@ class SquareBoardWidget : public QWidget {
 
 public:
     explicit SquareBoardWidget(QWidget* parent = nullptr) : QWidget(parent) {
-        // Make this widget expanding so it gets available space,
-        // but also enable height-for-width so parent layouts will honor the square aspect.
+        // Expanding so it gets available space; do NOT force large minimum here so it can shrink
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         setContentsMargins(0, 0, 0, 0);
-        setMinimumSize(160, 160);
     }
 
     // Let layout system know we have a height-for-width relationship
@@ -51,20 +49,13 @@ protected:
     void resizeEvent(QResizeEvent* event) override {
         QWidget::resizeEvent(event);
 
-        // Get the available space
+        // Keep inner layout square within the widget
         int w = width();
         int h = height();
-
-        // Calculate the maximum square size that fits
         int size = qMin(w, h);
-
-        // Center the layout within the widget
         int x = (w - size) / 2;
         int y = (h - size) / 2;
-
-        // If there's a layout, apply geometry to maintain square aspect
         if (layout()) {
-            // Defensive: ensure layout has no margins/spacing so cells can be exact squares
             layout()->setContentsMargins(0, 0, 0, 0);
             layout()->setSpacing(0);
             layout()->setGeometry(QRect(x, y, size, size));
@@ -130,8 +121,12 @@ public:
     void onSquareDragEnded(int row, int col);
     void onSquareDragCancelled(int row, int col);
 
+    // 設定/取得棋盤最小尺寸（像素）
+    void setMinBoardSize(int px);
+    int  minBoardSize() const;
+
 protected:
-    // Override to enforce square size for the board widget when window resizes
+    // Override to control board size when window resizes
     void resizeEvent(QResizeEvent* event) override;
 
 private slots:
@@ -160,6 +155,9 @@ private:
 
     // Make the board widget a member so resizeEvent can control it
     SquareBoardWidget* m_boardWidget;
+
+    // 可設定的最小棋盤尺寸（像素），預設 40
+    int m_minBoardSize;
 
     void setupUI();
     void updateBoard();

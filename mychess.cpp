@@ -9,8 +9,8 @@ ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     m_highlightType(None), m_isSelected(false), m_isInCheck(false),
     m_isDragging(false) {
     m_isLight = (row + col) % 2 == 0;
-    // Avoid fixed sizes so squares can scale, but give a reasonable minimum
-    setMinimumSize(40, 40);
+    // Lower minimum size so board can shrink more
+    setMinimumSize(16, 16);
     // Use Expanding so grid cells expand to fill the board; enable height-for-width
     QSizePolicy policy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     policy.setHeightForWidth(true);  // Enable height-for-width aspect ratio
@@ -92,7 +92,7 @@ void ChessSquare::resizeEvent(QResizeEvent* event) {
 
     // Adjust font size based on square size to keep text readable
     int size = qMin(width(), height());
-    int fontSize = qMax(12, size / 2);
+    int fontSize = qMax(8, size / 2);
     setFont(QFont("Arial", fontSize));
 }
 
@@ -226,6 +226,7 @@ myChess::myChess(QWidget *parent)
     , m_selectedSquare(-1, -1)
     , m_isBoardFlipped(false)
     , m_boardWidget(nullptr)
+    , m_minBoardSize(40) // 預設最小棋盤尺寸為 40 px
 {
     ui->setupUi(this);
     setWindowTitle("Chess Game - Like Chess.com");
@@ -249,6 +250,21 @@ myChess::~myChess()
 {
     delete m_chessBoard;
     delete ui;
+}
+
+void myChess::setMinBoardSize(int px) {
+    if (px < 0) px = 0;
+    m_minBoardSize = px;
+    // 立即更新佈局（如果已建立）
+    if (m_boardWidget) {
+        // 觸發一次 resizeEvent 的處理
+        QResizeEvent fakeEvent(size(), size());
+        resizeEvent(&fakeEvent);
+    }
+}
+
+int myChess::minBoardSize() const {
+    return m_minBoardSize;
 }
 
 void myChess::setupUI() {
@@ -292,17 +308,14 @@ void myChess::setupUI() {
         boardLayout->setColumnStretch(col, 1);
     }
 
-    // Create board widget as a member so resizeEvent can control its fixed size
+    // Create board widget as a member so resizeEvent can control its size
     m_boardWidget = new SquareBoardWidget(this);
     m_boardWidget->setLayout(boardLayout);
-    // ensure expanding behavior
     m_boardWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    // --- 變更: 加上置中對齊，確保 boardWidget 在主佈局內置中顯示 ---
-    // 使用帶對齊的 addWidget，並設定主佈局對該 widget 的對齊為置中
+    // Add widget centered
     mainLayout->addWidget(m_boardWidget, 1, Qt::AlignCenter);
     mainLayout->setAlignment(m_boardWidget, Qt::AlignCenter);
-    // ----------------------------------------------------------------
 
     // Control buttons
     QHBoxLayout* buttonLayout = new QHBoxLayout();
@@ -361,16 +374,55 @@ void myChess::resizeEvent(QResizeEvent* event) {
                  - topH - bottomH - spacing*2;
 
     int size = qMax(0, qMin(availW, availH));
-    // Enforce square board by fixing board widget size to calculated square
-    m_boardWidget->setFixedSize(size, size);
 
-    // --- 變更: 再次確保主佈局將 m_boardWidget 置中（有些平台或 Qt 版本可能需要重申） ---
+    // If available square is smaller than requested minimum, enforce window minimum so user cannot shrink further
+    if (size < m_minBoardSize) {
+        // Calculate required central widget size to host m_minBoardSize
+        int requiredCentralW = margins.left() + margins.right() + m_minBoardSize;
+        int requiredCentralH = margins.top() + margins.bottom() + topH + bottomH + spacing*2 + m_minBoardSize;
+
+        // Estimate window frame overhead (width and height difference between window and central widget)
+        int deltaW = width() - central->width();
+        int deltaH = height() - central->height();
+
+        // Compute required window size
+        int reqWindowW = requiredCentralW + deltaW;
+        int reqWindowH = requiredCentralH + deltaH;
+
+        // Ensure positive
+        reqWindowW = qMax(reqWindowW, m_minBoardSize + 100);
+        reqWindowH = qMax(reqWindowH, m_minBoardSize + 200);
+
+        // Set main window minimum size and resize now to enforce
+        setMinimumSize(reqWindowW, reqWindowH);
+        // Resize immediately to at least required size
+        if (width() < reqWindowW || height() < reqWindowH) {
+            resize(reqWindowW, reqWindowH);
+            // After resize, availW/availH will be recalculated in next events
+            return;
+        }
+    } else {
+        // If we are larger than minimum, it's safe to reset main window minimum to a small value so user can shrink until m_minBoardSize
+        // (keep a lower bound so nothing breaks)
+        setMinimumSize(800, 540);
+    }
+
+    // Enforce board not larger than available square
+    m_boardWidget->setMaximumSize(size, size);
+
+    // The requested minimum is m_minBoardSize, but if available size is smaller we must allow smaller (we handled above by resizing)
+    int minBoard = qMin(m_minBoardSize, size);
+    m_boardWidget->setMinimumSize(minBoard, minBoard);
+
+    // Resize immediately to the available square (but not less than the min set above)
+    m_boardWidget->resize(size, size);
+
+    // Re-assert center alignment
     if (auto vbox = qobject_cast<QBoxLayout*>(mainLayout)) {
         vbox->setAlignment(m_boardWidget, Qt::AlignCenter);
     } else {
         mainLayout->setAlignment(m_boardWidget, Qt::AlignCenter);
     }
-    // ----------------------------------------------------------------
 }
 
 void myChess::onNewGame() {
