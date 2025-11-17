@@ -16,6 +16,7 @@ See [NEW_FEATURES.md](NEW_FEATURES.md) for detailed documentation of the new fea
 - [UI_MOCKUP.md](UI_MOCKUP.md) - User interface design and mockups
 
 ## Table of Contents
+- [中文玩法說明](#中文玩法說明) ⭐ Chinese Gameplay Instructions
 - [Features](#features)
 - [Architecture](#architecture)
 - [Getting Started](#getting-started)
@@ -26,6 +27,65 @@ See [NEW_FEATURES.md](NEW_FEATURES.md) for detailed documentation of the new fea
 - [Game Status Messages](#game-status-messages)
 - [Technical Implementation Details](#technical-implementation-details)
 - [Future Enhancements](#future-enhancements)
+
+## 中文玩法說明
+
+### 遊戲簡介
+這是一個完整的國際象棋遊戲，使用 Qt/C++ 開發，具有類似 Chess.com 的圖形化使用者介面。
+
+### 如何開始遊戲
+1. **啟動遊戲**
+   - 白方先行
+   - 遊戲開始時，所有棋子按照標準國際象棋規則擺放
+
+2. **操作棋子 - 兩種方式**
+   - **點擊移動**：點選棋子選擇它，再點選目標位置完成移動
+   - **拖曳移動**：按住棋子拖曳到目標位置，放開滑鼠完成移動 ⭐
+   - 兩種方式可以混合使用！
+
+3. **視覺提示**
+   - **金色高亮**：已選中的棋子
+   - **藍色邊框**：可移動的空位
+   - **紅色邊框**：可吃掉對方棋子的位置
+   - **紅色底色**：王被將軍（處於被攻擊狀態）
+   - 只能移動輪到自己的棋子
+   - 遊戲會自動防止不合法的移動
+
+### 棋子走法
+- **兵（♙/♟）**：向前走一格，第一步可走兩格，斜向吃子
+- **車（♖/♜）**：橫向或縱向直線移動
+- **馬（♘/♞）**：L型移動（日字形）
+- **象（♗/♝）**：斜向直線移動
+- **后（♕/♛）**：橫向、縱向或斜向直線移動（車+象的組合）
+- **王（♔/♚）**：任意方向移動一格
+
+### 特殊走法
+- **王車易位**：點選國王，然後點選向車移動兩格的位置（或拖曳）
+  - 條件：國王和車都未移動過，中間無棋子，國王不在被將軍狀態
+- **吃過路兵**：當對方兵首步走兩格後，可在下一回合用自己的兵斜向吃掉它
+- **兵升變**：兵到達對方底線時自動升變為后
+
+### 遊戲結束條件
+- **將死**：對方國王被將軍且無法逃脫 → 獲勝
+- **逼和**：輪到己方但沒有合法走法且王未被將軍 → 平局
+
+### 遊戲狀態訊息
+- "Game in progress" - 遊戲進行中
+- "White is in check!" / "Black is in check!" - 白方/黑方被將軍
+- "White wins by checkmate!" / "Black wins by checkmate!" - 白方/黑方獲勝
+- "Stalemate - Draw!" - 逼和平局
+
+### 控制按鈕
+- **New Game**：開始新遊戲
+- **Undo**：悔棋（功能占位，尚未完全實現）
+
+### 遊戲提示
+1. 先觀察棋盤，思考對手的威脅
+2. 確保你的國王安全
+3. 控制棋盤中心區域
+4. 發展你的棋子（尤其是馬和象）
+5. 保護好你的后，它是最強大的棋子
+6. 嘗試創造攻擊對方國王的機會
 
 ## Features
 
