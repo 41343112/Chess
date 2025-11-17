@@ -6,8 +6,14 @@ A complete chess game implementation in Qt/C++ with a graphical user interface, 
 - **Drag-and-Drop Movement**: Move pieces by dragging them with your mouse!
 - **King Check Highlighting**: King's square turns red when under attack
 - **Enhanced Visual Feedback**: Clear visual indicators for all game states
+- **Square Grid Maintained**: Chess board keeps perfect squares when resizing window
 
 See [NEW_FEATURES.md](NEW_FEATURES.md) for detailed documentation of the new features.
+
+## 📚 Documentation
+- **[GAMEPLAY.md](GAMEPLAY.md)** - Complete gameplay guide with rules, controls, and strategies
+- [NEW_FEATURES.md](NEW_FEATURES.md) - Recent feature additions and implementation details
+- [UI_MOCKUP.md](UI_MOCKUP.md) - User interface design and mockups
 
 ## Table of Contents
 - [Features](#features)
@@ -280,6 +286,10 @@ Rank 1: ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
 For detailed UI mockups, see [UI_MOCKUP.md](UI_MOCKUP.md).
 
 ## How to Play
+
+**For a complete gameplay guide with detailed rules, strategies, and tips, see [GAMEPLAY.md](GAMEPLAY.md).**
+
+### Quick Start
 
 1. **Starting a Game**
    - White moves first

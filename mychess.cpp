@@ -226,10 +226,8 @@ void myChess::setupUI() {
         boardLayout->setColumnStretch(col, 1);
     }
     
-    QWidget* boardWidget = new QWidget(this);
+    SquareBoardWidget* boardWidget = new SquareBoardWidget(this);
     boardWidget->setLayout(boardLayout);
-    // Make the board widget expand with available space
-    boardWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     mainLayout->addWidget(boardWidget, 1);  // Stretch factor 1 to take available space
     
     // Control buttons
