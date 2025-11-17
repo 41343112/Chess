@@ -15,6 +15,7 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QResizeEvent>
+#include <QSoundEffect>
 #include "chessboard.h"
 
 QT_BEGIN_NAMESPACE
@@ -120,6 +121,7 @@ private slots:
     void onSquareClicked();
     void onNewGame();
     void onUndo();
+    void onFlipBoard();
 
 private:
     Ui::myChess *ui;
@@ -132,6 +134,12 @@ private:
     QLabel* m_turnLabel;
     QPushButton* m_newGameButton;
     QPushButton* m_undoButton;
+    QPushButton* m_flipBoardButton;
+    
+    QSoundEffect* m_moveSound;
+    QSoundEffect* m_captureSound;
+    
+    bool m_isBoardFlipped;
     
     void setupUI();
     void updateBoard();
@@ -139,5 +147,8 @@ private:
     void clearRightClickMarkers();
     void highlightValidMoves(QPoint from);
     void showGameOverDialog();
+    void playMoveSound(bool isCapture);
+    int getDisplayRow(int logicalRow) const;
+    int getDisplayCol(int logicalCol) const;
 };
 #endif // MYCHESS_H

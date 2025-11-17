@@ -207,11 +207,21 @@ myChess::myChess(QWidget *parent)
     , ui(new Ui::myChess)
     , m_hasSelection(false)
     , m_selectedSquare(-1, -1)
+    , m_isBoardFlipped(false)
 {
     ui->setupUi(this);
     setWindowTitle("Chess Game - Like Chess.com");
     
     m_chessBoard = new ChessBoard();
+    
+    // Initialize sound effects
+    m_moveSound = new QSoundEffect(this);
+    m_moveSound->setSource(QUrl("qrc:/sounds/sounds/move.wav"));
+    m_moveSound->setVolume(0.5f);
+    
+    m_captureSound = new QSoundEffect(this);
+    m_captureSound->setSource(QUrl("qrc:/sounds/sounds/capture.wav"));
+    m_captureSound->setVolume(0.5f);
     
     setupUI();
     updateBoard();
@@ -275,9 +285,15 @@ void myChess::setupUI() {
     m_undoButton->setMinimumWidth(120);
     connect(m_undoButton, &QPushButton::clicked, this, &myChess::onUndo);
     
+    m_flipBoardButton = new QPushButton("Flip Board", this);
+    m_flipBoardButton->setFont(QFont("Arial", 12));
+    m_flipBoardButton->setMinimumWidth(120);
+    connect(m_flipBoardButton, &QPushButton::clicked, this, &myChess::onFlipBoard);
+    
     buttonLayout->addStretch();
     buttonLayout->addWidget(m_newGameButton);
     buttonLayout->addWidget(m_undoButton);
+    buttonLayout->addWidget(m_flipBoardButton);
     buttonLayout->addStretch();
     mainLayout->addLayout(buttonLayout);
     
@@ -389,11 +405,16 @@ void myChess::onSquareClicked() {
             clearHighlights();
         } else {
             // Try to make the move
+            // Check if there's a piece at the destination for capture sound
+            ChessPiece* targetPiece = m_chessBoard->getPieceAt(clickedPos);
+            bool isCapture = (targetPiece != nullptr);
+            
             bool moveSuccess = m_chessBoard->movePiece(m_selectedSquare, clickedPos);
             m_hasSelection = false;
             clearHighlights();
             if (moveSuccess) {
                 clearRightClickMarkers();  // Clear red markers when a move is made
+                playMoveSound(isCapture);  // Play appropriate sound
             }
             updateBoard();
             
@@ -470,12 +491,17 @@ void myChess::onSquareDragEnded(int row, int col) {
     
     QPoint targetPos(col, row);
     
+    // Check if there's a piece at the destination for capture sound
+    ChessPiece* targetPiece = m_chessBoard->getPieceAt(targetPos);
+    bool isCapture = (targetPiece != nullptr);
+    
     // Try to make the move
     bool moveSuccess = m_chessBoard->movePiece(m_selectedSquare, targetPos);
     m_hasSelection = false;
     clearHighlights();
     if (moveSuccess) {
         clearRightClickMarkers();  // Clear red markers when a move is made
+        playMoveSound(isCapture);  // Play appropriate sound
     }
     updateBoard();
     
@@ -495,6 +521,78 @@ void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
     // Drag was cancelled via right-click
     m_hasSelection = false;
     clearHighlights();
+    updateBoard();
+}
+
+void myChess::playMoveSound(bool isCapture) {
+    if (isCapture) {
+        m_captureSound->play();
+    } else {
+        m_moveSound->play();
+    }
+}
+
+int myChess::getDisplayRow(int logicalRow) const {
+    if (m_isBoardFlipped) {
+        return logicalRow;
+    }
+    return logicalRow;
+}
+
+int myChess::getDisplayCol(int logicalCol) const {
+    if (m_isBoardFlipped) {
+        return logicalCol;
+    }
+    return logicalCol;
+}
+
+void myChess::onFlipBoard() {
+    m_isBoardFlipped = !m_isBoardFlipped;
+    
+    // Clear any current selection and highlights
+    m_hasSelection = false;
+    clearHighlights();
+    clearRightClickMarkers();
+    
+    // Re-create the board layout with flipped orientation
+    // We need to remove all widgets from the layout and re-add them
+    QGridLayout* boardLayout = nullptr;
+    
+    // Find the board layout
+    QWidget* centralWidget = this->centralWidget();
+    if (centralWidget) {
+        QVBoxLayout* mainLayout = qobject_cast<QVBoxLayout*>(centralWidget->layout());
+        if (mainLayout) {
+            // The board widget is at index 1 (after status layout)
+            QLayoutItem* item = mainLayout->itemAt(1);
+            if (item && item->widget()) {
+                SquareBoardWidget* boardWidget = qobject_cast<SquareBoardWidget*>(item->widget());
+                if (boardWidget) {
+                    boardLayout = qobject_cast<QGridLayout*>(boardWidget->layout());
+                }
+            }
+        }
+    }
+    
+    if (boardLayout) {
+        // Remove all squares from the layout
+        for (int row = 0; row < 8; ++row) {
+            for (int col = 0; col < 8; ++col) {
+                boardLayout->removeWidget(m_squares[row][col]);
+            }
+        }
+        
+        // Re-add squares with flipped coordinates
+        for (int row = 0; row < 8; ++row) {
+            for (int col = 0; col < 8; ++col) {
+                int displayRow = m_isBoardFlipped ? (7 - row) : row;
+                int displayCol = m_isBoardFlipped ? (7 - col) : col;
+                boardLayout->addWidget(m_squares[row][col], displayRow, displayCol);
+            }
+        }
+    }
+    
+    // Update the board display
     updateBoard();
 }
 
