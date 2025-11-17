@@ -81,6 +81,11 @@ public:
     int getRow() const { return m_row; }
     int getCol() const { return m_col; }
     
+    // Override to maintain square aspect ratio
+    QSize sizeHint() const override;
+    int heightForWidth(int w) const override;
+    bool hasHeightForWidth() const override { return true; }
+    
 protected:
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;

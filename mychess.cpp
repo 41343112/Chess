@@ -9,12 +9,23 @@ ChessSquare::ChessSquare(int row, int col, QWidget* parent)
       m_highlightType(None), m_isSelected(false), m_isInCheck(false),
       m_isDragging(false) {
     m_isLight = (row + col) % 2 == 0;
-    // Remove setFixedSize to allow scaling
+    // Set size policy to maintain square aspect ratio
     setMinimumSize(40, 40);
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
     setFont(QFont("Arial", 32));
     updateStyle();
     setAcceptDrops(true);
+}
+
+QSize ChessSquare::sizeHint() const {
+    // Return a square size hint based on the minimum dimension
+    int size = qMax(minimumWidth(), minimumHeight());
+    return QSize(size, size);
+}
+
+int ChessSquare::heightForWidth(int w) const {
+    // Maintain square aspect ratio: height equals width
+    return w;
 }
 
 void ChessSquare::setPiece(ChessPiece* piece) {
