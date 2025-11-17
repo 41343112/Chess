@@ -14,6 +14,7 @@
 #include <QMimeData>
 #include <QDragEnterEvent>
 #include <QDropEvent>
+#include <QResizeEvent>
 #include "chessboard.h"
 
 QT_BEGIN_NAMESPACE
@@ -42,6 +43,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent* event) override;
     void dragEnterEvent(QDragEnterEvent* event) override;
     void dropEvent(QDropEvent* event) override;
+    void resizeEvent(QResizeEvent* event) override;
     
 private:
     int m_row;

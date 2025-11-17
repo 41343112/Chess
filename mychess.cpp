@@ -8,7 +8,8 @@ ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     : QPushButton(parent), m_row(row), m_col(col), 
       m_isHighlighted(false), m_isSelected(false), m_isInCheck(false) {
     m_isLight = (row + col) % 2 == 0;
-    setFixedSize(70, 70);
+    setMinimumSize(60, 60);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setFont(QFont("Arial", 32));
     updateStyle();
     setAcceptDrops(true);
@@ -40,19 +41,21 @@ void ChessSquare::setInCheck(bool inCheck) {
 void ChessSquare::updateStyle() {
     QString baseColor = m_isLight ? "#F0D9B5" : "#B58863";
     QString selectedColor = "#FFD700";
-    QString highlightColor = "#90EE90";
     QString checkColor = "#FF6B6B";  // Red color for check
     
     QString bgColor = baseColor;
+    QString borderStyle = "1px solid #000";
+    
     if (m_isInCheck) {
         bgColor = checkColor;
     } else if (m_isSelected) {
         bgColor = selectedColor;
     } else if (m_isHighlighted) {
-        bgColor = highlightColor;
+        // Use blue border for valid moves instead of green background
+        borderStyle = "3px solid #4169E1";  // Royal blue border
     }
     
-    setStyleSheet(QString("QPushButton { background-color: %1; border: 1px solid #000; }").arg(bgColor));
+    setStyleSheet(QString("QPushButton { background-color: %1; border: %2; }").arg(bgColor).arg(borderStyle));
 }
 
 void ChessSquare::mousePressEvent(QMouseEvent* event) {
@@ -153,6 +156,15 @@ void ChessSquare::dropEvent(QDropEvent* event) {
             event->acceptProposedAction();
         }
     }
+}
+
+void ChessSquare::resizeEvent(QResizeEvent* event) {
+    QPushButton::resizeEvent(event);
+    
+    // Dynamically adjust font size based on square size
+    // Use approximately 45% of the square height for font size
+    int fontSize = qMax(16, height() * 45 / 100);
+    setFont(QFont("Arial", fontSize));
 }
 
 // myChess implementation
