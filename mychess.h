@@ -51,6 +51,7 @@ private:
     bool m_isSelected;
     bool m_isInCheck;
     QPoint m_dragStartPosition;
+    QString m_draggedPieceText;  // Store piece text during drag
     
     void updateStyle();
 };
@@ -63,7 +64,7 @@ public:
     myChess(QWidget *parent = nullptr);
     ~myChess();
     
-    void onSquareDragStarted(int row, int col);
+    bool onSquareDragStarted(int row, int col);
     void onSquareDragEnded(int row, int col);
 
 private slots:

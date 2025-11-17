@@ -76,6 +76,24 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
         return;
     }
     
+    // Store the piece text and temporarily hide it from the original square
+    m_draggedPieceText = text();
+    setText("");
+    
+    // Check with parent if drag should proceed
+    myChess* parent = qobject_cast<myChess*>(window());
+    bool dragAllowed = false;
+    if (parent) {
+        dragAllowed = parent->onSquareDragStarted(m_row, m_col);
+    }
+    
+    // If drag not allowed (e.g., game over or wrong turn), restore text and return
+    if (!dragAllowed) {
+        setText(m_draggedPieceText);
+        m_draggedPieceText.clear();
+        return;
+    }
+    
     QDrag* drag = new QDrag(this);
     QMimeData* mimeData = new QMimeData;
     
@@ -92,18 +110,18 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     
     // Draw the piece symbol centered
     QRect textRect = rect();
-    painter.drawText(textRect, Qt::AlignCenter, text());
+    painter.drawText(textRect, Qt::AlignCenter, m_draggedPieceText);
     
     drag->setPixmap(pixmap);
     drag->setHotSpot(event->pos());
     
-    // Emit signal that drag started
-    myChess* parent = qobject_cast<myChess*>(window());
-    if (parent) {
-        parent->onSquareDragStarted(m_row, m_col);
-    }
-    
     Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
+    
+    // If drag was not accepted (cancelled or failed), restore the piece text
+    if (dropAction == Qt::IgnoreAction) {
+        setText(m_draggedPieceText);
+    }
+    m_draggedPieceText.clear();
     
     QPushButton::mouseMoveEvent(event);
 }
@@ -351,9 +369,9 @@ void myChess::showGameOverDialog() {
     msgBox.exec();
 }
 
-void myChess::onSquareDragStarted(int row, int col) {
+bool myChess::onSquareDragStarted(int row, int col) {
     if (m_chessBoard->isGameOver()) {
-        return;
+        return false;
     }
     
     QPoint clickedPos(col, row);
@@ -366,7 +384,10 @@ void myChess::onSquareDragStarted(int row, int col) {
         clearHighlights();
         m_squares[row][col]->setSelected(true);
         highlightValidMoves(clickedPos);
+        return true;
     }
+    
+    return false;
 }
 
 void myChess::onSquareDragEnded(int row, int col) {
