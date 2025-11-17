@@ -98,6 +98,12 @@ bool ChessBoard::canMove(QPoint from, QPoint to) const {
     // Check if the piece can move according to its rules
     if (!piece->isValidMove(to, const_cast<ChessBoard*>(this))) return false;
     
+    // Additional validation for castling moves
+    if (piece->getType() == PieceType::KING && abs(to.x() - from.x()) == 2) {
+        bool kingSide = to.x() > from.x();
+        if (!canCastle(m_currentTurn, kingSide)) return false;
+    }
+    
     // Check if this move would leave the king in check
     if (wouldBeInCheck(from, to, m_currentTurn)) return false;
     
