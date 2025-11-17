@@ -6,9 +6,11 @@
 // ChessSquare implementation
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     : QPushButton(parent), m_row(row), m_col(col), 
-      m_isHighlighted(false), m_isSelected(false), m_isInCheck(false) {
+      m_highlightType(None), m_isSelected(false), m_isInCheck(false) {
     m_isLight = (row + col) % 2 == 0;
-    setFixedSize(70, 70);
+    // Remove setFixedSize to allow scaling
+    setMinimumSize(40, 40);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     setFont(QFont("Arial", 32));
     updateStyle();
     setAcceptDrops(true);
@@ -22,8 +24,8 @@ void ChessSquare::setPiece(ChessPiece* piece) {
     }
 }
 
-void ChessSquare::setHighlight(bool highlight) {
-    m_isHighlighted = highlight;
+void ChessSquare::setHighlight(HighlightType type) {
+    m_highlightType = type;
     updateStyle();
 }
 
@@ -40,19 +42,30 @@ void ChessSquare::setInCheck(bool inCheck) {
 void ChessSquare::updateStyle() {
     QString baseColor = m_isLight ? "#F0D9B5" : "#B58863";
     QString selectedColor = "#FFD700";
-    QString highlightColor = "#90EE90";
     QString checkColor = "#FF6B6B";  // Red color for check
     
     QString bgColor = baseColor;
+    QString borderColor = "#000";
+    int borderWidth = 1;
+    
+    // Priority: check > selected > highlight
     if (m_isInCheck) {
         bgColor = checkColor;
     } else if (m_isSelected) {
         bgColor = selectedColor;
-    } else if (m_isHighlighted) {
-        bgColor = highlightColor;
     }
     
-    setStyleSheet(QString("QPushButton { background-color: %1; border: 1px solid #000; }").arg(bgColor));
+    // Add colored borders for movable and capturable squares
+    if (m_highlightType == Movable) {
+        borderColor = "#0066FF";  // Blue for movable squares
+        borderWidth = 3;
+    } else if (m_highlightType == Capturable) {
+        borderColor = "#FF0000";  // Red for capturable squares
+        borderWidth = 3;
+    }
+    
+    setStyleSheet(QString("QPushButton { background-color: %1; border: %2px solid %3; }")
+                  .arg(bgColor).arg(borderWidth).arg(borderColor));
 }
 
 void ChessSquare::mousePressEvent(QMouseEvent* event) {
@@ -193,7 +206,7 @@ void myChess::setupUI() {
     statusLayout->addWidget(m_statusLabel);
     mainLayout->addLayout(statusLayout);
     
-    // Chess board
+    // Chess board - with equal row and column stretch for proportional scaling
     QGridLayout* boardLayout = new QGridLayout();
     boardLayout->setSpacing(0);
     
@@ -204,11 +217,20 @@ void myChess::setupUI() {
                     this, &myChess::onSquareClicked);
             boardLayout->addWidget(m_squares[row][col], row, col);
         }
+        // Set equal stretch for all rows to maintain square aspect
+        boardLayout->setRowStretch(row, 1);
+    }
+    
+    for (int col = 0; col < 8; ++col) {
+        // Set equal stretch for all columns to maintain square aspect
+        boardLayout->setColumnStretch(col, 1);
     }
     
     QWidget* boardWidget = new QWidget(this);
     boardWidget->setLayout(boardLayout);
-    mainLayout->addWidget(boardWidget, 0, Qt::AlignCenter);
+    // Make the board widget expand with available space
+    boardWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    mainLayout->addWidget(boardWidget, 1);  // Stretch factor 1 to take available space
     
     // Control buttons
     QHBoxLayout* buttonLayout = new QHBoxLayout();
@@ -272,7 +294,7 @@ void myChess::updateBoard() {
 void myChess::clearHighlights() {
     for (int row = 0; row < 8; ++row) {
         for (int col = 0; col < 8; ++col) {
-            m_squares[row][col]->setHighlight(false);
+            m_squares[row][col]->setHighlight(ChessSquare::None);
             m_squares[row][col]->setSelected(false);
         }
     }
@@ -286,7 +308,15 @@ void myChess::highlightValidMoves(QPoint from) {
         for (int col = 0; col < 8; ++col) {
             QPoint to(col, row);
             if (m_chessBoard->canMove(from, to)) {
-                m_squares[row][col]->setHighlight(true);
+                // Check if destination has an opponent piece
+                ChessPiece* targetPiece = m_chessBoard->getPieceAt(to);
+                if (targetPiece != nullptr && targetPiece->getColor() != piece->getColor()) {
+                    // Capturable square - red border
+                    m_squares[row][col]->setHighlight(ChessSquare::Capturable);
+                } else {
+                    // Movable square (empty) - blue border
+                    m_squares[row][col]->setHighlight(ChessSquare::Movable);
+                }
             }
         }
     }
