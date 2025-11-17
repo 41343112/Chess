@@ -6,7 +6,8 @@
 // ChessSquare implementation
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     : QPushButton(parent), m_row(row), m_col(col), 
-      m_highlightType(None), m_isSelected(false), m_isInCheck(false) {
+      m_highlightType(None), m_isSelected(false), m_isInCheck(false),
+      m_isRightClickMarked(false), m_isDragging(false) {
     m_isLight = (row + col) % 2 == 0;
     // Remove setFixedSize to allow scaling
     setMinimumSize(40, 40);
@@ -39,20 +40,28 @@ void ChessSquare::setInCheck(bool inCheck) {
     updateStyle();
 }
 
+void ChessSquare::setRightClickMarked(bool marked) {
+    m_isRightClickMarked = marked;
+    updateStyle();
+}
+
 void ChessSquare::updateStyle() {
     QString baseColor = m_isLight ? "#F0D9B5" : "#B58863";
     QString selectedColor = "#FFD700";
     QString checkColor = "#FF6B6B";  // Red color for check
+    QString rightClickColor = "#FF0000";  // Bright red for right-click mark
     
     QString bgColor = baseColor;
     QString borderColor = "#000";
     int borderWidth = 1;
     
-    // Priority: check > selected > highlight
+    // Priority: check > selected > right-click mark > highlight
     if (m_isInCheck) {
         bgColor = checkColor;
     } else if (m_isSelected) {
         bgColor = selectedColor;
+    } else if (m_isRightClickMarked) {
+        bgColor = rightClickColor;
     }
     
     // Add colored borders for movable and capturable squares
@@ -71,6 +80,26 @@ void ChessSquare::updateStyle() {
 void ChessSquare::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         m_dragStartPosition = event->pos();
+    } else if (event->button() == Qt::RightButton) {
+        // Right-click: toggle right-click marker or cancel drag
+        if (m_isDragging) {
+            // Cancel drag - restore the piece text
+            setText(m_draggedPieceText);
+            m_draggedPieceText.clear();
+            m_isDragging = false;
+            
+            // Notify parent to cancel the drag
+            myChess* parent = qobject_cast<myChess*>(window());
+            if (parent) {
+                parent->onSquareDragCancelled(m_row, m_col);
+            }
+            
+            return;
+        } else {
+            // Toggle right-click marker
+            setRightClickMarked(!m_isRightClickMarked);
+            return;
+        }
     }
     QPushButton::mousePressEvent(event);
 }
@@ -92,6 +121,7 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     // Store the piece text and temporarily hide it from the original square
     m_draggedPieceText = text();
     setText("");
+    m_isDragging = true;  // Set dragging flag
     
     // Check with parent if drag should proceed
     myChess* parent = qobject_cast<myChess*>(window());
@@ -129,6 +159,9 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     drag->setHotSpot(event->pos());
     
     Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
+    
+    // Clear dragging flag
+    m_isDragging = false;
     
     // If drag was not accepted (cancelled or failed), restore the piece text
     if (dropAction == Qt::IgnoreAction) {
@@ -300,6 +333,14 @@ void myChess::clearHighlights() {
     }
 }
 
+void myChess::clearRightClickMarkers() {
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            m_squares[row][col]->setRightClickMarked(false);
+        }
+    }
+}
+
 void myChess::highlightValidMoves(QPoint from) {
     ChessPiece* piece = m_chessBoard->getPieceAt(from);
     if (piece == nullptr) return;
@@ -353,6 +394,9 @@ void myChess::onSquareClicked() {
             bool moveSuccess = m_chessBoard->movePiece(m_selectedSquare, clickedPos);
             m_hasSelection = false;
             clearHighlights();
+            if (moveSuccess) {
+                clearRightClickMarkers();  // Clear red markers when a move is made
+            }
             updateBoard();
             
             if (!moveSuccess) {
@@ -378,6 +422,7 @@ void myChess::onNewGame() {
         m_chessBoard->reset();
         m_hasSelection = false;
         clearHighlights();
+        clearRightClickMarkers();
         updateBoard();
     }
 }
@@ -431,6 +476,9 @@ void myChess::onSquareDragEnded(int row, int col) {
     bool moveSuccess = m_chessBoard->movePiece(m_selectedSquare, targetPos);
     m_hasSelection = false;
     clearHighlights();
+    if (moveSuccess) {
+        clearRightClickMarkers();  // Clear red markers when a move is made
+    }
     updateBoard();
     
     if (!moveSuccess) {
@@ -443,5 +491,12 @@ void myChess::onSquareDragEnded(int row, int col) {
             highlightValidMoves(targetPos);
         }
     }
+}
+
+void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
+    // Drag was cancelled via right-click
+    m_hasSelection = false;
+    clearHighlights();
+    updateBoard();
 }
 
