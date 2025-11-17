@@ -34,31 +34,36 @@ public:
     }
     
     QSize sizeHint() const override {
-        // Suggest a square size
-        int size = qMin(width(), height());
-        if (size <= 0) size = 600;
-        return QSize(size, size);
+        return QSize(600, 600);
+    }
+    
+    bool hasHeightForWidth() const override {
+        return true;
+    }
+    
+    int heightForWidth(int width) const override {
+        return width;
     }
     
 protected:
     void resizeEvent(QResizeEvent* event) override {
         QWidget::resizeEvent(event);
         
-        // Get the available space
+        if (!layout()) return;
+        
+        // Get the current size
         int w = width();
         int h = height();
         
-        // Calculate the maximum square size that fits
+        // Calculate the largest square that fits
         int size = qMin(w, h);
         
-        // Center the layout within the widget
+        // Calculate position to center the square
         int x = (w - size) / 2;
         int y = (h - size) / 2;
         
-        // If there's a layout, apply geometry to maintain square aspect
-        if (layout()) {
-            layout()->setGeometry(QRect(x, y, size, size));
-        }
+        // Set the layout geometry to be square and centered
+        layout()->setGeometry(QRect(x, y, size, size));
     }
 };
 
