@@ -2,6 +2,18 @@
 
 A complete chess game implementation in Qt/C++ with a graphical user interface, similar to Chess.com.
 
+## Table of Contents
+- [Features](#features)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Building and Running](#building-and-running)
+  - [Troubleshooting](#troubleshooting)
+- [How to Play](#how-to-play)
+- [Game Status Messages](#game-status-messages)
+- [Technical Implementation Details](#technical-implementation-details)
+- [Future Enhancements](#future-enhancements)
+
 ## Features
 
 ### Complete Chess Rules Implementation
@@ -228,6 +240,35 @@ Chess.exe
 **Issue: Black screen or UI issues**
 - Solution: Update graphics drivers
 - Try running with software rendering: `export QT_QPA_PLATFORM=offscreen`
+
+### What You'll See
+
+Once the application is running, you'll see:
+
+**Game Board:**
+- 8×8 chessboard with alternating light (cream #F0D9B5) and dark (brown #B58863) squares
+- Unicode chess pieces: ♔ ♕ ♖ ♗ ♘ ♙ (white) and ♚ ♛ ♜ ♝ ♞ ♟ (black)
+- Clean, professional appearance similar to Chess.com
+
+**Interactive Elements:**
+- Click any piece to select it (highlighted in gold)
+- Valid moves are highlighted in light green
+- Turn indicator shows "Turn: White" or "Turn: Black"
+- Status bar displays game state (check, checkmate, stalemate)
+- "New Game" button to restart
+- "Undo" button (placeholder for future functionality)
+
+**Example Game State:**
+```
+Initial position with standard chess setup:
+Rank 8: ♜ ♞ ♝ ♛ ♚ ♝ ♞ ♜
+Rank 7: ♟ ♟ ♟ ♟ ♟ ♟ ♟ ♟
+Rank 6-3: Empty squares
+Rank 2: ♙ ♙ ♙ ♙ ♙ ♙ ♙ ♙
+Rank 1: ♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
+```
+
+For detailed UI mockups, see [UI_MOCKUP.md](UI_MOCKUP.md).
 
 ## How to Play
 
