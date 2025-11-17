@@ -2,6 +2,13 @@
 
 A complete chess game implementation in Qt/C++ with a graphical user interface, similar to Chess.com.
 
+## 🎉 New Features
+- **Drag-and-Drop Movement**: Move pieces by dragging them with your mouse!
+- **King Check Highlighting**: King's square turns red when under attack
+- **Enhanced Visual Feedback**: Clear visual indicators for all game states
+
+See [NEW_FEATURES.md](NEW_FEATURES.md) for detailed documentation of the new features.
+
 ## Table of Contents
 - [Features](#features)
 - [Architecture](#architecture)
@@ -32,11 +39,13 @@ A complete chess game implementation in Qt/C++ with a graphical user interface, 
 - ✅ 8x8 chessboard with alternating light and dark squares
 - ✅ Unicode chess piece symbols (♔ ♕ ♖ ♗ ♘ ♙)
 - ✅ Visual feedback:
-  - Selected piece highlighting
-  - Valid move highlighting
+  - Selected piece highlighting (gold)
+  - Valid move highlighting (green)
+  - **King in check highlighting (red)** ⭐ NEW
   - Turn indicator
   - Game status display
 - ✅ Click-to-select, click-to-move interface
+- ✅ **Drag-and-drop piece movement** ⭐ NEW
 - ✅ New Game button
 - ✅ Game over dialog
 
@@ -274,21 +283,28 @@ For detailed UI mockups, see [UI_MOCKUP.md](UI_MOCKUP.md).
 
 1. **Starting a Game**
    - White moves first
-   - Click on a piece to select it
+   - Select a piece by clicking on it OR by starting to drag it
    - Valid moves will be highlighted in green
-   - Click on a highlighted square to move
+   - Move the piece by clicking on a highlighted square OR by dragging and dropping
 
-2. **Making Moves**
-   - Only pieces of the current player can be selected
-   - Moves must follow chess rules
+2. **Making Moves - Two Methods:**
+   - **Click-to-Move**: Click a piece to select it, then click the destination square
+   - **Drag-and-Drop**: Click and hold a piece, drag it to the destination, then release ⭐ NEW
+   - Both methods work seamlessly together!
+
+3. **Visual Indicators**
+   - **Gold highlighting**: Selected piece
+   - **Green highlighting**: Valid move destinations
+   - **Red highlighting**: King is in check ⭐ NEW
+   - Only pieces of the current player can be moved
    - The game prevents illegal moves that would put your king in check
 
-3. **Special Moves**
-   - **Castling**: Click on your king, then click two squares toward the rook
+4. **Special Moves**
+   - **Castling**: Click on your king, then click two squares toward the rook (or drag)
    - **En Passant**: Available when opponent's pawn moves two squares forward
    - **Pawn Promotion**: Pawns automatically promote to Queens upon reaching the opposite end
 
-4. **Winning**
+5. **Winning**
    - Checkmate: Opponent's king is in check with no legal moves
    - Stalemate: Current player has no legal moves but is not in check (Draw)
 

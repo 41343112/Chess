@@ -1,14 +1,16 @@
 #include "mychess.h"
 #include "ui_mychess.h"
+#include <QApplication>
 
 // ChessSquare implementation
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     : QPushButton(parent), m_row(row), m_col(col), 
-      m_isHighlighted(false), m_isSelected(false) {
+      m_isHighlighted(false), m_isSelected(false), m_isInCheck(false) {
     m_isLight = (row + col) % 2 == 0;
     setFixedSize(70, 70);
     setFont(QFont("Arial", 32));
     updateStyle();
+    setAcceptDrops(true);
 }
 
 void ChessSquare::setPiece(ChessPiece* piece) {
@@ -29,19 +31,102 @@ void ChessSquare::setSelected(bool selected) {
     updateStyle();
 }
 
+void ChessSquare::setInCheck(bool inCheck) {
+    m_isInCheck = inCheck;
+    updateStyle();
+}
+
 void ChessSquare::updateStyle() {
     QString baseColor = m_isLight ? "#F0D9B5" : "#B58863";
     QString selectedColor = "#FFD700";
     QString highlightColor = "#90EE90";
+    QString checkColor = "#FF6B6B";  // Red color for check
     
     QString bgColor = baseColor;
-    if (m_isSelected) {
+    if (m_isInCheck) {
+        bgColor = checkColor;
+    } else if (m_isSelected) {
         bgColor = selectedColor;
     } else if (m_isHighlighted) {
         bgColor = highlightColor;
     }
     
     setStyleSheet(QString("QPushButton { background-color: %1; border: 1px solid #000; }").arg(bgColor));
+}
+
+void ChessSquare::mousePressEvent(QMouseEvent* event) {
+    if (event->button() == Qt::LeftButton) {
+        m_dragStartPosition = event->pos();
+    }
+    QPushButton::mousePressEvent(event);
+}
+
+void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
+    if (!(event->buttons() & Qt::LeftButton)) {
+        return;
+    }
+    
+    if ((event->pos() - m_dragStartPosition).manhattanLength() < QApplication::startDragDistance()) {
+        return;
+    }
+    
+    // Only allow dragging if there's a piece on this square
+    if (text().isEmpty()) {
+        return;
+    }
+    
+    QDrag* drag = new QDrag(this);
+    QMimeData* mimeData = new QMimeData;
+    
+    // Store the source position in the mime data
+    mimeData->setText(QString("%1,%2").arg(m_row).arg(m_col));
+    drag->setMimeData(mimeData);
+    
+    // Create a pixmap showing the piece being dragged
+    QPixmap pixmap(size());
+    pixmap.fill(Qt::transparent);
+    render(&pixmap);
+    drag->setPixmap(pixmap);
+    drag->setHotSpot(event->pos());
+    
+    // Emit signal that drag started
+    myChess* parent = qobject_cast<myChess*>(window());
+    if (parent) {
+        parent->onSquareDragStarted(m_row, m_col);
+    }
+    
+    Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
+    
+    QPushButton::mouseMoveEvent(event);
+}
+
+void ChessSquare::mouseReleaseEvent(QMouseEvent* event) {
+    QPushButton::mouseReleaseEvent(event);
+}
+
+void ChessSquare::dragEnterEvent(QDragEnterEvent* event) {
+    if (event->mimeData()->hasText()) {
+        event->acceptProposedAction();
+    }
+}
+
+void ChessSquare::dropEvent(QDropEvent* event) {
+    if (event->mimeData()->hasText()) {
+        QString sourceData = event->mimeData()->text();
+        QStringList coords = sourceData.split(',');
+        if (coords.size() == 2) {
+            int sourceRow = coords[0].toInt();
+            int sourceCol = coords[1].toInt();
+            
+            // Notify parent to handle the move
+            myChess* parent = qobject_cast<myChess*>(window());
+            if (parent) {
+                parent->onSquareDragEnded(m_row, m_col);
+            }
+            
+            event->acceptProposedAction();
+        }
+    }
 }
 
 // myChess implementation
@@ -122,10 +207,25 @@ void myChess::setupUI() {
 }
 
 void myChess::updateBoard() {
+    // First, clear all check highlights
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            m_squares[row][col]->setInCheck(false);
+        }
+    }
+    
+    // Update pieces on the board
     for (int row = 0; row < 8; ++row) {
         for (int col = 0; col < 8; ++col) {
             ChessPiece* piece = m_chessBoard->getPieceAt(row, col);
             m_squares[row][col]->setPiece(piece);
+            
+            // Highlight king if it's in check
+            if (piece != nullptr && piece->getType() == PieceType::KING) {
+                if (m_chessBoard->isKingInCheck(piece->getColor())) {
+                    m_squares[row][col]->setInCheck(true);
+                }
+            }
         }
     }
     
@@ -241,5 +341,48 @@ void myChess::showGameOverDialog() {
     msgBox.setIcon(QMessageBox::Information);
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.exec();
+}
+
+void myChess::onSquareDragStarted(int row, int col) {
+    if (m_chessBoard->isGameOver()) {
+        return;
+    }
+    
+    QPoint clickedPos(col, row);
+    ChessPiece* piece = m_chessBoard->getPieceAt(clickedPos);
+    
+    // Only allow dragging pieces of the current player
+    if (piece != nullptr && piece->getColor() == m_chessBoard->getCurrentTurn()) {
+        m_selectedSquare = clickedPos;
+        m_hasSelection = true;
+        clearHighlights();
+        m_squares[row][col]->setSelected(true);
+        highlightValidMoves(clickedPos);
+    }
+}
+
+void myChess::onSquareDragEnded(int row, int col) {
+    if (m_chessBoard->isGameOver() || !m_hasSelection) {
+        return;
+    }
+    
+    QPoint targetPos(col, row);
+    
+    // Try to make the move
+    bool moveSuccess = m_chessBoard->movePiece(m_selectedSquare, targetPos);
+    m_hasSelection = false;
+    clearHighlights();
+    updateBoard();
+    
+    if (!moveSuccess) {
+        // Invalid move - check if selecting a different piece
+        ChessPiece* piece = m_chessBoard->getPieceAt(targetPos);
+        if (piece != nullptr && piece->getColor() == m_chessBoard->getCurrentTurn()) {
+            m_selectedSquare = targetPos;
+            m_hasSelection = true;
+            m_squares[row][col]->setSelected(true);
+            highlightValidMoves(targetPos);
+        }
+    }
 }
 
