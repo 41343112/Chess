@@ -423,6 +423,12 @@ bool ChessBoard::wouldBeInCheck(QPoint from, QPoint to, PieceColor color) const 
 }
 
 bool ChessBoard::hasAnyValidMoves(PieceColor color) {
+    // Check if the player has any valid moves to escape checkmate
+    // This covers all three escape conditions:
+    // 1. King can move to a safe square
+    // 2. A piece can capture the attacking piece
+    // 3. A piece can block the attack
+    
     for (int fromRow = 0; fromRow < 8; ++fromRow) {
         for (int fromCol = 0; fromCol < 8; ++fromCol) {
             ChessPiece* piece = m_board[fromRow][fromCol];
@@ -433,8 +439,18 @@ bool ChessBoard::hasAnyValidMoves(PieceColor color) {
                     QPoint from(fromCol, fromRow);
                     QPoint to(toCol, toRow);
 
-                    if (piece->isValidMove(to, this) &&
-                        !wouldBeInCheck(from, to, color)) {
+                    // Check if the piece can move according to its rules
+                    if (!piece->isValidMove(to, this)) continue;
+                    
+                    // Additional validation for castling moves
+                    // Castling has special requirements beyond basic move validation
+                    if (piece->getType() == PieceType::KING && abs(to.x() - from.x()) == 2) {
+                        bool kingSide = to.x() > from.x();
+                        if (!canCastle(color, kingSide)) continue;
+                    }
+                    
+                    // Check if this move would leave the king in check
+                    if (!wouldBeInCheck(from, to, color)) {
                         return true;
                     }
                 }
@@ -445,7 +461,14 @@ bool ChessBoard::hasAnyValidMoves(PieceColor color) {
 }
 
 bool ChessBoard::isCheckmate(PieceColor color) {
+    // Checkmate occurs when ALL three conditions are met:
+    // 1. The king is under attack (in check)
     if (!isKingInCheck(color)) return false;
+    
+    // 2. The king cannot escape by moving to a safe square
+    // 3. No piece can capture the attacking piece
+    // 4. No piece can block the attack
+    // (Conditions 2-4 are all checked by hasAnyValidMoves)
     return !hasAnyValidMoves(color);
 }
 
