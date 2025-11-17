@@ -1,6 +1,7 @@
 #include "mychess.h"
 #include "ui_mychess.h"
 #include <QApplication>
+#include <QPainter>
 
 // ChessSquare implementation
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
@@ -82,10 +83,17 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     mimeData->setText(QString("%1,%2").arg(m_row).arg(m_col));
     drag->setMimeData(mimeData);
     
-    // Create a pixmap showing the piece being dragged
+    // Create a pixmap showing only the piece symbol (not the background)
     QPixmap pixmap(size());
     pixmap.fill(Qt::transparent);
-    render(&pixmap);
+    QPainter painter(&pixmap);
+    painter.setFont(font());
+    painter.setPen(Qt::black);
+    
+    // Draw the piece symbol centered
+    QRect textRect = rect();
+    painter.drawText(textRect, Qt::AlignCenter, text());
+    
     drag->setPixmap(pixmap);
     drag->setHotSpot(event->pos());
     
