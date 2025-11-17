@@ -3,12 +3,14 @@
 A complete chess game implementation in Qt/C++ with a graphical user interface, similar to Chess.com.
 
 ## 🎉 New Features
+- **Flip Board Button**: Swap board orientation to view from either player's perspective! ⭐ NEW
+- **Move Sound Effects**: Audio feedback for moves and captures ⭐ NEW
 - **Drag-and-Drop Movement**: Move pieces by dragging them with your mouse!
 - **King Check Highlighting**: King's square turns red when under attack
 - **Enhanced Visual Feedback**: Clear visual indicators for all game states
 - **Square Grid Maintained**: Chess board keeps perfect squares when resizing window
 
-See [NEW_FEATURES.md](NEW_FEATURES.md) for detailed documentation of the new features.
+See [NEW_FEATURES.md](NEW_FEATURES.md) and [FEATURE_SUMMARY.md](FEATURE_SUMMARY.md) for detailed documentation of the new features.
 
 ## 📚 Documentation
 - **[GAMEPLAY.md](GAMEPLAY.md)** - Complete gameplay guide with rules, controls, and strategies
@@ -52,6 +54,8 @@ See [NEW_FEATURES.md](NEW_FEATURES.md) for detailed documentation of the new fea
   - Game status display
 - ✅ Click-to-select, click-to-move interface
 - ✅ **Drag-and-drop piece movement** ⭐ NEW
+- ✅ **Flip board button** - View from either player's perspective ⭐ NEW
+- ✅ **Move sound effects** - Audio feedback for moves and captures ⭐ NEW
 - ✅ New Game button
 - ✅ Game over dialog
 
@@ -308,6 +312,7 @@ For detailed UI mockups, see [UI_MOCKUP.md](UI_MOCKUP.md).
    - **Red highlighting**: King is in check ⭐ NEW
    - Only pieces of the current player can be moved
    - The game prevents illegal moves that would put your king in check
+   - **Sound feedback**: Hear distinct sounds for regular moves and captures ⭐ NEW
 
 4. **Special Moves**
    - **Castling**: Click on your king, then click two squares toward the rook (or drag)
@@ -318,9 +323,10 @@ For detailed UI mockups, see [UI_MOCKUP.md](UI_MOCKUP.md).
    - Checkmate: Opponent's king is in check with no legal moves
    - Stalemate: Current player has no legal moves but is not in check (Draw)
 
-5. **Game Controls**
+6. **Game Controls**
    - **New Game**: Start a fresh game
    - **Undo**: (Note: Feature placeholder in current version)
+   - **Flip Board**: Rotate the board 180° to view from the other player's perspective ⭐ NEW
 
 ## Game Status Messages
 
@@ -356,6 +362,10 @@ Possible additions for future versions:
 - Timer/clock for timed games
 - Save/load game state
 - Piece promotion choice dialog (currently auto-promotes to Queen)
+- Volume control for sound effects
+- Additional sound effects (check, checkmate, castling)
+- Sound on/off toggle
+- Animated board flip transition
 - Opening book and game analysis
 - Online multiplayer
 - AI opponent
