@@ -26,10 +26,16 @@ class ChessSquare : public QPushButton {
     Q_OBJECT
     
 public:
+    enum HighlightType {
+        None,
+        Movable,      // Blue border - empty square
+        Capturable    // Red border - has opponent piece
+    };
+    
     ChessSquare(int row, int col, QWidget* parent = nullptr);
     
     void setPiece(ChessPiece* piece);
-    void setHighlight(bool highlight);
+    void setHighlight(HighlightType type);
     void setSelected(bool selected);
     void setInCheck(bool inCheck);
     
@@ -47,7 +53,7 @@ private:
     int m_row;
     int m_col;
     bool m_isLight;
-    bool m_isHighlighted;
+    HighlightType m_highlightType;
     bool m_isSelected;
     bool m_isInCheck;
     QPoint m_dragStartPosition;
