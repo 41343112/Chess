@@ -88,10 +88,10 @@ void ChessSquare::updateStyle() {
     // Add colored borders for movable and capturable squares
     if (m_highlightType == Movable) {
         borderColor = "#0066FF";  // Blue for movable squares
-        borderWidth = 3;
+        borderWidth = 4;
     } else if (m_highlightType == Capturable) {
         borderColor = "#FF0000";  // Red for capturable squares
-        borderWidth = 3;
+        borderWidth =4;
     }
 
     setStyleSheet(QString("QPushButton { background-color: %1; border: %2px solid %3; }")
