@@ -543,6 +543,10 @@ bool ChessBoard::isInsufficientMaterial() const {
             (whiteKnights == 0 && blackKnights == 1)) {
             return true;
         }
+        // King + Knight vs King + Knight (two knights total)
+        if (whiteKnights == 1 && blackKnights == 1) {
+            return true;
+        }
     }
     
     // King + two Knights vs King (technically can checkmate with help, but treating as draw per requirements)
