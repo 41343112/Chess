@@ -292,43 +292,55 @@ void myChess::initializeSoundEffects() {
     m_moveSound = new QSoundEffect(this);
     m_moveSound->setSource(QUrl("qrc:/sounds/sounds/move.wav"));
     m_moveSound->setVolume(0.5);
+    m_moveSound->setLoopCount(1);  // Play once
     
     // Initialize capture sound
     m_captureSound = new QSoundEffect(this);
     m_captureSound->setSource(QUrl("qrc:/sounds/sounds/capture.wav"));
     m_captureSound->setVolume(0.5);
+    m_captureSound->setLoopCount(1);  // Play once
     
     // Initialize check sound
     m_checkSound = new QSoundEffect(this);
     m_checkSound->setSource(QUrl("qrc:/sounds/sounds/check.wav"));
     m_checkSound->setVolume(0.5);
+    m_checkSound->setLoopCount(1);  // Play once
     
     // Initialize checkmate sound
     m_checkmateSound = new QSoundEffect(this);
     m_checkmateSound->setSource(QUrl("qrc:/sounds/sounds/checkmate.wav"));
     m_checkmateSound->setVolume(0.5);
+    m_checkmateSound->setLoopCount(1);  // Play once
     
     // Connect to status signals to detect loading issues
     connect(m_moveSound, &QSoundEffect::statusChanged, this, [this]() {
-        if (m_moveSound->status() == QSoundEffect::Error) {
+        if (m_moveSound->status() == QSoundEffect::Ready) {
+            qDebug() << "Move sound loaded successfully";
+        } else if (m_moveSound->status() == QSoundEffect::Error) {
             qWarning() << "Failed to load move sound:" << m_moveSound->source();
         }
     });
     
     connect(m_captureSound, &QSoundEffect::statusChanged, this, [this]() {
-        if (m_captureSound->status() == QSoundEffect::Error) {
+        if (m_captureSound->status() == QSoundEffect::Ready) {
+            qDebug() << "Capture sound loaded successfully";
+        } else if (m_captureSound->status() == QSoundEffect::Error) {
             qWarning() << "Failed to load capture sound:" << m_captureSound->source();
         }
     });
     
     connect(m_checkSound, &QSoundEffect::statusChanged, this, [this]() {
-        if (m_checkSound->status() == QSoundEffect::Error) {
+        if (m_checkSound->status() == QSoundEffect::Ready) {
+            qDebug() << "Check sound loaded successfully";
+        } else if (m_checkSound->status() == QSoundEffect::Error) {
             qWarning() << "Failed to load check sound:" << m_checkSound->source();
         }
     });
     
     connect(m_checkmateSound, &QSoundEffect::statusChanged, this, [this]() {
-        if (m_checkmateSound->status() == QSoundEffect::Error) {
+        if (m_checkmateSound->status() == QSoundEffect::Ready) {
+            qDebug() << "Checkmate sound loaded successfully";
+        } else if (m_checkmateSound->status() == QSoundEffect::Error) {
             qWarning() << "Failed to load checkmate sound:" << m_checkmateSound->source();
         }
     });
@@ -605,24 +617,30 @@ void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
 void myChess::playMoveSound(bool isCapture, bool isCheck, bool isCheckmate) {
     // Priority: checkmate > check > capture > move
     QSoundEffect* soundToPlay = nullptr;
+    const char* soundType = "";
     
     if (isCheckmate) {
         soundToPlay = m_checkmateSound;
+        soundType = "checkmate";
     } else if (isCheck) {
         soundToPlay = m_checkSound;
+        soundType = "check";
     } else if (isCapture) {
         soundToPlay = m_captureSound;
+        soundType = "capture";
     } else {
         soundToPlay = m_moveSound;
+        soundType = "move";
     }
     
     // Only play if sound is loaded successfully
     if (soundToPlay && soundToPlay->status() == QSoundEffect::Ready) {
+        qDebug() << "Playing" << soundType << "sound";
         soundToPlay->play();
     } else if (soundToPlay && soundToPlay->status() == QSoundEffect::Error) {
-        qWarning() << "Cannot play sound - load error:" << soundToPlay->source();
+        qWarning() << "Cannot play" << soundType << "sound - load error:" << soundToPlay->source();
     } else if (soundToPlay) {
-        qWarning() << "Cannot play sound - not ready:" << soundToPlay->source() 
+        qWarning() << "Cannot play" << soundType << "sound - not ready:" << soundToPlay->source() 
                    << "status:" << soundToPlay->status();
     }
 }
