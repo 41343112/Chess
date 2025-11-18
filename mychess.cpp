@@ -276,19 +276,19 @@ myChess::myChess(QWidget *parent)
     // Initialize sound effects
     m_moveSound = new QSoundEffect(this);
     m_moveSound->setSource(QUrl("qrc:/sounds/sounds/move.wav"));
-    m_moveSound->setVolume(0.5f);
+    m_moveSound->setVolume(1);
 
     m_captureSound = new QSoundEffect(this);
     m_captureSound->setSource(QUrl("qrc:/sounds/sounds/capture.wav"));
-    m_captureSound->setVolume(0.5f);
+    m_captureSound->setVolume(1);
 
     m_checkSound = new QSoundEffect(this);
     m_checkSound->setSource(QUrl("qrc:/sounds/sounds/check.wav"));
-    m_checkSound->setVolume(0.5f);
+    m_checkSound->setVolume(1);
 
     m_checkmateSound = new QSoundEffect(this);
     m_checkmateSound->setSource(QUrl("qrc:/sounds/sounds/checkmate.wav"));
-    m_checkmateSound->setVolume(0.5f);
+    m_checkmateSound->setVolume(1);
 
     setupUI();
     updateBoard();
