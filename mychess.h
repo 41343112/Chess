@@ -169,6 +169,7 @@ private:
     void highlightValidMoves(QPoint from);
     void showGameOverDialog();
     void playMoveSound(bool isCapture, bool isCheck, bool isCheckmate);
+    void initializeSoundEffects();
 };
 
 #endif // MYCHESS_H

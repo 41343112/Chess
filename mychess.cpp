@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QPainter>
 #include <QIcon>
+#include <QDebug>
 
 // ChessSquare implementation
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
@@ -273,22 +274,8 @@ myChess::myChess(QWidget *parent)
 
     m_chessBoard = new ChessBoard();
 
-    // Initialize sound effects
-    m_moveSound = new QSoundEffect(this);
-    m_moveSound->setSource(QUrl("qrc:/sounds/sounds/move.wav"));
-    m_moveSound->setVolume(1);
-
-    m_captureSound = new QSoundEffect(this);
-    m_captureSound->setSource(QUrl("qrc:/sounds/sounds/capture.wav"));
-    m_captureSound->setVolume(1);
-
-    m_checkSound = new QSoundEffect(this);
-    m_checkSound->setSource(QUrl("qrc:/sounds/sounds/check.wav"));
-    m_checkSound->setVolume(1);
-
-    m_checkmateSound = new QSoundEffect(this);
-    m_checkmateSound->setSource(QUrl("qrc:/sounds/sounds/checkmate.wav"));
-    m_checkmateSound->setVolume(1);
+    // Initialize sound effects with proper error handling
+    initializeSoundEffects();
 
     setupUI();
     updateBoard();
@@ -299,6 +286,54 @@ myChess::~myChess()
     delete m_chessBoard;
     delete ui;
 }
+
+void myChess::initializeSoundEffects() {
+    // Initialize move sound
+    m_moveSound = new QSoundEffect(this);
+    m_moveSound->setSource(QUrl("qrc:/sounds/sounds/move.wav"));
+    m_moveSound->setVolume(0.5);
+    
+    // Initialize capture sound
+    m_captureSound = new QSoundEffect(this);
+    m_captureSound->setSource(QUrl("qrc:/sounds/sounds/capture.wav"));
+    m_captureSound->setVolume(0.5);
+    
+    // Initialize check sound
+    m_checkSound = new QSoundEffect(this);
+    m_checkSound->setSource(QUrl("qrc:/sounds/sounds/check.wav"));
+    m_checkSound->setVolume(0.5);
+    
+    // Initialize checkmate sound
+    m_checkmateSound = new QSoundEffect(this);
+    m_checkmateSound->setSource(QUrl("qrc:/sounds/sounds/checkmate.wav"));
+    m_checkmateSound->setVolume(0.5);
+    
+    // Connect to status signals to detect loading issues
+    connect(m_moveSound, &QSoundEffect::statusChanged, this, [this]() {
+        if (m_moveSound->status() == QSoundEffect::Error) {
+            qWarning() << "Failed to load move sound:" << m_moveSound->source();
+        }
+    });
+    
+    connect(m_captureSound, &QSoundEffect::statusChanged, this, [this]() {
+        if (m_captureSound->status() == QSoundEffect::Error) {
+            qWarning() << "Failed to load capture sound:" << m_captureSound->source();
+        }
+    });
+    
+    connect(m_checkSound, &QSoundEffect::statusChanged, this, [this]() {
+        if (m_checkSound->status() == QSoundEffect::Error) {
+            qWarning() << "Failed to load check sound:" << m_checkSound->source();
+        }
+    });
+    
+    connect(m_checkmateSound, &QSoundEffect::statusChanged, this, [this]() {
+        if (m_checkmateSound->status() == QSoundEffect::Error) {
+            qWarning() << "Failed to load checkmate sound:" << m_checkmateSound->source();
+        }
+    });
+}
+
 
 void myChess::setMinBoardSize(int px) {
     if (px < 0) px = 0;
@@ -569,14 +604,26 @@ void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
 
 void myChess::playMoveSound(bool isCapture, bool isCheck, bool isCheckmate) {
     // Priority: checkmate > check > capture > move
+    QSoundEffect* soundToPlay = nullptr;
+    
     if (isCheckmate) {
-        m_checkmateSound->play();
+        soundToPlay = m_checkmateSound;
     } else if (isCheck) {
-        m_checkSound->play();
+        soundToPlay = m_checkSound;
     } else if (isCapture) {
-        m_captureSound->play();
+        soundToPlay = m_captureSound;
     } else {
-        m_moveSound->play();
+        soundToPlay = m_moveSound;
+    }
+    
+    // Only play if sound is loaded successfully
+    if (soundToPlay && soundToPlay->status() == QSoundEffect::Ready) {
+        soundToPlay->play();
+    } else if (soundToPlay && soundToPlay->status() == QSoundEffect::Error) {
+        qWarning() << "Cannot play sound - load error:" << soundToPlay->source();
+    } else if (soundToPlay) {
+        qWarning() << "Cannot play sound - not ready:" << soundToPlay->source() 
+                   << "status:" << soundToPlay->status();
     }
 }
 
