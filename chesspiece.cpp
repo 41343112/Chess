@@ -30,7 +30,7 @@ QPixmap ChessPiece::getPixmap() const {
         {":/images/images/knight.png",":/images/images/b_knight.png"},
         {":/images/images/biship.png",":/images/images/b_biship.png"},
         {":/images/images/queen.png", ":/images/images/b_queen.png"},
-        {":/images/images/king.png",  ":/image/images/b_king.png"}
+        {":/images/images/king.png",  ":/images/images/b_king.png"}
     };
 
     int t = static_cast<int>(m_type);

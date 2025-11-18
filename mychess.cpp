@@ -8,7 +8,7 @@
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     : QPushButton(parent), m_row(row), m_col(col),
     m_highlightType(None), m_isSelected(false), m_isInCheck(false),
-    m_isDragging(false) {
+    m_isDragging(false), m_piece(nullptr) {
     m_isLight = (row + col) % 2 == 0;
     // Lower minimum size so board can shrink more
     setMinimumSize(16, 16);
@@ -26,19 +26,27 @@ ChessSquare::ChessSquare(int row, int col, QWidget* parent)
 }
 
 void ChessSquare::setPiece(ChessPiece* piece) {
-    if (piece != nullptr) {
-        QPixmap pix = piece->getPixmap();
+    m_piece = piece;
+    updatePieceDisplay();
+}
+
+void ChessSquare::updatePieceDisplay() {
+    if (m_piece != nullptr) {
+        QPixmap pix = m_piece->getPixmap();
         if (!pix.isNull()) {
             // Use icon (scaled to fit)
             int s = qMin(width(), height());
-            QPixmap scaled = pix.scaled(s, s, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-            setIcon(QIcon(scaled));
-            setIconSize(scaled.size());
+            // Ensure we have a reasonable size to scale to
+            if (s > 0) {
+                QPixmap scaled = pix.scaled(s, s, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                setIcon(QIcon(scaled));
+                setIconSize(scaled.size());
+            }
             setText("");
         } else {
             // fallback to text symbol
             setIcon(QIcon());
-            setText(piece->getSymbol());
+            setText(m_piece->getSymbol());
         }
     } else {
         setIcon(QIcon());
@@ -113,8 +121,11 @@ void ChessSquare::resizeEvent(QResizeEvent* event) {
     int fontSize = qMax(8, size / 2);
     setFont(QFont("Arial", fontSize));
 
-    // Update icon size if present
-    if (!icon().isNull()) {
+    // Regenerate icon at new size if we have a piece with an icon
+    if (m_piece != nullptr && !m_piece->getPixmap().isNull()) {
+        updatePieceDisplay();
+    } else if (!icon().isNull()) {
+        // Update icon size for any existing icon
         setIconSize(QSize(size, size));
     }
 }
