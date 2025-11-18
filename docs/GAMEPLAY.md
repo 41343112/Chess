@@ -16,7 +16,7 @@ Complete guide to playing the chess game, including all features, controls, and 
 ## Getting Started
 
 ### Launching the Game
-1. Build and run the application (see [README.md](README.md) for build instructions)
+1. Build and run the application (see [README.md](../README.md) for build instructions)
 2. The game window will open with a fresh chess game ready to play
 3. White always moves first in chess
 

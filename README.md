@@ -10,12 +10,12 @@
 - **增強的視覺回饋**：所有遊戲狀態都有清晰的視覺指示
 - **保持方格網格**：調整視窗大小時棋盤保持完美的正方形
 
-詳細的新功能文件請參閱 [NEW_FEATURES.md](NEW_FEATURES.md) 和 [FEATURE_SUMMARY.md](FEATURE_SUMMARY.md)。
+詳細的新功能文件請參閱 [NEW_FEATURES.md](docs/NEW_FEATURES.md) 和 [FEATURE_SUMMARY.md](docs/FEATURE_SUMMARY.md)。
 
 ## 📚 文件說明
-- **[GAMEPLAY.md](GAMEPLAY.md)** - 完整的遊戲指南，包含規則、操作和策略
-- [NEW_FEATURES.md](NEW_FEATURES.md) - 最新功能新增和實作細節
-- [UI_MOCKUP.md](UI_MOCKUP.md) - 使用者介面設計和模型
+- **[GAMEPLAY.md](docs/GAMEPLAY.md)** - 完整的遊戲指南，包含規則、操作和策略
+- [NEW_FEATURES.md](docs/NEW_FEATURES.md) - 最新功能新增和實作細節
+- [UI_MOCKUP.md](docs/UI_MOCKUP.md) - 使用者介面設計和模型
 
 ## 目錄
 - [中文玩法說明](#中文玩法說明) ⭐ 中文遊戲說明
@@ -347,11 +347,11 @@ Chess.exe
 第 1 列：♖ ♘ ♗ ♕ ♔ ♗ ♘ ♖
 ```
 
-詳細的介面設計模型請參閱 [UI_MOCKUP.md](UI_MOCKUP.md)。
+詳細的介面設計模型請參閱 [UI_MOCKUP.md](docs/UI_MOCKUP.md)。
 
 ## 如何遊玩
 
-**完整的遊戲指南，包含詳細規則、策略和技巧，請參閱 [GAMEPLAY.md](GAMEPLAY.md)。**
+**完整的遊戲指南，包含詳細規則、策略和技巧，請參閱 [GAMEPLAY.md](docs/GAMEPLAY.md)。**
 
 ### 快速入門
 
