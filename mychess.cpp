@@ -3,6 +3,8 @@
 #include <QApplication>
 #include <QPainter>
 #include <QIcon>
+#include <QDebug>
+#include <QDir>
 
 // ChessSquare implementation
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
@@ -244,10 +246,8 @@ void ChessSquare::dropEvent(QDropEvent* event) {
         QString sourceData = event->mimeData()->text();
         QStringList coords = sourceData.split(',');
         if (coords.size() == 2) {
-            int sourceRow = coords[0].toInt();
-            int sourceCol = coords[1].toInt();
-
-            // Notify parent to handle the move
+            // sourceRow/sourceCol were removed because they weren't used.
+            // Notify parent to handle the move (target is this square m_row/m_col)
             myChess* parent = qobject_cast<myChess*>(window());
             if (parent) {
                 parent->onSquareDragEnded(m_row, m_col);
@@ -262,8 +262,8 @@ void ChessSquare::dropEvent(QDropEvent* event) {
 myChess::myChess(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::myChess)
+    , m_selectedSquare(-1, -1)   // match declaration order in header
     , m_hasSelection(false)
-    , m_selectedSquare(-1, -1)
     , m_isBoardFlipped(false)
     , m_boardWidget(nullptr)
     , m_minBoardSize(40) // 預設最小棋盤尺寸為 40 px
@@ -274,13 +274,7 @@ myChess::myChess(QWidget *parent)
     m_chessBoard = new ChessBoard();
 
     // Initialize sound effects
-    m_moveSound = new QSoundEffect(this);
-    m_moveSound->setSource(QUrl("qrc:/sounds/sounds/move.wav"));
-    m_moveSound->setVolume(0.5f);
-
-    m_captureSound = new QSoundEffect(this);
-    m_captureSound->setSource(QUrl("qrc:/sounds/sounds/capture.wav"));
-    m_captureSound->setVolume(0.5f);
+    initSoundEffects();
 
     setupUI();
     updateBoard();
@@ -304,6 +298,52 @@ void myChess::setMinBoardSize(int px) {
 
 int myChess::minBoardSize() const {
     return m_minBoardSize;
+}
+
+void myChess::initSoundEffects() {
+    // Create QSoundEffect objects
+    m_moveSound = new QSoundEffect(this);
+    m_captureSound = new QSoundEffect(this);
+
+    // Preferred qrc paths (match resources.qrc prefix and file entries)
+    // Attempt qrc first
+    QUrl qrcMove("qrc:/sounds/sounds/move.wav");
+    QUrl qrcCapture("qrc:/sounds/sounds/capture.wav");
+
+    m_moveSound->setVolume(0.5f);
+    m_captureSound->setVolume(0.5f);
+
+    // Connect status change signals for debug
+    connect(m_moveSound, &QSoundEffect::statusChanged, this, [this]() {
+        qDebug() << "[Sound] moveSound statusChanged:" << m_moveSound->status() << " source=" << m_moveSound->source();
+    });
+    connect(m_captureSound, &QSoundEffect::statusChanged, this, [this]() {
+        qDebug() << "[Sound] captureSound statusChanged:" << m_captureSound->status() << " source=" << m_captureSound->source();
+    });
+
+    // Set qrc sources first
+    m_moveSound->setSource(qrcMove);
+    m_captureSound->setSource(qrcCapture);
+
+    qDebug() << "[Sound] After setSource(qrc): move source =" << m_moveSound->source() << ", status =" << m_moveSound->status();
+    qDebug() << "[Sound] After setSource(qrc): capture source =" << m_captureSound->source() << ", status =" << m_captureSound->status();
+
+    // If qrc load doesn't produce Ready status, try local-file fallback
+    if (m_moveSound->status() != QSoundEffect::Ready) {
+        QString localMove = QCoreApplication::applicationDirPath() + QDir::separator() + "sounds" + QDir::separator() + "move.wav";
+        QUrl localMoveUrl = QUrl::fromLocalFile(localMove);
+        qDebug() << "[Sound] qrc move not ready, trying local file:" << localMoveUrl;
+        m_moveSound->setSource(localMoveUrl);
+    }
+    if (m_captureSound->status() != QSoundEffect::Ready) {
+        QString localCapture = QCoreApplication::applicationDirPath() + QDir::separator() + "sounds" + QDir::separator() + "capture.wav";
+        QUrl localCaptureUrl = QUrl::fromLocalFile(localCapture);
+        qDebug() << "[Sound] qrc capture not ready, trying local file:" << localCaptureUrl;
+        m_captureSound->setSource(localCaptureUrl);
+    }
+
+    qDebug() << "[Sound] Final move source =" << m_moveSound->source() << ", status =" << m_moveSound->status();
+    qDebug() << "[Sound] Final capture source =" << m_captureSound->source() << ", status =" << m_captureSound->status();
 }
 
 void myChess::setupUI() {
@@ -556,10 +596,21 @@ void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
 }
 
 void myChess::playMoveSound(bool isCapture) {
+    qDebug() << "[Sound] playMoveSound called. isCapture=" << isCapture;
     if (isCapture) {
-        m_captureSound->play();
+        if (m_captureSound && m_captureSound->status() == QSoundEffect::Ready) {
+            qDebug() << "[Sound] playing captureSound source=" << m_captureSound->source();
+            m_captureSound->play();
+        } else {
+            qDebug() << "[Sound] captureSound not ready, status=" << (m_captureSound ? m_captureSound->status() : QSoundEffect::Null);
+        }
     } else {
-        m_moveSound->play();
+        if (m_moveSound && m_moveSound->status() == QSoundEffect::Ready) {
+            qDebug() << "[Sound] playing moveSound source=" << m_moveSound->source();
+            m_moveSound->play();
+        } else {
+            qDebug() << "[Sound] moveSound not ready, status=" << (m_moveSound ? m_moveSound->status() : QSoundEffect::Null);
+        }
     }
 }
 

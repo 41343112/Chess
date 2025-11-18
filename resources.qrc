@@ -1,10 +1,11 @@
 <RCC>
     <qresource prefix="/sounds">
-        <file>sounds/move.mp3</file>
-        
+        <!-- 放在專案目錄 sounds/ 下的檔案；在 <file> 只需指定檔名或子路徑（不重複 prefix 部分） -->
+        <file>sounds/move.wav</file>
+        <file>sounds/capture.wav</file>
     </qresource>
 
-    <!-- 新增 images 資源 (請把對應檔案放到專案 images/ 目錄) -->
+    <!-- images 資源：請將對應檔案放到專案 images/ 目錄 -->
     <qresource prefix="/images">
         <file>images/pawn.png</file>
         <file>images/rook.png</file>

@@ -161,6 +161,9 @@ private:
     // 可設定的最小棋盤尺寸(像素)，預設 40
     int m_minBoardSize;
 
+    // 新增聲音初始化 helper 的宣告
+    void initSoundEffects();
+
     void setupUI();
     void updateBoard();
     void clearHighlights();
