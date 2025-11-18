@@ -136,8 +136,8 @@ void ChessSquare::mousePressEvent(QMouseEvent* event) {
     } else if (event->button() == Qt::RightButton) {
         // Right-click: cancel drag if currently dragging
         if (m_isDragging) {
-            // Cancel drag - restore the piece text/icon
-            if (!m_draggedPieceText.isEmpty()) setText(m_draggedPieceText);
+            // Cancel drag - restore the piece display
+            updatePieceDisplay();  // Restore the piece display using the stored m_piece
             m_draggedPieceText.clear();
             m_isDragging = false;
 
@@ -171,7 +171,9 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
 
     // Store the piece text and temporarily hide it from the original square
     m_draggedPieceText = text();
+    QIcon draggedIcon = icon();  // Store the icon
     setText("");
+    setIcon(QIcon());  // Clear the icon to hide the piece during drag
     m_isDragging = true;  // Set dragging flag
 
     // Check with parent if drag should proceed
@@ -181,10 +183,11 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
         dragAllowed = parent->onSquareDragStarted(m_row, m_col);
     }
 
-    // If drag not allowed (e.g., game over or wrong turn), restore text and return
+    // If drag not allowed (e.g., game over or wrong turn), restore display and return
     if (!dragAllowed) {
-        setText(m_draggedPieceText);
+        updatePieceDisplay();  // Restore the piece display using the stored m_piece
         m_draggedPieceText.clear();
+        m_isDragging = false;
         return;
     }
 
@@ -197,8 +200,8 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
 
     // Create a pixmap for the drag: prefer icon/pixmap if present
     QPixmap dragPixmap;
-    if (!icon().isNull()) {
-        dragPixmap = icon().pixmap(iconSize());
+    if (!draggedIcon.isNull()) {
+        dragPixmap = draggedIcon.pixmap(iconSize());
     } else {
         dragPixmap = QPixmap(size());
         dragPixmap.fill(Qt::transparent);
@@ -220,9 +223,9 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     // Clear dragging flag
     m_isDragging = false;
 
-    // If drag was not accepted (cancelled or failed), restore the piece text/icon
+    // If drag was not accepted (cancelled or failed), restore the piece display
     if (dropAction == Qt::IgnoreAction) {
-        setText(m_draggedPieceText);
+        updatePieceDisplay();  // Restore the piece display using the stored m_piece
     }
     m_draggedPieceText.clear();
 
