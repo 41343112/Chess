@@ -277,18 +277,38 @@ myChess::myChess(QWidget *parent)
     m_moveSound = new QSoundEffect(this);
     m_moveSound->setSource(QUrl("qrc:/sounds/sounds/move.wav"));
     m_moveSound->setVolume(0.5f);
+    connect(m_moveSound, &QSoundEffect::statusChanged, this, [this]() {
+        if (m_moveSound->status() == QSoundEffect::Error) {
+            qWarning() << "Failed to load move sound:" << m_moveSound->source();
+        }
+    });
 
     m_captureSound = new QSoundEffect(this);
     m_captureSound->setSource(QUrl("qrc:/sounds/sounds/capture.wav"));
     m_captureSound->setVolume(0.5f);
+    connect(m_captureSound, &QSoundEffect::statusChanged, this, [this]() {
+        if (m_captureSound->status() == QSoundEffect::Error) {
+            qWarning() << "Failed to load capture sound:" << m_captureSound->source();
+        }
+    });
 
     m_checkSound = new QSoundEffect(this);
     m_checkSound->setSource(QUrl("qrc:/sounds/sounds/check.wav"));
     m_checkSound->setVolume(0.5f);
+    connect(m_checkSound, &QSoundEffect::statusChanged, this, [this]() {
+        if (m_checkSound->status() == QSoundEffect::Error) {
+            qWarning() << "Failed to load check sound:" << m_checkSound->source();
+        }
+    });
 
     m_checkmateSound = new QSoundEffect(this);
     m_checkmateSound->setSource(QUrl("qrc:/sounds/sounds/checkmate.wav"));
     m_checkmateSound->setVolume(0.5f);
+    connect(m_checkmateSound, &QSoundEffect::statusChanged, this, [this]() {
+        if (m_checkmateSound->status() == QSoundEffect::Error) {
+            qWarning() << "Failed to load checkmate sound:" << m_checkmateSound->source();
+        }
+    });
 
     setupUI();
     updateBoard();
@@ -569,13 +589,21 @@ void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
 
 void myChess::playMoveSound(bool isCapture, bool isCheck, bool isCheckmate) {
     // Priority: checkmate > check > capture > move
+    // Debug output to verify sound selection logic
+    qDebug() << "playMoveSound called: isCapture=" << isCapture 
+             << "isCheck=" << isCheck << "isCheckmate=" << isCheckmate;
+    
     if (isCheckmate) {
+        qDebug() << "Playing checkmate sound";
         m_checkmateSound->play();
     } else if (isCheck) {
+        qDebug() << "Playing check sound (priority over capture)";
         m_checkSound->play();
     } else if (isCapture) {
+        qDebug() << "Playing capture sound";
         m_captureSound->play();
     } else {
+        qDebug() << "Playing move sound";
         m_moveSound->play();
     }
 }
