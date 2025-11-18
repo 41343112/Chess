@@ -314,6 +314,7 @@ int myChess::minBoardSize() const {
     return m_minBoardSize;
 }
 
+
 void myChess::setupUI() {
     // Create central widget with layout
     QWidget* centralWidget = new QWidget(this);
