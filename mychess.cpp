@@ -290,6 +290,10 @@ myChess::myChess(QWidget *parent)
     m_checkmateSound->setSource(QUrl("qrc:/sounds/sounds/checkmate.wav"));
     m_checkmateSound->setVolume(1);
 
+    m_castlingSound = new QSoundEffect(this);
+    m_castlingSound->setSource(QUrl("qrc:/sounds/sounds/castling.wav"));
+    m_castlingSound->setVolume(1);
+
     setupUI();
     updateBoard();
 }
@@ -544,7 +548,15 @@ void myChess::onSquareDragEnded(int row, int col) {
         QString gameStatus = m_chessBoard->getGameStatus();
         bool isCheckmate = gameStatus.contains("checkmate");
         bool isCheck = gameStatus.contains("check") && !isCheckmate;
-        playMoveSound(isCapture, isCheck, isCheckmate);
+        
+        // Check if the last move was castling
+        bool isCastling = false;
+        const QVector<Move>& history = m_chessBoard->getMoveHistory();
+        if (!history.isEmpty()) {
+            isCastling = history.last().wasCastling;
+        }
+        
+        playMoveSound(isCapture, isCheck, isCheckmate, isCastling);
     }
     updateBoard();
 
@@ -567,12 +579,14 @@ void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
     updateBoard();
 }
 
-void myChess::playMoveSound(bool isCapture, bool isCheck, bool isCheckmate) {
-    // Priority: checkmate > check > capture > move
+void myChess::playMoveSound(bool isCapture, bool isCheck, bool isCheckmate, bool isCastling) {
+    // Priority: checkmate > check > castling > capture > move
     if (isCheckmate) {
         m_checkmateSound->play();
     } else if (isCheck) {
         m_checkSound->play();
+    } else if (isCastling) {
+        m_castlingSound->play();
     } else if (isCapture) {
         m_captureSound->play();
     } else {
@@ -736,7 +750,15 @@ void myChess::onSquareClicked() {
                 QString gameStatus = m_chessBoard->getGameStatus();
                 bool isCheckmate = gameStatus.contains("checkmate");
                 bool isCheck = gameStatus.contains("check") && !isCheckmate;
-                playMoveSound(isCapture, isCheck, isCheckmate);
+                
+                // Check if the last move was castling
+                bool isCastling = false;
+                const QVector<Move>& history = m_chessBoard->getMoveHistory();
+                if (!history.isEmpty()) {
+                    isCastling = history.last().wasCastling;
+                }
+                
+                playMoveSound(isCapture, isCheck, isCheckmate, isCastling);
             }
             updateBoard();
 
