@@ -607,9 +607,9 @@ void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
 }
 
 void myChess::playMoveSound(bool isCapture) {
-<<<<<<< HEAD
+
     qDebug() << "[Sound] playMoveSound called. isCapture=" << isCapture;
-=======
+
     // Check game state after the move
     if (m_chessBoard->isGameOver()) {
         // Check if it's checkmate (not stalemate)
@@ -624,7 +624,7 @@ void myChess::playMoveSound(bool isCapture) {
     }
     
     // Normal move sounds
->>>>>>> 5d3dd5aacd976aa4acb6c7d095eb01c2f3555dd1
+
     if (isCapture) {
         if (m_captureSound && m_captureSound->status() == QSoundEffect::Ready) {
             qDebug() << "[Sound] playing captureSound source=" << m_captureSound->source();
