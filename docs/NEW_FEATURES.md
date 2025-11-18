@@ -160,11 +160,53 @@ To test the new features:
 - Check highlighting has the highest visual priority to ensure visibility
 - All original functionality is preserved and enhanced
 
+### ✅ Feature 5: Sound Effects System
+**Status:** Fully Implemented
+
+**Description:**
+A comprehensive sound effects system has been added to provide audio feedback for different game events.
+
+**Implemented Sound Effects:**
+1. **Move Sound** (移動音效) - Plays when a piece moves to an empty square
+2. **Capture Sound** (吃子音效) - Plays when a piece captures an opponent's piece
+3. **Check Sound** (攻擊國王音效) - Plays when a move puts the opponent's king in check
+4. **Checkmate Sound** (將殺音效) - Plays when a move results in checkmate
+
+**How it works:**
+- Sound effects are automatically played after each valid move
+- Sounds are prioritized: Checkmate > Check > Capture > Move
+- Only the highest priority sound plays for each move
+- Sounds are triggered for both click-to-move and drag-and-drop movements
+
+**Implementation Details:**
+- Added Qt multimedia module to `Chess.pro`
+- Sound files stored in `sounds/` directory:
+  - `move.wav` - Normal move sound
+  - `capture.wav` - Piece capture sound
+  - `check.wav` - King under attack sound
+  - `checkmate.wav` - Game over sound
+- All sounds registered in `resources.qrc` under `:/sounds` prefix
+- Added to `mychess.h`:
+  - `#include <QSoundEffect>`
+  - Member variables: `m_moveSound`, `m_captureSound`, `m_checkSound`, `m_checkmateSound`
+  - Method: `playMoveSound(bool isCapture, bool isCheck, bool isCheckmate)`
+- In `mychess.cpp`:
+  - Sound effects initialized in constructor with 0.5 volume
+  - `playMoveSound()` implements priority logic
+  - Called in `onSquareClicked()` and `onSquareDragEnded()` after successful moves
+
+**User Experience:**
+- Immediate audio feedback confirms move execution
+- Different sounds help players understand game state changes
+- Check and checkmate sounds provide important warnings
+- Volume set to 50% for comfortable listening
+
 ## Future Enhancements
 
 Possible improvements for the future:
 - Add animation during piece movement (both click and drag)
-- Add sound effects for moves, captures, check, and checkmate
+- Add volume control slider for sound effects
+- Add option to mute/unmute sound effects
 - Show a semi-transparent preview of the piece at the destination during drag
 - Add visual arrows showing the attack lines when king is in check
 - Implement piece-specific cursor icons during drag
