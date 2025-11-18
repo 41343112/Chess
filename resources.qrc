@@ -2,6 +2,8 @@
     <qresource prefix="/sounds">
         <file>sounds/move.wav</file>
         <file>sounds/capture.wav</file>
+        <file>sounds/check.wav</file>
+        <file>sounds/checkmate.wav</file>
     </qresource>
 
     <!-- 新增 images 資源 (請把對應檔案放到專案 images/ 目錄) -->

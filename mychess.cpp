@@ -282,6 +282,14 @@ myChess::myChess(QWidget *parent)
     m_captureSound->setSource(QUrl("qrc:/sounds/sounds/capture.wav"));
     m_captureSound->setVolume(0.5f);
 
+    m_checkSound = new QSoundEffect(this);
+    m_checkSound->setSource(QUrl("qrc:/sounds/sounds/check.wav"));
+    m_checkSound->setVolume(0.5f);
+
+    m_checkmateSound = new QSoundEffect(this);
+    m_checkmateSound->setSource(QUrl("qrc:/sounds/sounds/checkmate.wav"));
+    m_checkmateSound->setVolume(0.5f);
+
     setupUI();
     updateBoard();
 }
@@ -531,8 +539,11 @@ void myChess::onSquareDragEnded(int row, int col) {
     m_hasSelection = false;
     clearHighlights();
     if (moveSuccess) {
-        // Clear red markers when a move is made
-        playMoveSound(isCapture);  // Play appropriate sound
+        // Determine game state after move for sound
+        bool isCheck = m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn());
+        bool isCheckmate = m_chessBoard->isGameOver() && 
+                          m_chessBoard->getGameStatus().contains("checkmate");
+        playMoveSound(isCapture, isCheck, isCheckmate);
     }
     updateBoard();
 
@@ -555,8 +566,13 @@ void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
     updateBoard();
 }
 
-void myChess::playMoveSound(bool isCapture) {
-    if (isCapture) {
+void myChess::playMoveSound(bool isCapture, bool isCheck, bool isCheckmate) {
+    // Priority: checkmate > check > capture > move
+    if (isCheckmate) {
+        m_checkmateSound->play();
+    } else if (isCheck) {
+        m_checkSound->play();
+    } else if (isCapture) {
         m_captureSound->play();
     } else {
         m_moveSound->play();
@@ -715,7 +731,11 @@ void myChess::onSquareClicked() {
             m_hasSelection = false;
             clearHighlights();
             if (moveSuccess) {
-                playMoveSound(isCapture);  // Play appropriate sound
+                // Determine game state after move for sound
+                bool isCheck = m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn());
+                bool isCheckmate = m_chessBoard->isGameOver() && 
+                                  m_chessBoard->getGameStatus().contains("checkmate");
+                playMoveSound(isCapture, isCheck, isCheckmate);
             }
             updateBoard();
 
