@@ -3,6 +3,7 @@
 #include <QApplication>
 #include <QPainter>
 #include <QIcon>
+#include <QDebug>
 
 // ChessSquare implementation
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
@@ -276,19 +277,23 @@ myChess::myChess(QWidget *parent)
     // Initialize sound effects
     m_moveSound = new QSoundEffect(this);
     m_moveSound->setSource(QUrl("qrc:/sounds/sounds/move.wav"));
-    m_moveSound->setVolume(1);
+    m_moveSound->setVolume(1.0);
+    qDebug() << "Move sound status:" << m_moveSound->status() << "Source:" << m_moveSound->source();
 
     m_captureSound = new QSoundEffect(this);
     m_captureSound->setSource(QUrl("qrc:/sounds/sounds/capture.wav"));
-    m_captureSound->setVolume(1);
+    m_captureSound->setVolume(1.0);
+    qDebug() << "Capture sound status:" << m_captureSound->status() << "Source:" << m_captureSound->source();
 
     m_checkSound = new QSoundEffect(this);
     m_checkSound->setSource(QUrl("qrc:/sounds/sounds/check.wav"));
-    m_checkSound->setVolume(1);
+    m_checkSound->setVolume(1.0);
+    qDebug() << "Check sound status:" << m_checkSound->status() << "Source:" << m_checkSound->source();
 
     m_checkmateSound = new QSoundEffect(this);
     m_checkmateSound->setSource(QUrl("qrc:/sounds/sounds/checkmate.wav"));
-    m_checkmateSound->setVolume(1);
+    m_checkmateSound->setVolume(1.0);
+    qDebug() << "Checkmate sound status:" << m_checkmateSound->status() << "Source:" << m_checkmateSound->source();
 
     setupUI();
     updateBoard();
