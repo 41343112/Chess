@@ -541,9 +541,9 @@ void myChess::onSquareDragEnded(int row, int col) {
     clearHighlights();
     if (moveSuccess) {
         // Determine game state after move for sound
-        bool isCheck = m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn());
-        bool isCheckmate = m_chessBoard->isGameOver() && 
-                          m_chessBoard->getGameStatus().contains("checkmate");
+        QString gameStatus = m_chessBoard->getGameStatus();
+        bool isCheckmate = gameStatus.contains("checkmate");
+        bool isCheck = gameStatus.contains("check") && !isCheckmate;
         playMoveSound(isCapture, isCheck, isCheckmate);
     }
     updateBoard();
@@ -733,9 +733,9 @@ void myChess::onSquareClicked() {
             clearHighlights();
             if (moveSuccess) {
                 // Determine game state after move for sound
-                bool isCheck = m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn());
-                bool isCheckmate = m_chessBoard->isGameOver() && 
-                                  m_chessBoard->getGameStatus().contains("checkmate");
+                QString gameStatus = m_chessBoard->getGameStatus();
+                bool isCheckmate = gameStatus.contains("checkmate");
+                bool isCheck = gameStatus.contains("check") && !isCheckmate;
                 playMoveSound(isCapture, isCheck, isCheckmate);
             }
             updateBoard();
