@@ -4,6 +4,7 @@
         <file>sounds/capture.wav</file>
         <file>sounds/check.wav</file>
         <file>sounds/checkmate.wav</file>
+        <file>sounds/castling.wav</file>
 	
     </qresource>
 

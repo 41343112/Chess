@@ -171,7 +171,7 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
             m_moveHistory.append(move);
             switchTurn();
 
-            // Check for checkmate/stalemate for the NEW current player
+            // Check for checkmate/stalemate/insufficient material for the NEW current player
             if (isCheckmate(m_currentTurn)) {
                 m_isGameOver = true;
                 PieceColor winner = (m_currentTurn == PieceColor::WHITE) ? PieceColor::BLACK : PieceColor::WHITE;
@@ -180,6 +180,9 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
             } else if (isStalemate(m_currentTurn)) {
                 m_isGameOver = true;
                 m_gameStatus = "Stalemate - Draw!";
+            } else if (isInsufficientMaterial()) {
+                m_isGameOver = true;
+                m_gameStatus = "Draw - Insufficient Material!";
             } else if (isKingInCheck(m_currentTurn)) {
                 m_gameStatus = (m_currentTurn == PieceColor::WHITE) ?
                                    "White is in check!" : "Black is in check!";
@@ -199,7 +202,7 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
         m_moveHistory.append(move);
         switchTurn();
 
-        // Check for checkmate/stalemate for the NEW current player
+        // Check for checkmate/stalemate/insufficient material for the NEW current player
         if (isCheckmate(m_currentTurn)) {
             m_isGameOver = true;
             PieceColor winner = (m_currentTurn == PieceColor::WHITE) ? PieceColor::BLACK : PieceColor::WHITE;
@@ -208,6 +211,9 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
         } else if (isStalemate(m_currentTurn)) {
             m_isGameOver = true;
             m_gameStatus = "Stalemate - Draw!";
+        } else if (isInsufficientMaterial()) {
+            m_isGameOver = true;
+            m_gameStatus = "Draw - Insufficient Material!";
         } else if (isKingInCheck(m_currentTurn)) {
             m_gameStatus = (m_currentTurn == PieceColor::WHITE) ?
                                "White is in check!" : "Black is in check!";
@@ -227,7 +233,7 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
     m_moveHistory.append(move);
     switchTurn();
 
-    // Check for checkmate/stalemate for the NEW current player (who is about to move)
+    // Check for checkmate/stalemate/insufficient material for the NEW current player (who is about to move)
     if (isCheckmate(m_currentTurn)) {
         m_isGameOver = true;
         // The player who just moved (opposite of current turn) wins
@@ -237,6 +243,9 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
     } else if (isStalemate(m_currentTurn)) {
         m_isGameOver = true;
         m_gameStatus = "Stalemate - Draw!";
+    } else if (isInsufficientMaterial()) {
+        m_isGameOver = true;
+        m_gameStatus = "Draw - Insufficient Material!";
     } else if (isKingInCheck(m_currentTurn)) {
         m_gameStatus = (m_currentTurn == PieceColor::WHITE) ?
                            "White is in check!" : "Black is in check!";
@@ -475,6 +484,76 @@ bool ChessBoard::isCheckmate(PieceColor color) {
 bool ChessBoard::isStalemate(PieceColor color) {
     if (isKingInCheck(color)) return false;
     return !hasAnyValidMoves(color);
+}
+
+bool ChessBoard::isInsufficientMaterial() const {
+    // Count pieces for each side
+    int whiteKnights = 0, blackKnights = 0;
+    int whiteBishops = 0, blackBishops = 0;
+    int whiteOther = 0, blackOther = 0; // pawns, rooks, queens
+    
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            ChessPiece* piece = m_board[row][col];
+            if (piece == nullptr || piece->getType() == PieceType::KING) {
+                continue;
+            }
+            
+            if (piece->getColor() == PieceColor::WHITE) {
+                if (piece->getType() == PieceType::KNIGHT) {
+                    whiteKnights++;
+                } else if (piece->getType() == PieceType::BISHOP) {
+                    whiteBishops++;
+                } else {
+                    whiteOther++;
+                }
+            } else {
+                if (piece->getType() == PieceType::KNIGHT) {
+                    blackKnights++;
+                } else if (piece->getType() == PieceType::BISHOP) {
+                    blackBishops++;
+                } else {
+                    blackOther++;
+                }
+            }
+        }
+    }
+    
+    // If either side has pawns, rooks, or queens, there's sufficient material
+    if (whiteOther > 0 || blackOther > 0) {
+        return false;
+    }
+    
+    // King vs King
+    if (whiteKnights == 0 && blackKnights == 0 && whiteBishops == 0 && blackBishops == 0) {
+        return true;
+    }
+    
+    // King + Bishop vs King
+    if (whiteKnights == 0 && blackKnights == 0) {
+        if ((whiteBishops == 1 && blackBishops == 0) || 
+            (whiteBishops == 0 && blackBishops == 1)) {
+            return true;
+        }
+    }
+    
+    // King + Knight vs King
+    if (whiteBishops == 0 && blackBishops == 0) {
+        if ((whiteKnights == 1 && blackKnights == 0) || 
+            (whiteKnights == 0 && blackKnights == 1)) {
+            return true;
+        }
+    }
+    
+    // King + two Knights vs King (technically can checkmate with help, but treating as draw per requirements)
+    if (whiteBishops == 0 && blackBishops == 0) {
+        if ((whiteKnights == 2 && blackKnights == 0) || 
+            (whiteKnights == 0 && blackKnights == 2)) {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 bool ChessBoard::canCastle(PieceColor color, bool kingSide) const {

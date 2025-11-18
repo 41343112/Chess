@@ -154,6 +154,7 @@ private:
     QSoundEffect* m_captureSound;
     QSoundEffect* m_checkSound;
     QSoundEffect* m_checkmateSound;
+    QSoundEffect* m_castlingSound;
 
     bool m_isBoardFlipped;
 
@@ -168,7 +169,7 @@ private:
     void clearHighlights();
     void highlightValidMoves(QPoint from);
     void showGameOverDialog();
-    void playMoveSound(bool isCapture, bool isCheck, bool isCheckmate);
+    void playMoveSound(bool isCapture, bool isCheck, bool isCheckmate, bool isCastling = false);
 };
 
 #endif // MYCHESS_H
