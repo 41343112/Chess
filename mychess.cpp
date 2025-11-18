@@ -282,6 +282,14 @@ myChess::myChess(QWidget *parent)
     m_captureSound->setSource(QUrl("qrc:/sounds/sounds/capture.wav"));
     m_captureSound->setVolume(0.5f);
 
+    m_checkSound = new QSoundEffect(this);
+    m_checkSound->setSource(QUrl("qrc:/sounds/sounds/check.wav"));
+    m_checkSound->setVolume(0.5f);
+
+    m_checkmateSound = new QSoundEffect(this);
+    m_checkmateSound->setSource(QUrl("qrc:/sounds/sounds/checkmate.wav"));
+    m_checkmateSound->setVolume(0.5f);
+
     setupUI();
     updateBoard();
 }
@@ -556,6 +564,20 @@ void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
 }
 
 void myChess::playMoveSound(bool isCapture) {
+    // Check game state after the move
+    if (m_chessBoard->isGameOver()) {
+        // Check if it's checkmate (not stalemate)
+        if (m_chessBoard->getGameStatus().contains("checkmate")) {
+            m_checkmateSound->play();
+            return;
+        }
+    } else if (m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn())) {
+        // King is in check but not checkmate
+        m_checkSound->play();
+        return;
+    }
+    
+    // Normal move sounds
     if (isCapture) {
         m_captureSound->play();
     } else {

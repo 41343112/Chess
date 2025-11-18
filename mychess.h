@@ -152,6 +152,8 @@ private:
 
     QSoundEffect* m_moveSound;
     QSoundEffect* m_captureSound;
+    QSoundEffect* m_checkSound;
+    QSoundEffect* m_checkmateSound;
 
     bool m_isBoardFlipped;
 
