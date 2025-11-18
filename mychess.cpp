@@ -138,8 +138,8 @@ void ChessSquare::mousePressEvent(QMouseEvent* event) {
     } else if (event->button() == Qt::RightButton) {
         // Right-click: cancel drag if currently dragging
         if (m_isDragging) {
-            // Cancel drag - restore the piece text/icon
-            if (!m_draggedPieceText.isEmpty()) setText(m_draggedPieceText);
+            // Cancel drag - restore the piece display
+            updatePieceDisplay();  // Restore the piece display using the stored m_piece
             m_draggedPieceText.clear();
             m_isDragging = false;
 
@@ -173,7 +173,9 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
 
     // Store the piece text and temporarily hide it from the original square
     m_draggedPieceText = text();
+    QIcon draggedIcon = icon();  // Store the icon
     setText("");
+    setIcon(QIcon());  // Clear the icon to hide the piece during drag
     m_isDragging = true;  // Set dragging flag
 
     // Check with parent if drag should proceed
@@ -183,10 +185,11 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
         dragAllowed = parent->onSquareDragStarted(m_row, m_col);
     }
 
-    // If drag not allowed (e.g., game over or wrong turn), restore text and return
+    // If drag not allowed (e.g., game over or wrong turn), restore display and return
     if (!dragAllowed) {
-        setText(m_draggedPieceText);
+        updatePieceDisplay();  // Restore the piece display using the stored m_piece
         m_draggedPieceText.clear();
+        m_isDragging = false;
         return;
     }
 
@@ -199,8 +202,8 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
 
     // Create a pixmap for the drag: prefer icon/pixmap if present
     QPixmap dragPixmap;
-    if (!icon().isNull()) {
-        dragPixmap = icon().pixmap(iconSize());
+    if (!draggedIcon.isNull()) {
+        dragPixmap = draggedIcon.pixmap(iconSize());
     } else {
         dragPixmap = QPixmap(size());
         dragPixmap.fill(Qt::transparent);
@@ -222,9 +225,9 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     // Clear dragging flag
     m_isDragging = false;
 
-    // If drag was not accepted (cancelled or failed), restore the piece text/icon
+    // If drag was not accepted (cancelled or failed), restore the piece display
     if (dropAction == Qt::IgnoreAction) {
-        setText(m_draggedPieceText);
+        updatePieceDisplay();  // Restore the piece display using the stored m_piece
     }
     m_draggedPieceText.clear();
 
@@ -275,6 +278,14 @@ myChess::myChess(QWidget *parent)
 
     // Initialize sound effects
     initSoundEffects();
+
+    m_checkSound = new QSoundEffect(this);
+    m_checkSound->setSource(QUrl("qrc:/sounds/sounds/check.wav"));
+    m_checkSound->setVolume(0.5f);
+
+    m_checkmateSound = new QSoundEffect(this);
+    m_checkmateSound->setSource(QUrl("qrc:/sounds/sounds/checkmate.wav"));
+    m_checkmateSound->setVolume(0.5f);
 
     setupUI();
     updateBoard();
@@ -596,7 +607,24 @@ void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
 }
 
 void myChess::playMoveSound(bool isCapture) {
+<<<<<<< HEAD
     qDebug() << "[Sound] playMoveSound called. isCapture=" << isCapture;
+=======
+    // Check game state after the move
+    if (m_chessBoard->isGameOver()) {
+        // Check if it's checkmate (not stalemate)
+        if (m_chessBoard->getGameStatus().contains("checkmate")) {
+            m_checkmateSound->play();
+            return;
+        }
+    } else if (m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn())) {
+        // King is in check but not checkmate
+        m_checkSound->play();
+        return;
+    }
+    
+    // Normal move sounds
+>>>>>>> 5d3dd5aacd976aa4acb6c7d095eb01c2f3555dd1
     if (isCapture) {
         if (m_captureSound && m_captureSound->status() == QSoundEffect::Ready) {
             qDebug() << "[Sound] playing captureSound source=" << m_captureSound->source();

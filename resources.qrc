@@ -3,6 +3,8 @@
         <!-- 放在專案目錄 sounds/ 下的檔案；在 <file> 只需指定檔名或子路徑（不重複 prefix 部分） -->
         <file>sounds/move.wav</file>
         <file>sounds/capture.wav</file>
+        <file>sounds/check.wav</file>
+        <file>sounds/checkmate.wav</file>
     </qresource>
 
     <!-- images 資源：請將對應檔案放到專案 images/ 目錄 -->
