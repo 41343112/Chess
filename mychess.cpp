@@ -212,7 +212,8 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     }
 
     drag->setPixmap(dragPixmap);
-    drag->setHotSpot(event->pos());
+    // Center the drag icon on the mouse cursor
+    drag->setHotSpot(QPoint(dragPixmap.width() / 2, dragPixmap.height() / 2));
 
     Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
 
