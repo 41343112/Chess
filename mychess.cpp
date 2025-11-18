@@ -593,18 +593,38 @@ void myChess::playMoveSound(bool isCapture, bool isCheck, bool isCheckmate) {
     qDebug() << "playMoveSound called: isCapture=" << isCapture 
              << "isCheck=" << isCheck << "isCheckmate=" << isCheckmate;
     
+    QSoundEffect* selectedSound = nullptr;
+    QString soundName;
+    
     if (isCheckmate) {
+        selectedSound = m_checkmateSound;
+        soundName = "checkmate";
         qDebug() << "Playing checkmate sound";
-        m_checkmateSound->play();
     } else if (isCheck) {
+        selectedSound = m_checkSound;
+        soundName = "check (priority over capture)";
         qDebug() << "Playing check sound (priority over capture)";
-        m_checkSound->play();
     } else if (isCapture) {
+        selectedSound = m_captureSound;
+        soundName = "capture";
         qDebug() << "Playing capture sound";
-        m_captureSound->play();
     } else {
+        selectedSound = m_moveSound;
+        soundName = "move";
         qDebug() << "Playing move sound";
-        m_moveSound->play();
+    }
+    
+    // Check if sound is ready before playing
+    if (selectedSound) {
+        if (selectedSound->status() == QSoundEffect::Ready) {
+            selectedSound->play();
+        } else if (selectedSound->status() == QSoundEffect::Loading) {
+            qWarning() << "Sound" << soundName << "is still loading";
+        } else if (selectedSound->status() == QSoundEffect::Error) {
+            qWarning() << "Sound" << soundName << "failed to load:" << selectedSound->source();
+        } else {
+            qWarning() << "Sound" << soundName << "has unknown status:" << selectedSound->status();
+        }
     }
 }
 
