@@ -147,7 +147,7 @@
     <name>StartDialog</name>
     <message>
         <source>Chess Game</source>
-        <translation>國際象棋遊戲</translation>
+        <translation>國際棋遊戲</translation>
     </message>
     <message>
         <source>Welcome to Chess Game</source>
@@ -186,7 +186,7 @@
     <name>myChess</name>
     <message>
         <source>Chess Game - Like Chess.com</source>
-        <translation>國際象棋遊戲 - 類似 Chess.com</translation>
+        <translation>國際象棋遊戲</translation>
     </message>
     <message>
         <source>Turn: White</source>
