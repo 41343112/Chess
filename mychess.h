@@ -148,6 +148,7 @@ private slots:
     void onNextMove();
     void onBackToStart();
     void onBackToCurrent();
+    void onTimerTick();
 
 private:
     Ui::myChess *ui;
@@ -158,6 +159,8 @@ private:
 
     QLabel* m_statusLabel;
     QLabel* m_turnLabel;
+    QLabel* m_whiteTimeLabel;
+    QLabel* m_blackTimeLabel;
     QPushButton* m_newGameButton;
     QPushButton* m_undoButton;
     QPushButton* m_flipBoardButton;
@@ -186,6 +189,14 @@ private:
     QColor m_lightSquareColor;
     QColor m_darkSquareColor;
     QString m_language;
+    bool m_timeControlEnabled;
+    int m_timeControlMinutes;
+    
+    // Time control
+    QTimer* m_gameTimer;
+    int m_whiteTimeRemaining;  // in seconds
+    int m_blackTimeRemaining;  // in seconds
+    bool m_isTimerRunning;
 
     // Navigation state for viewing history
     int m_viewingPosition;  // -1 means viewing current position, 0+ means viewing history
@@ -203,6 +214,11 @@ private:
     void updateNavigationButtons();
     void displayBoardAtPosition(int position);
     void clearTempViewBoard();
+    void updateTimeDisplay();
+    void startTimer();
+    void stopTimer();
+    void resetTimers();
+    QString formatTime(int seconds);
 };
 
 #endif // MYCHESS_H
