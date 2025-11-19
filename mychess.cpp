@@ -1000,6 +1000,10 @@ void myChess::showStartDialog() {
         m_chessBoard->reset();
         m_hasSelection = false;
         clearHighlights();
+        
+        // Apply the new board colors
+        applySettings();
+        
         updateBoard();
         
         // Reset viewing state
