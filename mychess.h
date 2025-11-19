@@ -185,6 +185,9 @@ private:
     // Timer for move time limit
     QTimer* m_moveTimer;
     int m_remainingSeconds;
+    
+    // Track if game has started
+    bool m_gameInProgress;
 
     void setupUI();
     void updateBoard();

@@ -281,6 +281,7 @@ myChess::myChess(QWidget *parent)
     , m_volume(100)
     , m_timeLimitMinutes(0)
     , m_remainingSeconds(0)
+    , m_gameInProgress(false)
 {
     ui->setupUi(this);
     setWindowTitle(tr("Chess Game - Like Chess.com"));
@@ -508,15 +509,22 @@ void myChess::resizeEvent(QResizeEvent* event) {
 }
 
 void myChess::onNewGame() {
-    QMessageBox::StandardButton reply = QMessageBox::question(
-        this, tr("New Game"), tr("Start a new game?"),
-        QMessageBox::Yes | QMessageBox::No);
-
-    if (reply == QMessageBox::Yes) {
+    // Show settings dialog first to configure game settings
+    SettingsDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        // Load the new settings
+        loadSettings();
+        applySettings();
+        
+        // Now reset the board and start the game
         m_chessBoard->reset();
         m_hasSelection = false;
         clearHighlights();
         updateBoard();
+        
+        // Mark game as in progress and disable settings button
+        m_gameInProgress = true;
+        m_settingsButton->setEnabled(false);
         
         // Restart timer for new game
         if (m_timeLimitMinutes > 0) {
@@ -550,6 +558,10 @@ void myChess::onUndo() {
 }
 
 void myChess::showGameOverDialog() {
+    // Game is over, re-enable settings button
+    m_gameInProgress = false;
+    m_settingsButton->setEnabled(true);
+    
     QMessageBox msgBox(this);
     msgBox.setWindowTitle(tr("Game Over"));
     msgBox.setText(m_chessBoard->getGameStatus());
@@ -838,6 +850,13 @@ void myChess::onSquareClicked() {
 }
 
 void myChess::onSettings() {
+    // Don't allow settings changes during an active game
+    if (m_gameInProgress) {
+        QMessageBox::information(this, tr("Settings Locked"),
+            tr("Settings cannot be changed during an active game. Please finish or start a new game."));
+        return;
+    }
+    
     SettingsDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
         QString previousLanguage = m_language;
