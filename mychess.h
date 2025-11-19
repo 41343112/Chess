@@ -190,7 +190,6 @@ private:
     QColor m_darkSquareColor;
     bool m_timeControlEnabled;
     int m_timeControlMinutes;
-    int m_incrementSeconds;  // Increment per move in seconds
     
     // Time control
     QTimer* m_gameTimer;
@@ -218,7 +217,6 @@ private:
     void startTimer();
     void stopTimer();
     void resetTimers();
-    void addIncrement();
     QString formatTime(int milliseconds);
 };
 

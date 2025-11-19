@@ -4,9 +4,15 @@
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QFont>
+#include <QColorDialog>
+
+const QColor StartDialog::DEFAULT_LIGHT_COLOR = QColor("#F0D9B5");
+const QColor StartDialog::DEFAULT_DARK_COLOR = QColor("#B58863");
 
 StartDialog::StartDialog(QWidget *parent)
-    : QDialog(parent)
+    : QDialog(parent),
+      m_lightSquareColor(DEFAULT_LIGHT_COLOR),
+      m_darkSquareColor(DEFAULT_DARK_COLOR)
 {
     setupUI();
 }
@@ -19,7 +25,7 @@ void StartDialog::setupUI()
 {
     setWindowTitle(QString::fromUtf8("象棋遊戲"));
     setModal(true);
-    setMinimumSize(500, 450);
+    setMinimumSize(500, 500);
     
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(20);
@@ -49,8 +55,8 @@ void StartDialog::setupUI()
     timeLayout->addWidget(timeLabel);
     
     m_timeSlider = new QSlider(Qt::Horizontal, this);
-    m_timeSlider->setMinimum(30);
-    m_timeSlider->setMaximum(120);  // 30-60 seconds, 61-120 for 1-60 minutes
+    m_timeSlider->setMinimum(0);  // 0 for unlimited
+    m_timeSlider->setMaximum(120);  // 0=unlimited, 1-60 seconds, 61-120 for 1-60 minutes
     m_timeSlider->setValue(30);  // Default to 30 seconds
     m_timeSlider->setEnabled(false);
     m_timeSlider->setTickPosition(QSlider::TicksBelow);
@@ -63,31 +69,29 @@ void StartDialog::setupUI()
     updateTimeLabel();
     timeLayout->addWidget(m_timeValueLabel);
     
-    // Increment section
-    QLabel* incrementLabel = new QLabel(QString::fromUtf8("每著增加秒數："), this);
-    timeLayout->addWidget(incrementLabel);
-    
-    m_incrementSlider = new QSlider(Qt::Horizontal, this);
-    m_incrementSlider->setMinimum(0);
-    m_incrementSlider->setMaximum(60);
-    m_incrementSlider->setValue(0);
-    m_incrementSlider->setEnabled(false);
-    m_incrementSlider->setTickPosition(QSlider::TicksBelow);
-    m_incrementSlider->setTickInterval(5);
-    timeLayout->addWidget(m_incrementSlider);
-    
-    m_incrementValueLabel = new QLabel(this);
-    m_incrementValueLabel->setAlignment(Qt::AlignCenter);
-    m_incrementValueLabel->setStyleSheet("QLabel { font-size: 12pt; color: #2C3E50; }");
-    updateIncrementLabel();
-    timeLayout->addWidget(m_incrementValueLabel);
-    
     mainLayout->addWidget(timeGroup);
+    
+    // Board colors group
+    QGroupBox* colorGroup = new QGroupBox(QString::fromUtf8("棋盤顏色"), this);
+    QFormLayout* colorLayout = new QFormLayout(colorGroup);
+    
+    m_lightSquareColorButton = new QPushButton(QString::fromUtf8("淺色方格"), this);
+    m_lightSquareColorButton->setMinimumHeight(35);
+    updateColorButtonStyle(m_lightSquareColorButton, m_lightSquareColor);
+    connect(m_lightSquareColorButton, &QPushButton::clicked, this, &StartDialog::onLightColorButtonClicked);
+    
+    m_darkSquareColorButton = new QPushButton(QString::fromUtf8("深色方格"), this);
+    m_darkSquareColorButton->setMinimumHeight(35);
+    updateColorButtonStyle(m_darkSquareColorButton, m_darkSquareColor);
+    connect(m_darkSquareColorButton, &QPushButton::clicked, this, &StartDialog::onDarkColorButtonClicked);
+    
+    colorLayout->addRow(QString::fromUtf8("淺色方格："), m_lightSquareColorButton);
+    colorLayout->addRow(QString::fromUtf8("深色方格："), m_darkSquareColorButton);
+    mainLayout->addWidget(colorGroup);
     
     // Connect signals
     connect(m_timeControlCheckBox, &QCheckBox::stateChanged, this, &StartDialog::onTimeControlCheckChanged);
     connect(m_timeSlider, &QSlider::valueChanged, this, &StartDialog::onTimeSliderChanged);
-    connect(m_incrementSlider, &QSlider::valueChanged, this, &StartDialog::onIncrementSliderChanged);
     
     mainLayout->addStretch();
     
@@ -122,7 +126,6 @@ void StartDialog::onTimeControlCheckChanged(int state)
 {
     bool enabled = (state == Qt::Checked);
     m_timeSlider->setEnabled(enabled);
-    m_incrementSlider->setEnabled(enabled);
 }
 
 void StartDialog::onTimeSliderChanged(int /* value */)
@@ -130,9 +133,41 @@ void StartDialog::onTimeSliderChanged(int /* value */)
     updateTimeLabel();
 }
 
-void StartDialog::onIncrementSliderChanged(int /* value */)
+void StartDialog::onLightColorButtonClicked()
 {
-    updateIncrementLabel();
+    QColor color = QColorDialog::getColor(m_lightSquareColor, this, QString::fromUtf8("選擇淺色方格顏色"));
+    if (color.isValid()) {
+        m_lightSquareColor = color;
+        updateColorButtonStyle(m_lightSquareColorButton, m_lightSquareColor);
+    }
+}
+
+void StartDialog::onDarkColorButtonClicked()
+{
+    QColor color = QColorDialog::getColor(m_darkSquareColor, this, QString::fromUtf8("選擇深色方格顏色"));
+    if (color.isValid()) {
+        m_darkSquareColor = color;
+        updateColorButtonStyle(m_darkSquareColorButton, m_darkSquareColor);
+    }
+}
+
+void StartDialog::updateColorButtonStyle(QPushButton* button, const QColor& color)
+{
+    QString style = QString(
+        "QPushButton {"
+        "    background-color: %1;"
+        "    border: 2px solid #555;"
+        "    border-radius: 5px;"
+        "    padding: 5px;"
+        "    color: %2;"
+        "}"
+        "QPushButton:hover {"
+        "    border: 2px solid #888;"
+        "}"
+    ).arg(color.name())
+     .arg(color.lightness() > 128 ? "black" : "white");
+    
+    button->setStyleSheet(style);
 }
 
 void StartDialog::updateTimeLabel()
@@ -140,8 +175,11 @@ void StartDialog::updateTimeLabel()
     int value = m_timeSlider->value();
     QString text;
     
-    if (value <= 60) {
-        // 30-60 seconds
+    if (value == 0) {
+        // Unlimited time
+        text = QString::fromUtf8("無限制");
+    } else if (value <= 60) {
+        // 1-60 seconds
         text = QString::fromUtf8("%1 秒").arg(value);
     } else {
         // 61-120 maps to 1-60 minutes
@@ -150,12 +188,6 @@ void StartDialog::updateTimeLabel()
     }
     
     m_timeValueLabel->setText(text);
-}
-
-void StartDialog::updateIncrementLabel()
-{
-    int value = m_incrementSlider->value();
-    m_incrementValueLabel->setText(QString::fromUtf8("%1 秒").arg(value));
 }
 
 bool StartDialog::isTimeControlEnabled() const
@@ -167,7 +199,10 @@ int StartDialog::getTimeControlSeconds() const
 {
     int value = m_timeSlider->value();
     
-    if (value <= 60) {
+    if (value == 0) {
+        // Unlimited time - return 0 or a very large value
+        return 0;
+    } else if (value <= 60) {
         // 1-60 seconds
         return value;
     } else {
@@ -177,7 +212,12 @@ int StartDialog::getTimeControlSeconds() const
     }
 }
 
-int StartDialog::getIncrementSeconds() const
+QColor StartDialog::getLightSquareColor() const
 {
-    return m_incrementSlider->value();
+    return m_lightSquareColor;
+}
+
+QColor StartDialog::getDarkSquareColor() const
+{
+    return m_darkSquareColor;
 }
