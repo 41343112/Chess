@@ -996,24 +996,20 @@ void myChess::showStartDialog() {
     StartDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
         // Get time control settings from dialog
-        int timeSeconds = dialog.getTimeControlSeconds();  // Returns -1 for unlimited
+        int timeSeconds = dialog.getTimeControlSeconds();  // Returns time in seconds (minimum 30)
         m_incrementSeconds = dialog.getIncrementSeconds();
         
-        // Check if unlimited time
-        if (timeSeconds == -1) {
-            m_timeControlEnabled = false;  // Unlimited time means no timer
-        } else {
-            m_timeControlEnabled = true;
-            // Convert seconds to minutes for compatibility with settings
-            m_timeControlMinutes = timeSeconds / 60;
-            if (m_timeControlMinutes == 0 && timeSeconds > 0) {
-                m_timeControlMinutes = 1;  // At least 1 minute for compatibility
-            }
-            
-            // Initialize timer with the configured time (but don't start it yet)
-            m_whiteTimeRemaining = timeSeconds * 1000;  // Convert to milliseconds
-            m_blackTimeRemaining = timeSeconds * 1000;
+        // Time control is always enabled now
+        m_timeControlEnabled = true;
+        // Convert seconds to minutes for compatibility with settings
+        m_timeControlMinutes = timeSeconds / 60;
+        if (m_timeControlMinutes == 0 && timeSeconds > 0) {
+            m_timeControlMinutes = 1;  // At least 1 minute for compatibility
         }
+        
+        // Initialize timer with the configured time (but don't start it yet)
+        m_whiteTimeRemaining = timeSeconds * 1000;  // Convert to milliseconds
+        m_blackTimeRemaining = timeSeconds * 1000;
         
         // Reset the board for a new game
         m_chessBoard->reset();
