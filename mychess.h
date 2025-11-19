@@ -188,7 +188,6 @@ private:
     bool m_undoEnabled;
     QColor m_lightSquareColor;
     QColor m_darkSquareColor;
-    QString m_language;
     bool m_timeControlEnabled;
     int m_timeControlMinutes;
     int m_incrementSeconds;  // Increment per move in seconds

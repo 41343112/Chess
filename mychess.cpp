@@ -165,6 +165,18 @@ void ChessSquare::mousePressEvent(QMouseEvent* event) {
 }
 
 void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
+    // Check if right button is pressed during potential drag - cancel it
+    if (event->buttons() & Qt::RightButton) {
+        // Cancel any ongoing drag or selection
+        myChess* parent = qobject_cast<myChess*>(window());
+        if (parent && m_isDragging) {
+            parent->onSquareDragCancelled(m_row, m_col);
+        }
+        m_isDragging = false;
+        m_draggedPieceText.clear();
+        return;
+    }
+
     if (!(event->buttons() & Qt::LeftButton)) {
         return;
     }
@@ -232,6 +244,10 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     // If drag was not accepted (cancelled or failed), restore the piece text/icon
     if (dropAction == Qt::IgnoreAction) {
         setText(m_draggedPieceText);
+        // Notify parent that drag was cancelled
+        if (parent) {
+            parent->onSquareDragCancelled(m_row, m_col);
+        }
     }
     m_draggedPieceText.clear();
 
@@ -927,15 +943,8 @@ void myChess::onSquareClicked() {
 void myChess::onSettings() {
     SettingsDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
-        QString previousLanguage = m_language;
         loadSettings();
         applySettings();
-        
-        // Show restart message if language changed
-        if (m_language != previousLanguage) {
-            QMessageBox::information(this, tr("Language Changed"),
-                tr("Please restart the application for language changes to take effect."));
-        }
     }
 }
 
@@ -945,7 +954,6 @@ void myChess::loadSettings() {
     m_undoEnabled = settings.value("undoEnabled", true).toBool();
     m_lightSquareColor = settings.value("lightSquareColor", QColor("#F0D9B5")).value<QColor>();
     m_darkSquareColor = settings.value("darkSquareColor", QColor("#B58863")).value<QColor>();
-    m_language = settings.value("language", "en").toString();
     m_timeControlEnabled = settings.value("timeControlEnabled", false).toBool();
     m_timeControlMinutes = settings.value("timeControlMinutes", 10).toInt();
 }
@@ -1013,6 +1021,9 @@ void myChess::onPreviousMove() {
     int historySize = m_chessBoard->getMoveHistory().size();
     if (historySize == 0) return;
     
+    // Play move sound for navigation
+    m_moveSound->play();
+    
     // Pause timer when viewing history
     if (!m_isViewingHistory) {
         stopTimer();
@@ -1051,6 +1062,9 @@ void myChess::onPreviousMove() {
 
 void myChess::onNextMove() {
     if (!m_isViewingHistory) return;
+    
+    // Play move sound for navigation
+    m_moveSound->play();
     
     int historySize = m_chessBoard->getMoveHistory().size();
     if (m_viewingPosition < historySize) {

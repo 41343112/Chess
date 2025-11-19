@@ -14,8 +14,7 @@ const QColor SettingsDialog::DEFAULT_DARK_COLOR = QColor("#B58863");
 SettingsDialog::SettingsDialog(QWidget *parent)
     : QDialog(parent),
       m_lightSquareColor(DEFAULT_LIGHT_COLOR),
-      m_darkSquareColor(DEFAULT_DARK_COLOR),
-      m_language("en")
+      m_darkSquareColor(DEFAULT_DARK_COLOR)
 {
     setWindowTitle(tr("Settings"));
     setModal(true);
@@ -61,22 +60,6 @@ void SettingsDialog::setupUI()
     colorLayout->addRow(tr("Dark Squares:"), m_darkSquareColorButton);
     colorLayout->addRow(m_resetColorsButton);
     mainLayout->addWidget(colorGroup);
-
-    // Language selection group
-    QGroupBox* languageGroup = new QGroupBox(tr("Language"), this);
-    QFormLayout* languageLayout = new QFormLayout(languageGroup);
-    
-    m_languageComboBox = new QComboBox(this);
-    m_languageComboBox->addItem("English", "en");
-    m_languageComboBox->addItem("中文", "zh");
-    
-    languageLayout->addRow(tr("Select Language:"), m_languageComboBox);
-    
-    QLabel* languageHelpLabel = new QLabel(tr("Restart required for language changes to take effect"), this);
-    languageHelpLabel->setStyleSheet("QLabel { color: gray; font-size: 10pt; }");
-    languageLayout->addRow(languageHelpLabel);
-    
-    mainLayout->addWidget(languageGroup);
 
     // Time control group
     QGroupBox* timeGroup = new QGroupBox(tr("Time Control"), this);
@@ -179,7 +162,6 @@ void SettingsDialog::onResetDefaultsClicked()
         m_darkSquareColor = DEFAULT_DARK_COLOR;
         updateColorButtonStyle(m_lightSquareColorButton, m_lightSquareColor);
         updateColorButtonStyle(m_darkSquareColorButton, m_darkSquareColor);
-        m_languageComboBox->setCurrentIndex(0); // English
         m_timeControlCheckBox->setChecked(false);
         m_timeControlSpinBox->setValue(10);
     }
@@ -216,11 +198,6 @@ QColor SettingsDialog::getDarkSquareColor() const
     return m_darkSquareColor;
 }
 
-QString SettingsDialog::getLanguage() const
-{
-    return m_languageComboBox->currentData().toString();
-}
-
 bool SettingsDialog::isTimeControlEnabled() const
 {
     return m_timeControlCheckBox->isChecked();
@@ -242,13 +219,6 @@ void SettingsDialog::loadSettings()
     updateColorButtonStyle(m_lightSquareColorButton, m_lightSquareColor);
     updateColorButtonStyle(m_darkSquareColorButton, m_darkSquareColor);
     
-    // Load language preference
-    QString language = settings.value("language", "en").toString();
-    int index = m_languageComboBox->findData(language);
-    if (index >= 0) {
-        m_languageComboBox->setCurrentIndex(index);
-    }
-    
     // Load time control settings
     m_timeControlCheckBox->setChecked(settings.value("timeControlEnabled", false).toBool());
     m_timeControlSpinBox->setValue(settings.value("timeControlMinutes", 10).toInt());
@@ -262,7 +232,6 @@ void SettingsDialog::saveSettings()
     settings.setValue("undoEnabled", m_undoEnabledCheckBox->isChecked());
     settings.setValue("lightSquareColor", m_lightSquareColor);
     settings.setValue("darkSquareColor", m_darkSquareColor);
-    settings.setValue("language", m_languageComboBox->currentData().toString());
     settings.setValue("timeControlEnabled", m_timeControlCheckBox->isChecked());
     settings.setValue("timeControlMinutes", m_timeControlSpinBox->value());
 }

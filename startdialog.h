@@ -24,10 +24,12 @@ public:
 private slots:
     void onTimeControlCheckChanged(int state);
     void onTimeSliderChanged(int value);
+    void onIncrementSliderChanged(int value);
 
 private:
     void setupUI();
     void updateTimeLabel();
+    void updateIncrementLabel();
     
     QLabel* m_titleLabel;
     QPushButton* m_startButton;
@@ -36,7 +38,8 @@ private:
     QCheckBox* m_timeControlCheckBox;
     QSlider* m_timeSlider;
     QLabel* m_timeValueLabel;
-    QSpinBox* m_incrementSpinBox;
+    QSlider* m_incrementSlider;
+    QLabel* m_incrementValueLabel;
 };
 
 #endif // STARTDIALOG_H

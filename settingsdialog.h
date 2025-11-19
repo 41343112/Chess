@@ -22,7 +22,6 @@ public:
     bool isUndoEnabled() const;
     QColor getLightSquareColor() const;
     QColor getDarkSquareColor() const;
-    QString getLanguage() const;
     bool isTimeControlEnabled() const;
     int getTimeControlMinutes() const;
 
@@ -47,14 +46,12 @@ private:
     QPushButton* m_lightSquareColorButton;
     QPushButton* m_darkSquareColorButton;
     QPushButton* m_resetColorsButton;
-    QComboBox* m_languageComboBox;
     QPushButton* m_resetDefaultsButton;
     QCheckBox* m_timeControlCheckBox;
     QSpinBox* m_timeControlSpinBox;
     
     QColor m_lightSquareColor;
     QColor m_darkSquareColor;
-    QString m_language;
 
     // Default colors
     static const QColor DEFAULT_LIGHT_COLOR;
