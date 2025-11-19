@@ -23,7 +23,6 @@ public:
 
 private slots:
     void onTimeControlCheckChanged(int state);
-    void onUnlimitedTimeCheckChanged(int state);
     void onTimeSliderChanged(int value);
     void onIncrementSliderChanged(int value);
 
@@ -37,7 +36,6 @@ private:
     
     // Time control widgets
     QCheckBox* m_timeControlCheckBox;
-    QCheckBox* m_unlimitedTimeCheckBox;
     QSlider* m_timeSlider;
     QLabel* m_timeValueLabel;
     QSlider* m_incrementSlider;

@@ -44,20 +44,14 @@ void StartDialog::setupUI()
     m_timeControlCheckBox->setChecked(false);
     timeLayout->addWidget(m_timeControlCheckBox);
     
-    // Unlimited time checkbox (shown before time slider)
-    m_unlimitedTimeCheckBox = new QCheckBox(QString::fromUtf8("無限制時間"), this);
-    m_unlimitedTimeCheckBox->setChecked(true);  // Default to unlimited
-    m_unlimitedTimeCheckBox->setEnabled(false);  // Disabled until time control is enabled
-    timeLayout->addWidget(m_unlimitedTimeCheckBox);
-    
     // Time slider section
     QLabel* timeLabel = new QLabel(QString::fromUtf8("每位玩家總時間："), this);
     timeLayout->addWidget(timeLabel);
     
     m_timeSlider = new QSlider(Qt::Horizontal, this);
-    m_timeSlider->setMinimum(30);  // Start from 30 seconds
-    m_timeSlider->setMaximum(120);  // 30-60 seconds, 61-120 for 1-60 minutes
-    m_timeSlider->setValue(30);  // Default to 30 seconds
+    m_timeSlider->setMinimum(0);  // 0 = Unlimited
+    m_timeSlider->setMaximum(120);  // 1-60 seconds, 61-120 for 1-60 minutes
+    m_timeSlider->setValue(0);  // Default to unlimited
     m_timeSlider->setEnabled(false);
     m_timeSlider->setTickPosition(QSlider::TicksBelow);
     m_timeSlider->setTickInterval(10);
@@ -92,7 +86,6 @@ void StartDialog::setupUI()
     
     // Connect signals
     connect(m_timeControlCheckBox, &QCheckBox::stateChanged, this, &StartDialog::onTimeControlCheckChanged);
-    connect(m_unlimitedTimeCheckBox, &QCheckBox::stateChanged, this, &StartDialog::onUnlimitedTimeCheckChanged);
     connect(m_timeSlider, &QSlider::valueChanged, this, &StartDialog::onTimeSliderChanged);
     connect(m_incrementSlider, &QSlider::valueChanged, this, &StartDialog::onIncrementSliderChanged);
     
@@ -128,22 +121,10 @@ void StartDialog::setupUI()
 void StartDialog::onTimeControlCheckChanged(int state)
 {
     bool enabled = (state == Qt::Checked);
-    m_unlimitedTimeCheckBox->setEnabled(enabled);
     
-    // Only enable sliders if time control is enabled AND unlimited time is not checked
-    bool timeLimitEnabled = enabled && !m_unlimitedTimeCheckBox->isChecked();
-    m_timeSlider->setEnabled(timeLimitEnabled);
-    m_incrementSlider->setEnabled(timeLimitEnabled);
-}
-
-void StartDialog::onUnlimitedTimeCheckChanged(int state)
-{
-    bool unlimited = (state == Qt::Checked);
-    bool timeControlEnabled = m_timeControlCheckBox->isChecked();
-    
-    // Enable/disable sliders based on unlimited time checkbox
-    m_timeSlider->setEnabled(timeControlEnabled && !unlimited);
-    m_incrementSlider->setEnabled(timeControlEnabled && !unlimited);
+    // Enable sliders when time control is enabled
+    m_timeSlider->setEnabled(enabled);
+    m_incrementSlider->setEnabled(enabled);
 }
 
 void StartDialog::onTimeSliderChanged(int /* value */)
@@ -161,8 +142,11 @@ void StartDialog::updateTimeLabel()
     int value = m_timeSlider->value();
     QString text;
     
-    if (value <= 60) {
-        // 30-60 seconds
+    if (value == 0) {
+        // 0 = Unlimited
+        text = QString::fromUtf8("無限制");
+    } else if (value <= 60) {
+        // 1-60 seconds
         text = QString::fromUtf8("%1 秒").arg(value);
     } else {
         // 61-120 maps to 1-60 minutes
@@ -186,14 +170,17 @@ bool StartDialog::isTimeControlEnabled() const
 
 int StartDialog::getTimeControlSeconds() const
 {
-    // If time control is not enabled, or unlimited time is checked, return -1
-    if (!m_timeControlCheckBox->isChecked() || m_unlimitedTimeCheckBox->isChecked()) {
+    // If time control is not enabled, return -1
+    if (!m_timeControlCheckBox->isChecked()) {
         return -1;  // Unlimited time
     }
     
     int value = m_timeSlider->value();
     
-    if (value <= 60) {
+    if (value == 0) {
+        // 0 = Unlimited
+        return -1;
+    } else if (value <= 60) {
         // 1-60 seconds
         return value;
     } else {
