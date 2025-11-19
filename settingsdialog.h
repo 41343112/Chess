@@ -23,7 +23,6 @@ public:
     bool isUndoEnabled() const;
     QColor getLightSquareColor() const;
     QColor getDarkSquareColor() const;
-    int getVolume() const;
     QString getLanguage() const;
 
     // Load/Save settings
@@ -46,7 +45,6 @@ private:
     QPushButton* m_lightSquareColorButton;
     QPushButton* m_darkSquareColorButton;
     QPushButton* m_resetColorsButton;
-    QSlider* m_volumeSlider;
     QComboBox* m_languageComboBox;
     QPushButton* m_resetDefaultsButton;
     

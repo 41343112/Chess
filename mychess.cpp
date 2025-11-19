@@ -278,7 +278,6 @@ myChess::myChess(QWidget *parent)
     , m_undoEnabled(true)
     , m_lightSquareColor("#F0D9B5")
     , m_darkSquareColor("#B58863")
-    , m_volume(100)
 {
     ui->setupUi(this);
     setWindowTitle(tr("Chess Game - Like Chess.com"));
@@ -863,7 +862,6 @@ void myChess::loadSettings() {
     m_undoEnabled = settings.value("undoEnabled", true).toBool();
     m_lightSquareColor = settings.value("lightSquareColor", QColor("#F0D9B5")).value<QColor>();
     m_darkSquareColor = settings.value("darkSquareColor", QColor("#B58863")).value<QColor>();
-    m_volume = settings.value("volume", 100).toInt();
     m_language = settings.value("language", "en").toString();
 }
 
@@ -878,11 +876,10 @@ void myChess::applySettings() {
         }
     }
     
-    // Apply volume to all sound effects
-    qreal volume = m_volume / 100.0;
-    m_moveSound->setVolume(volume);
-    m_captureSound->setVolume(volume);
-    m_checkSound->setVolume(volume);
-    m_checkmateSound->setVolume(volume);
-    m_castlingSound->setVolume(volume);
+    // Set sound effects to full volume (100%)
+    m_moveSound->setVolume(1.0);
+    m_captureSound->setVolume(1.0);
+    m_checkSound->setVolume(1.0);
+    m_checkmateSound->setVolume(1.0);
+    m_castlingSound->setVolume(1.0);
 }

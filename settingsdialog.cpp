@@ -62,30 +62,6 @@ void SettingsDialog::setupUI()
     colorLayout->addRow(m_resetColorsButton);
     mainLayout->addWidget(colorGroup);
 
-    // Volume control group
-    QGroupBox* volumeGroup = new QGroupBox(tr("Sound Volume"), this);
-    QVBoxLayout* volumeLayout = new QVBoxLayout(volumeGroup);
-    
-    QHBoxLayout* volumeSliderLayout = new QHBoxLayout();
-    QLabel* volumeLabel = new QLabel(tr("Volume:"), this);
-    m_volumeSlider = new QSlider(Qt::Horizontal, this);
-    m_volumeSlider->setMinimum(0);
-    m_volumeSlider->setMaximum(100);
-    m_volumeSlider->setValue(100);
-    m_volumeSlider->setTickPosition(QSlider::TicksBelow);
-    m_volumeSlider->setTickInterval(10);
-    
-    QLabel* volumeValueLabel = new QLabel("100%", this);
-    connect(m_volumeSlider, &QSlider::valueChanged, [volumeValueLabel](int value) {
-        volumeValueLabel->setText(QString("%1%").arg(value));
-    });
-    
-    volumeSliderLayout->addWidget(volumeLabel);
-    volumeSliderLayout->addWidget(m_volumeSlider, 1);
-    volumeSliderLayout->addWidget(volumeValueLabel);
-    volumeLayout->addLayout(volumeSliderLayout);
-    mainLayout->addWidget(volumeGroup);
-
     // Language selection group
     QGroupBox* languageGroup = new QGroupBox(tr("Language"), this);
     QFormLayout* languageLayout = new QFormLayout(languageGroup);
@@ -178,7 +154,6 @@ void SettingsDialog::onResetDefaultsClicked()
         m_darkSquareColor = DEFAULT_DARK_COLOR;
         updateColorButtonStyle(m_lightSquareColorButton, m_lightSquareColor);
         updateColorButtonStyle(m_darkSquareColorButton, m_darkSquareColor);
-        m_volumeSlider->setValue(100);
         m_languageComboBox->setCurrentIndex(0); // English
     }
 }
@@ -209,11 +184,6 @@ QColor SettingsDialog::getDarkSquareColor() const
     return m_darkSquareColor;
 }
 
-int SettingsDialog::getVolume() const
-{
-    return m_volumeSlider->value();
-}
-
 QString SettingsDialog::getLanguage() const
 {
     return m_languageComboBox->currentData().toString();
@@ -230,8 +200,6 @@ void SettingsDialog::loadSettings()
     updateColorButtonStyle(m_lightSquareColorButton, m_lightSquareColor);
     updateColorButtonStyle(m_darkSquareColorButton, m_darkSquareColor);
     
-    m_volumeSlider->setValue(settings.value("volume", 100).toInt());
-    
     // Load language preference
     QString language = settings.value("language", "en").toString();
     int index = m_languageComboBox->findData(language);
@@ -247,6 +215,5 @@ void SettingsDialog::saveSettings()
     settings.setValue("undoEnabled", m_undoEnabledCheckBox->isChecked());
     settings.setValue("lightSquareColor", m_lightSquareColor);
     settings.setValue("darkSquareColor", m_darkSquareColor);
-    settings.setValue("volume", m_volumeSlider->value());
     settings.setValue("language", m_languageComboBox->currentData().toString());
 }
