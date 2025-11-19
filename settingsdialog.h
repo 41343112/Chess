@@ -8,6 +8,8 @@
 #include <QPushButton>
 #include <QColor>
 #include <QSettings>
+#include <QComboBox>
+#include <QTranslator>
 
 class SettingsDialog : public QDialog
 {
@@ -23,6 +25,7 @@ public:
     QColor getDarkSquareColor() const;
     int getVolume() const;
     int getTimeLimitMinutes() const;
+    QString getLanguage() const;
 
     // Load/Save settings
     void loadSettings();
@@ -32,6 +35,7 @@ private slots:
     void onLightColorButtonClicked();
     void onDarkColorButtonClicked();
     void onResetColorsClicked();
+    void onResetDefaultsClicked();
     void onOkClicked();
     void onCancelClicked();
 
@@ -45,9 +49,12 @@ private:
     QPushButton* m_resetColorsButton;
     QSlider* m_volumeSlider;
     QSpinBox* m_timeLimitSpinBox;
+    QComboBox* m_languageComboBox;
+    QPushButton* m_resetDefaultsButton;
     
     QColor m_lightSquareColor;
     QColor m_darkSquareColor;
+    QString m_language;
 
     // Default colors
     static const QColor DEFAULT_LIGHT_COLOR;

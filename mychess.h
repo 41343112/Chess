@@ -18,6 +18,7 @@
 #include <QSoundEffect>
 #include <QTimer>
 #include <QSettings>
+#include <QTranslator>
 #include "chessboard.h"
 
 QT_BEGIN_NAMESPACE
@@ -179,6 +180,7 @@ private:
     QColor m_darkSquareColor;
     int m_volume;
     int m_timeLimitMinutes;
+    QString m_language;
     
     // Timer for move time limit
     QTimer* m_moveTimer;

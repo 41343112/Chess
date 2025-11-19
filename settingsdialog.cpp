@@ -6,6 +6,7 @@
 #include <QLabel>
 #include <QColorDialog>
 #include <QDialogButtonBox>
+#include <QMessageBox>
 
 const QColor SettingsDialog::DEFAULT_LIGHT_COLOR = QColor("#F0D9B5");
 const QColor SettingsDialog::DEFAULT_DARK_COLOR = QColor("#B58863");
@@ -13,7 +14,8 @@ const QColor SettingsDialog::DEFAULT_DARK_COLOR = QColor("#B58863");
 SettingsDialog::SettingsDialog(QWidget *parent)
     : QDialog(parent),
       m_lightSquareColor(DEFAULT_LIGHT_COLOR),
-      m_darkSquareColor(DEFAULT_DARK_COLOR)
+      m_darkSquareColor(DEFAULT_DARK_COLOR),
+      m_language("en")
 {
     setWindowTitle(tr("Settings"));
     setModal(true);
@@ -102,6 +104,28 @@ void SettingsDialog::setupUI()
     timeLayout->addRow(timeHelpLabel);
     mainLayout->addWidget(timeGroup);
 
+    // Language selection group
+    QGroupBox* languageGroup = new QGroupBox(tr("Language"), this);
+    QFormLayout* languageLayout = new QFormLayout(languageGroup);
+    
+    m_languageComboBox = new QComboBox(this);
+    m_languageComboBox->addItem("English", "en");
+    m_languageComboBox->addItem("中文", "zh");
+    
+    languageLayout->addRow(tr("Select Language:"), m_languageComboBox);
+    
+    QLabel* languageHelpLabel = new QLabel(tr("Restart required for language changes to take effect"), this);
+    languageHelpLabel->setStyleSheet("QLabel { color: gray; font-size: 10pt; }");
+    languageLayout->addRow(languageHelpLabel);
+    
+    mainLayout->addWidget(languageGroup);
+
+    // Reset to defaults button
+    m_resetDefaultsButton = new QPushButton(tr("Reset All Settings to Default"), this);
+    m_resetDefaultsButton->setStyleSheet("QPushButton { background-color: #FFE4B5; }");
+    connect(m_resetDefaultsButton, &QPushButton::clicked, this, &SettingsDialog::onResetDefaultsClicked);
+    mainLayout->addWidget(m_resetDefaultsButton);
+
     // Dialog buttons
     QDialogButtonBox* buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
@@ -158,6 +182,26 @@ void SettingsDialog::onResetColorsClicked()
     updateColorButtonStyle(m_darkSquareColorButton, m_darkSquareColor);
 }
 
+void SettingsDialog::onResetDefaultsClicked()
+{
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this, tr("Reset to Defaults"), 
+        tr("Are you sure you want to reset all settings to their default values?"),
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        // Reset all settings to defaults
+        m_undoEnabledCheckBox->setChecked(true);
+        m_lightSquareColor = DEFAULT_LIGHT_COLOR;
+        m_darkSquareColor = DEFAULT_DARK_COLOR;
+        updateColorButtonStyle(m_lightSquareColorButton, m_lightSquareColor);
+        updateColorButtonStyle(m_darkSquareColorButton, m_darkSquareColor);
+        m_volumeSlider->setValue(100);
+        m_timeLimitSpinBox->setValue(0);
+        m_languageComboBox->setCurrentIndex(0); // English
+    }
+}
+
 void SettingsDialog::onOkClicked()
 {
     saveSettings();
@@ -194,6 +238,11 @@ int SettingsDialog::getTimeLimitMinutes() const
     return m_timeLimitSpinBox->value();
 }
 
+QString SettingsDialog::getLanguage() const
+{
+    return m_languageComboBox->currentData().toString();
+}
+
 void SettingsDialog::loadSettings()
 {
     QSettings settings("ChessGame", "Settings");
@@ -207,6 +256,13 @@ void SettingsDialog::loadSettings()
     
     m_volumeSlider->setValue(settings.value("volume", 100).toInt());
     m_timeLimitSpinBox->setValue(settings.value("timeLimitMinutes", 0).toInt());
+    
+    // Load language preference
+    QString language = settings.value("language", "en").toString();
+    int index = m_languageComboBox->findData(language);
+    if (index >= 0) {
+        m_languageComboBox->setCurrentIndex(index);
+    }
 }
 
 void SettingsDialog::saveSettings()
@@ -218,4 +274,5 @@ void SettingsDialog::saveSettings()
     settings.setValue("darkSquareColor", m_darkSquareColor);
     settings.setValue("volume", m_volumeSlider->value());
     settings.setValue("timeLimitMinutes", m_timeLimitSpinBox->value());
+    settings.setValue("language", m_languageComboBox->currentData().toString());
 }

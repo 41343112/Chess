@@ -3,6 +3,8 @@
 使用 Qt/C++ 開發的完整國際象棋遊戲，具有圖形化使用者介面，類似 Chess.com。
 
 ## 🎉 新功能
+- **語言選擇**：支援中文和英文介面切換！⭐ 最新功能
+- **恢復預設值**：一鍵重置所有設定到預設值！⭐ 最新功能
 - **翻轉棋盤按鈕**：切換棋盤方向，從任一玩家視角查看！⭐ 新功能
 - **完整音效系統**：包含移動音效、吃子音效、攻擊國王音效（將軍）、將殺音效 ⭐ 新功能
 - **拖放移動**：用滑鼠拖曳棋子進行移動！
@@ -12,10 +14,16 @@
 
 詳細的新功能文件請參閱 [NEW_FEATURES.md](docs/NEW_FEATURES.md) 和 [FEATURE_SUMMARY.md](docs/FEATURE_SUMMARY.md)。
 
+**最新設定功能文件**：
+- [SETTINGS_NEW_FEATURES.md](SETTINGS_NEW_FEATURES.md) - 語言選擇和恢復預設值功能說明
+- [VISUAL_GUIDE_NEW_FEATURES.md](VISUAL_GUIDE_NEW_FEATURES.md) - 新功能視覺化使用指南
+- [LANGUAGE_FEATURE_SUMMARY.md](LANGUAGE_FEATURE_SUMMARY.md) - 語言功能技術摘要
+
 ## 📚 文件說明
 - **[GAMEPLAY.md](docs/GAMEPLAY.md)** - 完整的遊戲指南，包含規則、操作和策略
 - [NEW_FEATURES.md](docs/NEW_FEATURES.md) - 最新功能新增和實作細節
 - [UI_MOCKUP.md](docs/UI_MOCKUP.md) - 使用者介面設計和模型
+- **[SETTINGS_NEW_FEATURES.md](SETTINGS_NEW_FEATURES.md)** - 設定對話框新功能 ⭐ 最新
 
 ## 目錄
 - [中文玩法說明](#中文玩法說明) ⭐ 中文遊戲說明
@@ -80,6 +88,13 @@
 ### 控制按鈕
 - **New Game**：開始新遊戲
 - **Undo**：悔棋，撤銷上一步移動 ⭐ 完整功能
+- **Flip Board**：翻轉棋盤，從另一方視角查看
+- **Settings**：開啟設定對話框 ⭐ 含新功能
+  - 語言選擇（中文/English）
+  - 恢復預設值按鈕
+  - 顏色自訂
+  - 音量控制
+  - 時間限制設定
 
 ### 遊戲提示
 1. 先觀察棋盤，思考對手的威脅
