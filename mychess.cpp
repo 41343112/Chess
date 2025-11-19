@@ -985,6 +985,11 @@ void myChess::showStartDialog() {
         m_lightSquareColor = dialog.getLightSquareColor();
         m_darkSquareColor = dialog.getDarkSquareColor();
         
+        // If time is 0, it means unlimited time - disable time control
+        if (timeSeconds == 0) {
+            m_timeControlEnabled = false;
+        }
+        
         // Convert seconds to minutes for compatibility with settings
         m_timeControlMinutes = timeSeconds / 60;
         if (m_timeControlMinutes == 0 && timeSeconds > 0) {
@@ -1005,7 +1010,7 @@ void myChess::showStartDialog() {
         // Enable settings button for new game
         m_settingsButton->setEnabled(true);
         
-        // Reset and start timer with the configured time
+        // Reset and start timer with the configured time (only if not unlimited)
         m_whiteTimeRemaining = timeSeconds * 1000;  // Convert to milliseconds
         m_blackTimeRemaining = timeSeconds * 1000;
         updateTimeDisplay();
@@ -1206,7 +1211,12 @@ void myChess::clearTempViewBoard() {
 }
 
 void myChess::onTimerTick() {
-    if (!m_isTimerRunning || m_chessBoard->isGameOver()) {
+    if (!m_isTimerRunning || m_chessBoard->isGameOver() || !m_timeControlEnabled) {
+        return;
+    }
+    
+    // Don't decrement time if it's unlimited (0)
+    if (m_whiteTimeRemaining == 0 && m_blackTimeRemaining == 0) {
         return;
     }
     
