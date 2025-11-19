@@ -1,5 +1,6 @@
 #include "mychess.h"
 #include "ui_mychess.h"
+#include "settingsdialog.h"
 #include <QApplication>
 #include <QPainter>
 #include <QIcon>
@@ -8,7 +9,8 @@
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     : QPushButton(parent), m_row(row), m_col(col),
     m_highlightType(None), m_isSelected(false), m_isInCheck(false),
-    m_isDragging(false), m_piece(nullptr) {
+    m_isDragging(false), m_piece(nullptr),
+    m_lightColor("#F0D9B5"), m_darkColor("#B58863") {
     m_isLight = (row + col) % 2 == 0;
     // Lower minimum size so board can shrink more
     setMinimumSize(16, 16);
@@ -69,8 +71,14 @@ void ChessSquare::setInCheck(bool inCheck) {
     updateStyle();
 }
 
+void ChessSquare::setColors(const QColor& lightColor, const QColor& darkColor) {
+    m_lightColor = lightColor;
+    m_darkColor = darkColor;
+    updateStyle();
+}
+
 void ChessSquare::updateStyle() {
-    QString baseColor = m_isLight ? "#F0D9B5" : "#B58863";
+    QString baseColor = m_isLight ? m_lightColor.name() : m_darkColor.name();
     QString selectedColor = "#FFD700";
     QString checkColor = "#FF6B6B";  // Red color for check
 
@@ -262,39 +270,51 @@ void ChessSquare::dropEvent(QDropEvent* event) {
 myChess::myChess(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::myChess)
-    , m_hasSelection(false)
     , m_selectedSquare(-1, -1)
+    , m_hasSelection(false)
     , m_isBoardFlipped(false)
     , m_boardWidget(nullptr)
     , m_minBoardSize(40) // 預設最小棋盤尺寸為 40 px
+    , m_undoEnabled(true)
+    , m_lightSquareColor("#F0D9B5")
+    , m_darkSquareColor("#B58863")
+    , m_volume(100)
+    , m_timeLimitMinutes(0)
+    , m_remainingSeconds(0)
 {
     ui->setupUi(this);
     setWindowTitle("Chess Game - Like Chess.com");
 
     m_chessBoard = new ChessBoard();
 
+    // Initialize move timer
+    m_moveTimer = new QTimer(this);
+    connect(m_moveTimer, &QTimer::timeout, this, &myChess::onTimerTimeout);
+
     // Initialize sound effects
     m_moveSound = new QSoundEffect(this);
     m_moveSound->setSource(QUrl("qrc:/sounds/sounds/move.wav"));
-    m_moveSound->setVolume(1);
+    m_moveSound->setVolume(1.0);
 
     m_captureSound = new QSoundEffect(this);
     m_captureSound->setSource(QUrl("qrc:/sounds/sounds/capture.wav"));
-    m_captureSound->setVolume(1);
+    m_captureSound->setVolume(1.0);
 
     m_checkSound = new QSoundEffect(this);
     m_checkSound->setSource(QUrl("qrc:/sounds/sounds/check.wav"));
-    m_checkSound->setVolume(1);
+    m_checkSound->setVolume(1.0);
 
     m_checkmateSound = new QSoundEffect(this);
     m_checkmateSound->setSource(QUrl("qrc:/sounds/sounds/checkmate.wav"));
-    m_checkmateSound->setVolume(1);
+    m_checkmateSound->setVolume(1.0);
 
     m_castlingSound = new QSoundEffect(this);
     m_castlingSound->setSource(QUrl("qrc:/sounds/sounds/castling.wav"));
-    m_castlingSound->setVolume(1);
+    m_castlingSound->setVolume(1.0);
 
+    loadSettings();
     setupUI();
+    applySettings();
     updateBoard();
 }
 
@@ -331,9 +351,13 @@ void myChess::setupUI() {
     QHBoxLayout* statusLayout = new QHBoxLayout();
     m_turnLabel = new QLabel("Turn: White", this);
     m_turnLabel->setFont(QFont("Arial", 14, QFont::Bold));
+    m_timerLabel = new QLabel("", this);
+    m_timerLabel->setFont(QFont("Arial", 12, QFont::Bold));
+    m_timerLabel->setStyleSheet("QLabel { color: green; }");
     m_statusLabel = new QLabel("Game in progress", this);
     m_statusLabel->setFont(QFont("Arial", 12));
     statusLayout->addWidget(m_turnLabel);
+    statusLayout->addWidget(m_timerLabel);
     statusLayout->addStretch();
     statusLayout->addWidget(m_statusLabel);
     mainLayout->addLayout(statusLayout);
@@ -386,10 +410,16 @@ void myChess::setupUI() {
     m_flipBoardButton->setMinimumWidth(120);
     connect(m_flipBoardButton, &QPushButton::clicked, this, &myChess::onFlipBoard);
 
+    m_settingsButton = new QPushButton("Settings", this);
+    m_settingsButton->setFont(QFont("Arial", 12));
+    m_settingsButton->setMinimumWidth(120);
+    connect(m_settingsButton, &QPushButton::clicked, this, &myChess::onSettings);
+
     buttonLayout->addStretch();
     buttonLayout->addWidget(m_newGameButton);
     buttonLayout->addWidget(m_undoButton);
     buttonLayout->addWidget(m_flipBoardButton);
+    buttonLayout->addWidget(m_settingsButton);
     buttonLayout->addStretch();
     mainLayout->addLayout(buttonLayout);
 
@@ -487,6 +517,11 @@ void myChess::onNewGame() {
         m_hasSelection = false;
         clearHighlights();
         updateBoard();
+        
+        // Restart timer for new game
+        if (m_timeLimitMinutes > 0) {
+            startMoveTimer();
+        }
     }
 }
 
@@ -573,6 +608,11 @@ void myChess::onSquareDragEnded(int row, int col) {
         }
         
         playMoveSound(isCapture, isCheck, isCheckmate, isCastling);
+        
+        // Restart timer for next player's move
+        if (m_timeLimitMinutes > 0 && !m_chessBoard->isGameOver()) {
+            startMoveTimer();
+        }
     }
     updateBoard();
 
@@ -775,6 +815,11 @@ void myChess::onSquareClicked() {
                 }
                 
                 playMoveSound(isCapture, isCheck, isCheckmate, isCastling);
+                
+                // Restart timer for next player's move
+                if (m_timeLimitMinutes > 0 && !m_chessBoard->isGameOver()) {
+                    startMoveTimer();
+                }
             }
             updateBoard();
 
@@ -789,5 +834,100 @@ void myChess::onSquareClicked() {
                 }
             }
         }
+    }
+}
+
+void myChess::onSettings() {
+    SettingsDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        loadSettings();
+        applySettings();
+    }
+}
+
+void myChess::loadSettings() {
+    QSettings settings("ChessGame", "Settings");
+    
+    m_undoEnabled = settings.value("undoEnabled", true).toBool();
+    m_lightSquareColor = settings.value("lightSquareColor", QColor("#F0D9B5")).value<QColor>();
+    m_darkSquareColor = settings.value("darkSquareColor", QColor("#B58863")).value<QColor>();
+    m_volume = settings.value("volume", 100).toInt();
+    m_timeLimitMinutes = settings.value("timeLimitMinutes", 0).toInt();
+}
+
+void myChess::applySettings() {
+    // Apply undo button visibility
+    m_undoButton->setEnabled(m_undoEnabled);
+    
+    // Apply colors to all squares
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            m_squares[row][col]->setColors(m_lightSquareColor, m_darkSquareColor);
+        }
+    }
+    
+    // Apply volume to all sound effects
+    qreal volume = m_volume / 100.0;
+    m_moveSound->setVolume(volume);
+    m_captureSound->setVolume(volume);
+    m_checkSound->setVolume(volume);
+    m_checkmateSound->setVolume(volume);
+    m_castlingSound->setVolume(volume);
+    
+    // Start timer if time limit is set and game is in progress
+    if (m_timeLimitMinutes > 0 && !m_chessBoard->isGameOver()) {
+        startMoveTimer();
+    } else {
+        stopMoveTimer();
+    }
+}
+
+void myChess::startMoveTimer() {
+    if (m_timeLimitMinutes <= 0) {
+        m_timerLabel->setText("");
+        return;
+    }
+    
+    m_remainingSeconds = m_timeLimitMinutes * 60;
+    m_moveTimer->start(1000); // Update every second
+    
+    // Update label
+    int minutes = m_remainingSeconds / 60;
+    int seconds = m_remainingSeconds % 60;
+    m_timerLabel->setText(QString("Time: %1:%2").arg(minutes).arg(seconds, 2, 10, QChar('0')));
+    m_timerLabel->setStyleSheet("QLabel { color: green; }");
+}
+
+void myChess::stopMoveTimer() {
+    m_moveTimer->stop();
+    m_timerLabel->setText("");
+}
+
+void myChess::onTimerTimeout() {
+    if (m_remainingSeconds > 0) {
+        m_remainingSeconds--;
+        
+        int minutes = m_remainingSeconds / 60;
+        int seconds = m_remainingSeconds % 60;
+        m_timerLabel->setText(QString("Time: %1:%2").arg(minutes).arg(seconds, 2, 10, QChar('0')));
+        
+        // Change color when time is running low (less than 30 seconds)
+        if (m_remainingSeconds <= 30) {
+            m_timerLabel->setStyleSheet("QLabel { color: red; }");
+        } else if (m_remainingSeconds <= 60) {
+            m_timerLabel->setStyleSheet("QLabel { color: orange; }");
+        }
+    } else {
+        // Time's up!
+        m_moveTimer->stop();
+        m_timerLabel->setText("Time's up!");
+        m_timerLabel->setStyleSheet("QLabel { color: red; }");
+        
+        QMessageBox::warning(this, "Time Limit Exceeded",
+                           QString("Time limit exceeded for %1's move!")
+                           .arg(m_chessBoard->getCurrentTurn() == PieceColor::WHITE ? "White" : "Black"));
+        
+        // Optionally, you could auto-pass the turn or end the game here
+        // For now, just show warning and continue the game
     }
 }
