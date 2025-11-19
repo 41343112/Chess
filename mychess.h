@@ -191,11 +191,12 @@ private:
     QString m_language;
     bool m_timeControlEnabled;
     int m_timeControlMinutes;
+    int m_incrementSeconds;  // Increment per move in seconds
     
     // Time control
     QTimer* m_gameTimer;
-    int m_whiteTimeRemaining;  // in seconds
-    int m_blackTimeRemaining;  // in seconds
+    int m_whiteTimeRemaining;  // in milliseconds (for precision)
+    int m_blackTimeRemaining;  // in milliseconds (for precision)
     bool m_isTimerRunning;
 
     // Navigation state for viewing history
@@ -218,6 +219,7 @@ private:
     void startTimer();
     void stopTimer();
     void resetTimers();
+    void addIncrement();
     QString formatTime(int seconds);
 };
 
