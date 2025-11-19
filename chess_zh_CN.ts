@@ -224,5 +224,9 @@
         <source>Start Game</source>
         <translation>開始遊戲</translation>
     </message>
+    <message>
+        <source>Language:</source>
+        <translation>語言：</translation>
+    </message>
 </context>
 </TS>
