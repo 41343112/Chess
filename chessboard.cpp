@@ -748,3 +748,123 @@ bool ChessBoard::undo() {
 
     return true;
 }
+
+void ChessBoard::getBoardStateAtMove(int moveIndex, ChessPiece* outputBoard[8][8], PieceColor& turn) const {
+    // Initialize output board to nullptr
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            outputBoard[i][j] = nullptr;
+        }
+    }
+    
+    // Create initial board state
+    // Place pawns
+    for (int col = 0; col < 8; ++col) {
+        outputBoard[1][col] = new Pawn(PieceColor::BLACK, QPoint(col, 1));
+        outputBoard[6][col] = new Pawn(PieceColor::WHITE, QPoint(col, 6));
+    }
+
+    // Place rooks
+    outputBoard[0][0] = new Rook(PieceColor::BLACK, QPoint(0, 0));
+    outputBoard[0][7] = new Rook(PieceColor::BLACK, QPoint(7, 0));
+    outputBoard[7][0] = new Rook(PieceColor::WHITE, QPoint(0, 7));
+    outputBoard[7][7] = new Rook(PieceColor::WHITE, QPoint(7, 7));
+
+    // Place knights
+    outputBoard[0][1] = new Knight(PieceColor::BLACK, QPoint(1, 0));
+    outputBoard[0][6] = new Knight(PieceColor::BLACK, QPoint(6, 0));
+    outputBoard[7][1] = new Knight(PieceColor::WHITE, QPoint(1, 7));
+    outputBoard[7][6] = new Knight(PieceColor::WHITE, QPoint(6, 7));
+
+    // Place bishops
+    outputBoard[0][2] = new Bishop(PieceColor::BLACK, QPoint(2, 0));
+    outputBoard[0][5] = new Bishop(PieceColor::BLACK, QPoint(5, 0));
+    outputBoard[7][2] = new Bishop(PieceColor::WHITE, QPoint(2, 7));
+    outputBoard[7][5] = new Bishop(PieceColor::WHITE, QPoint(5, 7));
+
+    // Place queens
+    outputBoard[0][3] = new Queen(PieceColor::BLACK, QPoint(3, 0));
+    outputBoard[7][3] = new Queen(PieceColor::WHITE, QPoint(3, 7));
+
+    // Place kings
+    outputBoard[0][4] = new King(PieceColor::BLACK, QPoint(4, 0));
+    outputBoard[7][4] = new King(PieceColor::WHITE, QPoint(4, 7));
+    
+    turn = PieceColor::WHITE;
+    
+    // If moveIndex is -1 or 0, return initial state
+    if (moveIndex < 0) {
+        return;
+    }
+    
+    // Replay moves up to and including moveIndex
+    for (int i = 0; i <= moveIndex && i < m_moveHistory.size(); ++i) {
+        const Move& move = m_moveHistory[i];
+        
+        if (move.wasCastling) {
+            // Handle castling
+            int row = move.to.y();
+            bool kingSide = move.to.x() > move.from.x();
+            int kingCol = 4;
+            int rookCol = kingSide ? 7 : 0;
+            int newKingCol = kingSide ? 6 : 2;
+            int newRookCol = kingSide ? 5 : 3;
+            
+            ChessPiece* king = outputBoard[row][kingCol];
+            ChessPiece* rook = outputBoard[row][rookCol];
+            
+            outputBoard[row][newKingCol] = king;
+            outputBoard[row][kingCol] = nullptr;
+            king->setPosition(QPoint(newKingCol, row));
+            king->setMoved(true);
+            
+            outputBoard[row][newRookCol] = rook;
+            outputBoard[row][rookCol] = nullptr;
+            rook->setPosition(QPoint(newRookCol, row));
+            rook->setMoved(true);
+        } else if (move.wasEnPassant) {
+            // Handle en passant
+            ChessPiece* piece = outputBoard[move.from.y()][move.from.x()];
+            outputBoard[move.to.y()][move.to.x()] = piece;
+            outputBoard[move.from.y()][move.from.x()] = nullptr;
+            piece->setPosition(move.to);
+            piece->setMoved(true);
+            
+            // Remove captured pawn
+            int captureRow = (piece->getColor() == PieceColor::WHITE) ? move.to.y() + 1 : move.to.y() - 1;
+            if (outputBoard[captureRow][move.to.x()] != nullptr) {
+                delete outputBoard[captureRow][move.to.x()];
+                outputBoard[captureRow][move.to.x()] = nullptr;
+            }
+        } else if (move.wasPromotion) {
+            // Handle promotion
+            ChessPiece* pawn = outputBoard[move.from.y()][move.from.x()];
+            if (outputBoard[move.to.y()][move.to.x()] != nullptr) {
+                delete outputBoard[move.to.y()][move.to.x()];
+            }
+            outputBoard[move.from.y()][move.from.x()] = nullptr;
+            
+            // Create promoted piece (Queen)
+            ChessPiece* promotedPiece = new Queen(pawn->getColor(), move.to);
+            promotedPiece->setMoved(true);
+            outputBoard[move.to.y()][move.to.x()] = promotedPiece;
+            
+            delete pawn;
+        } else {
+            // Normal move
+            ChessPiece* piece = outputBoard[move.from.y()][move.from.x()];
+            if (outputBoard[move.to.y()][move.to.x()] != nullptr) {
+                delete outputBoard[move.to.y()][move.to.x()];
+            }
+            outputBoard[move.to.y()][move.to.x()] = piece;
+            outputBoard[move.from.y()][move.from.x()] = nullptr;
+            if (piece != nullptr) {
+                piece->setPosition(move.to);
+                piece->setMoved(true);
+            }
+        }
+        
+        // Switch turn
+        turn = (turn == PieceColor::WHITE) ? PieceColor::BLACK : PieceColor::WHITE;
+    }
+}

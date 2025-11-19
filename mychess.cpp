@@ -279,6 +279,8 @@ myChess::myChess(QWidget *parent)
     , m_undoEnabled(true)
     , m_lightSquareColor("#F0D9B5")
     , m_darkSquareColor("#B58863")
+    , m_viewingPosition(-1)
+    , m_isViewingHistory(false)
 {
     ui->setupUi(this);
     setWindowTitle(tr("Chess Game - Like Chess.com"));
@@ -385,6 +387,36 @@ void myChess::setupUI() {
     // Add widget centered
     mainLayout->addWidget(m_boardWidget, 1, Qt::AlignCenter);
     mainLayout->setAlignment(m_boardWidget, Qt::AlignCenter);
+
+    // Navigation buttons for viewing history
+    QHBoxLayout* navLayout = new QHBoxLayout();
+    m_backToStartButton = new QPushButton(tr("<|回到一開始"), this);
+    m_backToStartButton->setFont(QFont("Arial", 12));
+    m_backToStartButton->setMinimumWidth(120);
+    connect(m_backToStartButton, &QPushButton::clicked, this, &myChess::onBackToStart);
+
+    m_previousMoveButton = new QPushButton(tr("<上一著"), this);
+    m_previousMoveButton->setFont(QFont("Arial", 12));
+    m_previousMoveButton->setMinimumWidth(120);
+    connect(m_previousMoveButton, &QPushButton::clicked, this, &myChess::onPreviousMove);
+
+    m_nextMoveButton = new QPushButton(tr(">下一著"), this);
+    m_nextMoveButton->setFont(QFont("Arial", 12));
+    m_nextMoveButton->setMinimumWidth(120);
+    connect(m_nextMoveButton, &QPushButton::clicked, this, &myChess::onNextMove);
+
+    m_backToCurrentButton = new QPushButton(tr(">|回到目前棋局"), this);
+    m_backToCurrentButton->setFont(QFont("Arial", 12));
+    m_backToCurrentButton->setMinimumWidth(120);
+    connect(m_backToCurrentButton, &QPushButton::clicked, this, &myChess::onBackToCurrent);
+
+    navLayout->addStretch();
+    navLayout->addWidget(m_backToStartButton);
+    navLayout->addWidget(m_previousMoveButton);
+    navLayout->addWidget(m_nextMoveButton);
+    navLayout->addWidget(m_backToCurrentButton);
+    navLayout->addStretch();
+    mainLayout->addLayout(navLayout);
 
     // Control buttons
     QHBoxLayout* buttonLayout = new QHBoxLayout();
@@ -506,6 +538,11 @@ void myChess::onNewGame() {
 }
 
 void myChess::onUndo() {
+    // Cannot undo while viewing history
+    if (m_isViewingHistory) {
+        return;
+    }
+    
     // Attempt to undo the last move
     if (m_chessBoard->undo()) {
         // Clear any selection
@@ -515,6 +552,7 @@ void myChess::onUndo() {
         // Update the board display
         updateBoard();
         clearHighlights();
+        updateNavigationButtons();
         
         // Update turn label
         QString turnText = (m_chessBoard->getCurrentTurn() == PieceColor::WHITE) ?
@@ -542,7 +580,8 @@ void myChess::showGameOverDialog() {
 }
 
 bool myChess::onSquareDragStarted(int row, int col) {
-    if (m_chessBoard->isGameOver()) {
+    // Disable dragging when viewing history
+    if (m_isViewingHistory || m_chessBoard->isGameOver()) {
         return false;
     }
 
@@ -563,7 +602,7 @@ bool myChess::onSquareDragStarted(int row, int col) {
 }
 
 void myChess::onSquareDragEnded(int row, int col) {
-    if (m_chessBoard->isGameOver() || !m_hasSelection) {
+    if (m_isViewingHistory || m_chessBoard->isGameOver() || !m_hasSelection) {
         return;
     }
 
@@ -578,6 +617,10 @@ void myChess::onSquareDragEnded(int row, int col) {
     m_hasSelection = false;
     clearHighlights();
     if (moveSuccess) {
+        // Reset viewing state when a move is made
+        m_viewingPosition = -1;
+        m_isViewingHistory = false;
+        
         // Determine game state after move for sound
         QString gameStatus = m_chessBoard->getGameStatus();
         bool isCheckmate = gameStatus.contains("checkmate");
@@ -605,6 +648,7 @@ void myChess::onSquareDragEnded(int row, int col) {
         }
     }
     updateBoard();
+    updateNavigationButtons();
 
     if (!moveSuccess) {
         // Invalid move - check if selecting a different piece
@@ -757,7 +801,8 @@ void myChess::highlightValidMoves(QPoint from) {
 }
 
 void myChess::onSquareClicked() {
-    if (m_chessBoard->isGameOver()) {
+    // Disable piece selection/movement when viewing history
+    if (m_isViewingHistory || m_chessBoard->isGameOver()) {
         return;
     }
 
@@ -813,12 +858,17 @@ void myChess::onSquareClicked() {
                 
                 playMoveSound(isCapture, isCheck, isCheckmate, isCastling);
                 
+                // Reset viewing state when a move is made
+                m_viewingPosition = -1;
+                m_isViewingHistory = false;
+                
                 // Disable settings after first move
                 if (m_chessBoard->getMoveHistory().size() == 1) {
                     m_settingsButton->setEnabled(false);
                 }
             }
             updateBoard();
+            updateNavigationButtons();
 
             if (!moveSuccess) {
                 // Invalid move, maybe selecting a different piece
@@ -886,7 +936,122 @@ void myChess::showStartDialog() {
         clearHighlights();
         updateBoard();
         
+        // Reset viewing state
+        m_viewingPosition = -1;
+        m_isViewingHistory = false;
+        updateNavigationButtons();
+        
         // Enable settings button for new game
         m_settingsButton->setEnabled(true);
     }
+}
+
+void myChess::onPreviousMove() {
+    if (m_isViewingHistory) {
+        // Already viewing history, move back one position
+        if (m_viewingPosition > 0) {
+            m_viewingPosition--;
+            displayBoardAtPosition(m_viewingPosition);
+            updateNavigationButtons();
+        }
+    } else {
+        // Not viewing history yet, start from current position - 1
+        int historySize = m_chessBoard->getMoveHistory().size();
+        if (historySize > 0) {
+            m_viewingPosition = historySize - 1;
+            m_isViewingHistory = true;
+            displayBoardAtPosition(m_viewingPosition);
+            updateNavigationButtons();
+        }
+    }
+}
+
+void myChess::onNextMove() {
+    if (!m_isViewingHistory) return;
+    
+    int historySize = m_chessBoard->getMoveHistory().size();
+    if (m_viewingPosition < historySize - 1) {
+        m_viewingPosition++;
+        displayBoardAtPosition(m_viewingPosition);
+        updateNavigationButtons();
+    } else if (m_viewingPosition == historySize - 1) {
+        // Move to current position
+        onBackToCurrent();
+    }
+}
+
+void myChess::onBackToStart() {
+    m_viewingPosition = 0;
+    m_isViewingHistory = true;
+    displayBoardAtPosition(0);
+    updateNavigationButtons();
+}
+
+void myChess::onBackToCurrent() {
+    m_viewingPosition = -1;
+    m_isViewingHistory = false;
+    updateBoard();
+    updateNavigationButtons();
+}
+
+void myChess::updateNavigationButtons() {
+    int historySize = m_chessBoard->getMoveHistory().size();
+    
+    if (m_isViewingHistory) {
+        // Enable/disable based on position in history
+        m_backToStartButton->setEnabled(m_viewingPosition > 0);
+        m_previousMoveButton->setEnabled(m_viewingPosition > 0);
+        m_nextMoveButton->setEnabled(true);
+        m_backToCurrentButton->setEnabled(true);
+        
+        // Disable game actions while viewing history
+        m_undoButton->setEnabled(false);
+        
+        // Visual indication that we're in viewing mode
+        QString statusText = tr("Viewing history - Move %1 of %2")
+                                 .arg(m_viewingPosition + 1)
+                                 .arg(historySize);
+        m_statusLabel->setText(statusText);
+    } else {
+        // At current position
+        m_backToStartButton->setEnabled(historySize > 0);
+        m_previousMoveButton->setEnabled(historySize > 0);
+        m_nextMoveButton->setEnabled(false);
+        m_backToCurrentButton->setEnabled(false);
+        
+        // Re-enable game actions
+        m_undoButton->setEnabled(m_undoEnabled);
+    }
+}
+
+void myChess::displayBoardAtPosition(int position) {
+    // Clear any selection and highlights
+    m_hasSelection = false;
+    clearHighlights();
+    
+    // Get board state at the specified position
+    if (position < 0 || position >= m_chessBoard->getMoveHistory().size()) {
+        return;
+    }
+    
+    // We need to reconstruct the board state at the given move
+    // Position 0 means after the first move
+    // We'll create a temporary board state by replaying moves
+    
+    ChessPiece* tempBoard[8][8];
+    PieceColor turn;
+    m_chessBoard->getBoardStateAtMove(position, tempBoard, turn);
+    
+    // Update the display with this temporary state
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            m_squares[row][col]->setPiece(tempBoard[row][col]);
+            m_squares[row][col]->setInCheck(false);
+        }
+    }
+    
+    // Update turn label for the position being viewed
+    QString turnText = (turn == PieceColor::WHITE) ?
+                           tr("Turn: White") : tr("Turn: Black");
+    m_turnLabel->setText(turnText);
 }

@@ -65,6 +65,7 @@ public:
     bool isGameOver() const { return m_isGameOver; }
 
     bool undo();  // Undo the last move
+    void getBoardStateAtMove(int moveIndex, ChessPiece* outputBoard[8][8], PieceColor& turn) const;
 
 private:
     ChessPiece* m_board[8][8];

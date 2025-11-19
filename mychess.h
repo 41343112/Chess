@@ -144,6 +144,10 @@ private slots:
     void onFlipBoard();
     void onSettings();
     void showStartDialog();
+    void onPreviousMove();
+    void onNextMove();
+    void onBackToStart();
+    void onBackToCurrent();
 
 private:
     Ui::myChess *ui;
@@ -158,6 +162,10 @@ private:
     QPushButton* m_undoButton;
     QPushButton* m_flipBoardButton;
     QPushButton* m_settingsButton;
+    QPushButton* m_previousMoveButton;
+    QPushButton* m_nextMoveButton;
+    QPushButton* m_backToStartButton;
+    QPushButton* m_backToCurrentButton;
 
     QSoundEffect* m_moveSound;
     QSoundEffect* m_captureSound;
@@ -179,6 +187,10 @@ private:
     QColor m_darkSquareColor;
     QString m_language;
 
+    // Navigation state for viewing history
+    int m_viewingPosition;  // -1 means viewing current position, 0+ means viewing history
+    bool m_isViewingHistory;
+
     void setupUI();
     void updateBoard();
     void clearHighlights();
@@ -187,6 +199,8 @@ private:
     void playMoveSound(bool isCapture, bool isCheck, bool isCheckmate, bool isCastling = false);
     void loadSettings();
     void applySettings();
+    void updateNavigationButtons();
+    void displayBoardAtPosition(int position);
 };
 
 #endif // MYCHESS_H
