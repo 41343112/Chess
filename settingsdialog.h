@@ -3,7 +3,6 @@
 
 #include <QDialog>
 #include <QCheckBox>
-#include <QSlider>
 #include <QSpinBox>
 #include <QPushButton>
 #include <QColor>
