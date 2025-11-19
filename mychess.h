@@ -176,7 +176,6 @@ private:
     bool m_undoEnabled;
     QColor m_lightSquareColor;
     QColor m_darkSquareColor;
-    int m_volume;
     QString m_language;
 
     void setupUI();
