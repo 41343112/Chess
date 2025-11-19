@@ -16,6 +16,8 @@
 #include <QDropEvent>
 #include <QResizeEvent>
 #include <QSoundEffect>
+#include <QTimer>
+#include <QSettings>
 #include "chessboard.h"
 
 QT_BEGIN_NAMESPACE
@@ -79,6 +81,7 @@ public:
     void setHighlight(HighlightType type);
     void setSelected(bool selected);
     void setInCheck(bool inCheck);
+    void setColors(const QColor& lightColor, const QColor& darkColor);
 
     int getRow() const { return m_row; }
     int getCol() const { return m_col; }
@@ -106,6 +109,8 @@ private:
     QString m_draggedPieceText;  // Store piece text during drag
     bool m_isDragging;  // Track if currently dragging
     ChessPiece* m_piece;  // Store piece pointer for icon regeneration on resize
+    QColor m_lightColor;
+    QColor m_darkColor;
 
     void updateStyle();
     void updatePieceDisplay();  // Helper to update icon/text display
@@ -136,6 +141,8 @@ private slots:
     void onNewGame();
     void onUndo();
     void onFlipBoard();
+    void onSettings();
+    void onTimerTimeout();
 
 private:
     Ui::myChess *ui;
@@ -146,9 +153,11 @@ private:
 
     QLabel* m_statusLabel;
     QLabel* m_turnLabel;
+    QLabel* m_timerLabel;
     QPushButton* m_newGameButton;
     QPushButton* m_undoButton;
     QPushButton* m_flipBoardButton;
+    QPushButton* m_settingsButton;
 
     QSoundEffect* m_moveSound;
     QSoundEffect* m_captureSound;
@@ -164,12 +173,27 @@ private:
     // 可設定的最小棋盤尺寸(像素)，預設 40
     int m_minBoardSize;
 
+    // Settings
+    bool m_undoEnabled;
+    QColor m_lightSquareColor;
+    QColor m_darkSquareColor;
+    int m_volume;
+    int m_timeLimitMinutes;
+    
+    // Timer for move time limit
+    QTimer* m_moveTimer;
+    int m_remainingSeconds;
+
     void setupUI();
     void updateBoard();
     void clearHighlights();
     void highlightValidMoves(QPoint from);
     void showGameOverDialog();
     void playMoveSound(bool isCapture, bool isCheck, bool isCheckmate, bool isCastling = false);
+    void loadSettings();
+    void applySettings();
+    void startMoveTimer();
+    void stopMoveTimer();
 };
 
 #endif // MYCHESS_H

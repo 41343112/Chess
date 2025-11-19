@@ -11,12 +11,14 @@ SOURCES += \
     main.cpp \
     mychess.cpp \
     chesspiece.cpp \
-    chessboard.cpp
+    chessboard.cpp \
+    settingsdialog.cpp
 
 HEADERS += \
     mychess.h \
     chesspiece.h \
-    chessboard.h
+    chessboard.h \
+    settingsdialog.h
 
 FORMS += \
     mychess.ui
