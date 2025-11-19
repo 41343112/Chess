@@ -24,7 +24,6 @@ public:
     QColor getLightSquareColor() const;
     QColor getDarkSquareColor() const;
     int getVolume() const;
-    int getTimeLimitMinutes() const;
     QString getLanguage() const;
 
     // Load/Save settings
@@ -48,7 +47,6 @@ private:
     QPushButton* m_darkSquareColorButton;
     QPushButton* m_resetColorsButton;
     QSlider* m_volumeSlider;
-    QSpinBox* m_timeLimitSpinBox;
     QComboBox* m_languageComboBox;
     QPushButton* m_resetDefaultsButton;
     

@@ -279,17 +279,11 @@ myChess::myChess(QWidget *parent)
     , m_lightSquareColor("#F0D9B5")
     , m_darkSquareColor("#B58863")
     , m_volume(100)
-    , m_timeLimitMinutes(0)
-    , m_remainingSeconds(0)
 {
     ui->setupUi(this);
     setWindowTitle(tr("Chess Game - Like Chess.com"));
 
     m_chessBoard = new ChessBoard();
-
-    // Initialize move timer
-    m_moveTimer = new QTimer(this);
-    connect(m_moveTimer, &QTimer::timeout, this, &myChess::onTimerTimeout);
 
     // Initialize sound effects
     m_moveSound = new QSoundEffect(this);
@@ -351,13 +345,9 @@ void myChess::setupUI() {
     QHBoxLayout* statusLayout = new QHBoxLayout();
     m_turnLabel = new QLabel(tr("Turn: White"), this);
     m_turnLabel->setFont(QFont("Arial", 14, QFont::Bold));
-    m_timerLabel = new QLabel("", this);
-    m_timerLabel->setFont(QFont("Arial", 12, QFont::Bold));
-    m_timerLabel->setStyleSheet("QLabel { color: green; }");
     m_statusLabel = new QLabel(tr("Game in progress"), this);
     m_statusLabel->setFont(QFont("Arial", 12));
     statusLayout->addWidget(m_turnLabel);
-    statusLayout->addWidget(m_timerLabel);
     statusLayout->addStretch();
     statusLayout->addWidget(m_statusLabel);
     mainLayout->addLayout(statusLayout);
@@ -518,10 +508,8 @@ void myChess::onNewGame() {
         clearHighlights();
         updateBoard();
         
-        // Restart timer for new game
-        if (m_timeLimitMinutes > 0) {
-            startMoveTimer();
-        }
+        // Enable settings button for new game
+        m_settingsButton->setEnabled(true);
     }
 }
 
@@ -556,6 +544,9 @@ void myChess::showGameOverDialog() {
     msgBox.setIcon(QMessageBox::Information);
     msgBox.setStandardButtons(QMessageBox::Ok);
     msgBox.exec();
+    
+    // Re-enable settings button when game is over
+    m_settingsButton->setEnabled(true);
 }
 
 bool myChess::onSquareDragStarted(int row, int col) {
@@ -600,18 +591,25 @@ void myChess::onSquareDragEnded(int row, int col) {
         bool isCheckmate = gameStatus.contains("checkmate");
         bool isCheck = gameStatus.contains("check") && !isCheckmate;
         
-        // Check if the last move was castling
+        // Check if the last move was castling or en passant
         bool isCastling = false;
+        bool wasEnPassant = false;
         const QVector<Move>& history = m_chessBoard->getMoveHistory();
         if (!history.isEmpty()) {
             isCastling = history.last().wasCastling;
+            wasEnPassant = history.last().wasEnPassant;
+        }
+        
+        // En passant is also a capture
+        if (wasEnPassant) {
+            isCapture = true;
         }
         
         playMoveSound(isCapture, isCheck, isCheckmate, isCastling);
         
-        // Restart timer for next player's move
-        if (m_timeLimitMinutes > 0 && !m_chessBoard->isGameOver()) {
-            startMoveTimer();
+        // Disable settings after first move
+        if (m_chessBoard->getMoveHistory().size() == 1) {
+            m_settingsButton->setEnabled(false);
         }
     }
     updateBoard();
@@ -807,17 +805,29 @@ void myChess::onSquareClicked() {
                 bool isCheckmate = gameStatus.contains("checkmate");
                 bool isCheck = gameStatus.contains("check") && !isCheckmate;
                 
-                // Check if the last move was castling
+                // Check if the last move was castling or en passant
                 bool isCastling = false;
+                bool wasEnPassant = false;
                 const QVector<Move>& history = m_chessBoard->getMoveHistory();
                 if (!history.isEmpty()) {
                     isCastling = history.last().wasCastling;
+                    wasEnPassant = history.last().wasEnPassant;
+                }
+                
+                // En passant is also a capture
+                if (wasEnPassant) {
+                    isCapture = true;
                 }
                 
                 playMoveSound(isCapture, isCheck, isCheckmate, isCastling);
                 
+                // Disable settings after first move
+                if (m_chessBoard->getMoveHistory().size() == 1) {
+                    m_settingsButton->setEnabled(false);
+                }
+                
                 // Restart timer for next player's move
-                if (m_timeLimitMinutes > 0 && !m_chessBoard->isGameOver()) {
+                if (!m_chessBoard->isGameOver()) {
                     startMoveTimer();
                 }
             }
@@ -859,7 +869,6 @@ void myChess::loadSettings() {
     m_lightSquareColor = settings.value("lightSquareColor", QColor("#F0D9B5")).value<QColor>();
     m_darkSquareColor = settings.value("darkSquareColor", QColor("#B58863")).value<QColor>();
     m_volume = settings.value("volume", 100).toInt();
-    m_timeLimitMinutes = settings.value("timeLimitMinutes", 0).toInt();
     m_language = settings.value("language", "en").toString();
 }
 
@@ -881,61 +890,4 @@ void myChess::applySettings() {
     m_checkSound->setVolume(volume);
     m_checkmateSound->setVolume(volume);
     m_castlingSound->setVolume(volume);
-    
-    // Start timer if time limit is set and game is in progress
-    if (m_timeLimitMinutes > 0 && !m_chessBoard->isGameOver()) {
-        startMoveTimer();
-    } else {
-        stopMoveTimer();
-    }
-}
-
-void myChess::startMoveTimer() {
-    if (m_timeLimitMinutes <= 0) {
-        m_timerLabel->setText("");
-        return;
-    }
-    
-    m_remainingSeconds = m_timeLimitMinutes * 60;
-    m_moveTimer->start(1000); // Update every second
-    
-    // Update label
-    int minutes = m_remainingSeconds / 60;
-    int seconds = m_remainingSeconds % 60;
-    m_timerLabel->setText(tr("Time: %1:%2").arg(minutes).arg(seconds, 2, 10, QChar('0')));
-    m_timerLabel->setStyleSheet("QLabel { color: green; }");
-}
-
-void myChess::stopMoveTimer() {
-    m_moveTimer->stop();
-    m_timerLabel->setText("");
-}
-
-void myChess::onTimerTimeout() {
-    if (m_remainingSeconds > 0) {
-        m_remainingSeconds--;
-        
-        int minutes = m_remainingSeconds / 60;
-        int seconds = m_remainingSeconds % 60;
-        m_timerLabel->setText(tr("Time: %1:%2").arg(minutes).arg(seconds, 2, 10, QChar('0')));
-        
-        // Change color when time is running low (less than 30 seconds)
-        if (m_remainingSeconds <= 30) {
-            m_timerLabel->setStyleSheet("QLabel { color: red; }");
-        } else if (m_remainingSeconds <= 60) {
-            m_timerLabel->setStyleSheet("QLabel { color: orange; }");
-        }
-    } else {
-        // Time's up!
-        m_moveTimer->stop();
-        m_timerLabel->setText(tr("Time's up!"));
-        m_timerLabel->setStyleSheet("QLabel { color: red; }");
-        
-        QMessageBox::warning(this, tr("Time Limit Exceeded"),
-                           tr("Time limit exceeded for %1's move!")
-                           .arg(m_chessBoard->getCurrentTurn() == PieceColor::WHITE ? tr("White") : tr("Black")));
-        
-        // Optionally, you could auto-pass the turn or end the game here
-        // For now, just show warning and continue the game
-    }
 }

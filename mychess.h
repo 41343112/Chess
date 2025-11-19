@@ -143,7 +143,6 @@ private slots:
     void onUndo();
     void onFlipBoard();
     void onSettings();
-    void onTimerTimeout();
 
 private:
     Ui::myChess *ui;
@@ -154,7 +153,6 @@ private:
 
     QLabel* m_statusLabel;
     QLabel* m_turnLabel;
-    QLabel* m_timerLabel;
     QPushButton* m_newGameButton;
     QPushButton* m_undoButton;
     QPushButton* m_flipBoardButton;
@@ -179,12 +177,7 @@ private:
     QColor m_lightSquareColor;
     QColor m_darkSquareColor;
     int m_volume;
-    int m_timeLimitMinutes;
     QString m_language;
-    
-    // Timer for move time limit
-    QTimer* m_moveTimer;
-    int m_remainingSeconds;
 
     void setupUI();
     void updateBoard();
@@ -194,8 +187,6 @@ private:
     void playMoveSound(bool isCapture, bool isCheck, bool isCheckmate, bool isCastling = false);
     void loadSettings();
     void applySettings();
-    void startMoveTimer();
-    void stopMoveTimer();
 };
 
 #endif // MYCHESS_H

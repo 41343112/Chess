@@ -86,24 +86,6 @@ void SettingsDialog::setupUI()
     volumeLayout->addLayout(volumeSliderLayout);
     mainLayout->addWidget(volumeGroup);
 
-    // Time limit group
-    QGroupBox* timeGroup = new QGroupBox(tr("Time Limit"), this);
-    QFormLayout* timeLayout = new QFormLayout(timeGroup);
-    
-    m_timeLimitSpinBox = new QSpinBox(this);
-    m_timeLimitSpinBox->setMinimum(0);
-    m_timeLimitSpinBox->setMaximum(60);
-    m_timeLimitSpinBox->setValue(0);
-    m_timeLimitSpinBox->setSuffix(tr(" minutes"));
-    m_timeLimitSpinBox->setSpecialValueText(tr("No limit"));
-    
-    QLabel* timeHelpLabel = new QLabel(tr("Set time limit per move (0 = no limit)"), this);
-    timeHelpLabel->setStyleSheet("QLabel { color: gray; font-size: 10pt; }");
-    
-    timeLayout->addRow(tr("Minutes per move:"), m_timeLimitSpinBox);
-    timeLayout->addRow(timeHelpLabel);
-    mainLayout->addWidget(timeGroup);
-
     // Language selection group
     QGroupBox* languageGroup = new QGroupBox(tr("Language"), this);
     QFormLayout* languageLayout = new QFormLayout(languageGroup);
@@ -197,7 +179,6 @@ void SettingsDialog::onResetDefaultsClicked()
         updateColorButtonStyle(m_lightSquareColorButton, m_lightSquareColor);
         updateColorButtonStyle(m_darkSquareColorButton, m_darkSquareColor);
         m_volumeSlider->setValue(100);
-        m_timeLimitSpinBox->setValue(0);
         m_languageComboBox->setCurrentIndex(0); // English
     }
 }
@@ -233,11 +214,6 @@ int SettingsDialog::getVolume() const
     return m_volumeSlider->value();
 }
 
-int SettingsDialog::getTimeLimitMinutes() const
-{
-    return m_timeLimitSpinBox->value();
-}
-
 QString SettingsDialog::getLanguage() const
 {
     return m_languageComboBox->currentData().toString();
@@ -255,7 +231,6 @@ void SettingsDialog::loadSettings()
     updateColorButtonStyle(m_darkSquareColorButton, m_darkSquareColor);
     
     m_volumeSlider->setValue(settings.value("volume", 100).toInt());
-    m_timeLimitSpinBox->setValue(settings.value("timeLimitMinutes", 0).toInt());
     
     // Load language preference
     QString language = settings.value("language", "en").toString();
@@ -273,6 +248,5 @@ void SettingsDialog::saveSettings()
     settings.setValue("lightSquareColor", m_lightSquareColor);
     settings.setValue("darkSquareColor", m_darkSquareColor);
     settings.setValue("volume", m_volumeSlider->value());
-    settings.setValue("timeLimitMinutes", m_timeLimitSpinBox->value());
     settings.setValue("language", m_languageComboBox->currentData().toString());
 }
