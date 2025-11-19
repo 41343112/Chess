@@ -16,7 +16,7 @@ public:
     ~StartDialog();
     
     // Getters for time control settings
-    int getTimeControlSeconds() const;  // Returns time in seconds (minimum 30)
+    int getTimeControlSeconds() const;  // Returns time in seconds (0 = no limit, 30-59 seconds, or 1-60 minutes in seconds)
     int getIncrementSeconds() const;
 
 private slots:

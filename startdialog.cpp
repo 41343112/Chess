@@ -44,9 +44,9 @@ void StartDialog::setupUI()
     timeLayout->addWidget(timeLabel);
     
     m_timeSlider = new QSlider(Qt::Horizontal, this);
-    m_timeSlider->setMinimum(30);  // Start from 30 seconds
-    m_timeSlider->setMaximum(120);  // 30-90 seconds, 91-120 for 1-30 minutes
-    m_timeSlider->setValue(30);  // Default to 30 seconds
+    m_timeSlider->setMinimum(0);  // 0 = No limit
+    m_timeSlider->setMaximum(90);  // 0=No limit, 1-30=30-59 seconds, 31-90=1-60 minutes
+    m_timeSlider->setValue(1);  // Default to 30 seconds
     m_timeSlider->setTickPosition(QSlider::TicksBelow);
     m_timeSlider->setTickInterval(10);
     timeLayout->addWidget(m_timeSlider);
@@ -125,12 +125,16 @@ void StartDialog::updateTimeLabel()
     int value = m_timeSlider->value();
     QString text;
     
-    if (value <= 90) {
-        // 30-90 seconds
-        text = QString::fromUtf8("%1 秒").arg(value);
+    if (value == 0) {
+        // No limit
+        text = QString::fromUtf8("無限制");
+    } else if (value <= 30) {
+        // 1-30 maps to 30-59 seconds
+        int seconds = 29 + value;  // value=1 -> 30 seconds, value=30 -> 59 seconds
+        text = QString::fromUtf8("%1 秒").arg(seconds);
     } else {
-        // 91-120 maps to 1-30 minutes
-        int minutes = value - 90;
+        // 31-90 maps to 1-60 minutes
+        int minutes = value - 30;  // value=31 -> 1 minute, value=90 -> 60 minutes
         text = QString::fromUtf8("%1 分鐘").arg(minutes);
     }
     
@@ -147,12 +151,15 @@ int StartDialog::getTimeControlSeconds() const
 {
     int value = m_timeSlider->value();
     
-    if (value <= 90) {
-        // 30-90 seconds
-        return value;
+    if (value == 0) {
+        // No limit - return 0 to indicate no time control
+        return 0;
+    } else if (value <= 30) {
+        // 1-30 maps to 30-59 seconds
+        return 29 + value;  // value=1 -> 30 seconds, value=30 -> 59 seconds
     } else {
-        // 91-120 maps to 1-30 minutes, convert to seconds
-        int minutes = value - 90;
+        // 31-90 maps to 1-60 minutes, convert to seconds
+        int minutes = value - 30;  // value=31 -> 1 minute, value=90 -> 60 minutes
         return minutes * 60;
     }
 }

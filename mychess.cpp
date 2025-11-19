@@ -996,15 +996,22 @@ void myChess::showStartDialog() {
     StartDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
         // Get time control settings from dialog
-        int timeSeconds = dialog.getTimeControlSeconds();  // Returns time in seconds (minimum 30)
+        int timeSeconds = dialog.getTimeControlSeconds();  // Returns time in seconds, or 0 for no limit
         m_incrementSeconds = dialog.getIncrementSeconds();
         
-        // Time control is always enabled now
-        m_timeControlEnabled = true;
-        // Convert seconds to minutes for compatibility with settings
-        m_timeControlMinutes = timeSeconds / 60;
-        if (m_timeControlMinutes == 0 && timeSeconds > 0) {
-            m_timeControlMinutes = 1;  // At least 1 minute for compatibility
+        // Enable or disable time control based on the setting
+        if (timeSeconds == 0) {
+            // No time limit
+            m_timeControlEnabled = false;
+            m_timeControlMinutes = 0;
+        } else {
+            // Time control is enabled
+            m_timeControlEnabled = true;
+            // Convert seconds to minutes for compatibility with settings
+            m_timeControlMinutes = timeSeconds / 60;
+            if (m_timeControlMinutes == 0 && timeSeconds > 0) {
+                m_timeControlMinutes = 1;  // At least 1 minute for compatibility
+            }
         }
         
         // Initialize timer with the configured time (but don't start it yet)
