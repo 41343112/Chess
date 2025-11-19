@@ -840,8 +840,15 @@ void myChess::onSquareClicked() {
 void myChess::onSettings() {
     SettingsDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
+        QString previousLanguage = m_language;
         loadSettings();
         applySettings();
+        
+        // Show restart message if language changed
+        if (m_language != previousLanguage) {
+            QMessageBox::information(this, tr("Language Changed"),
+                tr("Please restart the application for language changes to take effect."));
+        }
     }
 }
 
@@ -853,6 +860,7 @@ void myChess::loadSettings() {
     m_darkSquareColor = settings.value("darkSquareColor", QColor("#B58863")).value<QColor>();
     m_volume = settings.value("volume", 100).toInt();
     m_timeLimitMinutes = settings.value("timeLimitMinutes", 0).toInt();
+    m_language = settings.value("language", "en").toString();
 }
 
 void myChess::applySettings() {
