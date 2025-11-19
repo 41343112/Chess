@@ -46,7 +46,7 @@ void StartDialog::setupUI()
     m_timeSlider = new QSlider(Qt::Horizontal, this);
     m_timeSlider->setMinimum(0);  // 0 = No limit
     m_timeSlider->setMaximum(90);  // 0=No limit, 1-30=30-59 seconds, 31-90=1-60 minutes
-    m_timeSlider->setValue(1);  // Default to 30 seconds
+    m_timeSlider->setValue(0);  // Default to no limit
     m_timeSlider->setTickPosition(QSlider::TicksBelow);
     m_timeSlider->setTickInterval(10);
     timeLayout->addWidget(m_timeSlider);

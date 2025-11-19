@@ -1313,12 +1313,13 @@ QString myChess::formatTime(int milliseconds) {
     int totalSeconds = milliseconds / 1000;
     int minutes = totalSeconds / 60;
     int secs = totalSeconds % 60;
-    int centiseconds = (milliseconds % 1000) / 10;  // Get 2 decimal places
+    int deciseconds = (milliseconds % 1000) / 100;  // Get 1 decimal place
     
-    // Show decimal places when time is less than 10 seconds
+    // Show 1 decimal place when time is less than 10 seconds
     if (totalSeconds < 10) {
-        return QString("%1.%2").arg(secs).arg(centiseconds, 2, 10, QChar('0'));
+        return QString("%1.%2").arg(secs).arg(deciseconds);
     } else {
-        return QString("%1:%2").arg(minutes, 2, 10, QChar('0')).arg(secs, 2, 10, QChar('0'));
+        // Don't pad minutes with leading zero for single-digit minutes
+        return QString("%1:%2").arg(minutes).arg(secs, 2, 10, QChar('0'));
     }
 }
