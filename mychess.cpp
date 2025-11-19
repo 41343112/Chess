@@ -283,7 +283,7 @@ myChess::myChess(QWidget *parent)
     , m_remainingSeconds(0)
 {
     ui->setupUi(this);
-    setWindowTitle("Chess Game - Like Chess.com");
+    setWindowTitle(tr("Chess Game - Like Chess.com"));
 
     m_chessBoard = new ChessBoard();
 
@@ -349,12 +349,12 @@ void myChess::setupUI() {
 
     // Status labels
     QHBoxLayout* statusLayout = new QHBoxLayout();
-    m_turnLabel = new QLabel("Turn: White", this);
+    m_turnLabel = new QLabel(tr("Turn: White"), this);
     m_turnLabel->setFont(QFont("Arial", 14, QFont::Bold));
     m_timerLabel = new QLabel("", this);
     m_timerLabel->setFont(QFont("Arial", 12, QFont::Bold));
     m_timerLabel->setStyleSheet("QLabel { color: green; }");
-    m_statusLabel = new QLabel("Game in progress", this);
+    m_statusLabel = new QLabel(tr("Game in progress"), this);
     m_statusLabel->setFont(QFont("Arial", 12));
     statusLayout->addWidget(m_turnLabel);
     statusLayout->addWidget(m_timerLabel);
@@ -395,22 +395,22 @@ void myChess::setupUI() {
 
     // Control buttons
     QHBoxLayout* buttonLayout = new QHBoxLayout();
-    m_newGameButton = new QPushButton("New Game", this);
+    m_newGameButton = new QPushButton(tr("New Game"), this);
     m_newGameButton->setFont(QFont("Arial", 12));
     m_newGameButton->setMinimumWidth(120);
     connect(m_newGameButton, &QPushButton::clicked, this, &myChess::onNewGame);
 
-    m_undoButton = new QPushButton("Undo", this);
+    m_undoButton = new QPushButton(tr("Undo"), this);
     m_undoButton->setFont(QFont("Arial", 12));
     m_undoButton->setMinimumWidth(120);
     connect(m_undoButton, &QPushButton::clicked, this, &myChess::onUndo);
 
-    m_flipBoardButton = new QPushButton("Flip Board", this);
+    m_flipBoardButton = new QPushButton(tr("Flip Board"), this);
     m_flipBoardButton->setFont(QFont("Arial", 12));
     m_flipBoardButton->setMinimumWidth(120);
     connect(m_flipBoardButton, &QPushButton::clicked, this, &myChess::onFlipBoard);
 
-    m_settingsButton = new QPushButton("Settings", this);
+    m_settingsButton = new QPushButton(tr("Settings"), this);
     m_settingsButton->setFont(QFont("Arial", 12));
     m_settingsButton->setMinimumWidth(120);
     connect(m_settingsButton, &QPushButton::clicked, this, &myChess::onSettings);
@@ -509,7 +509,7 @@ void myChess::resizeEvent(QResizeEvent* event) {
 
 void myChess::onNewGame() {
     QMessageBox::StandardButton reply = QMessageBox::question(
-        this, "New Game", "Start a new game?",
+        this, tr("New Game"), tr("Start a new game?"),
         QMessageBox::Yes | QMessageBox::No);
 
     if (reply == QMessageBox::Yes) {
@@ -538,20 +538,20 @@ void myChess::onUndo() {
         
         // Update turn label
         QString turnText = (m_chessBoard->getCurrentTurn() == PieceColor::WHITE) ?
-                               "Turn: White" : "Turn: Black";
+                               tr("Turn: White") : tr("Turn: Black");
         m_turnLabel->setText(turnText);
         
         // Update status label
         m_statusLabel->setText(m_chessBoard->getGameStatus());
     } else {
-        QMessageBox::information(this, "Undo",
-                                 "No moves to undo!");
+        QMessageBox::information(this, tr("Undo"),
+                                 tr("No moves to undo!"));
     }
 }
 
 void myChess::showGameOverDialog() {
     QMessageBox msgBox(this);
-    msgBox.setWindowTitle("Game Over");
+    msgBox.setWindowTitle(tr("Game Over"));
     msgBox.setText(m_chessBoard->getGameStatus());
     msgBox.setIcon(QMessageBox::Information);
     msgBox.setStandardButtons(QMessageBox::Ok);
@@ -723,7 +723,7 @@ void myChess::updateBoard() {
 
     // Update turn label
     QString turnText = (m_chessBoard->getCurrentTurn() == PieceColor::WHITE) ?
-                           "Turn: White" : "Turn: Black";
+                           tr("Turn: White") : tr("Turn: Black");
     m_turnLabel->setText(turnText);
 
     // Update status label
@@ -902,7 +902,7 @@ void myChess::startMoveTimer() {
     // Update label
     int minutes = m_remainingSeconds / 60;
     int seconds = m_remainingSeconds % 60;
-    m_timerLabel->setText(QString("Time: %1:%2").arg(minutes).arg(seconds, 2, 10, QChar('0')));
+    m_timerLabel->setText(tr("Time: %1:%2").arg(minutes).arg(seconds, 2, 10, QChar('0')));
     m_timerLabel->setStyleSheet("QLabel { color: green; }");
 }
 
@@ -917,7 +917,7 @@ void myChess::onTimerTimeout() {
         
         int minutes = m_remainingSeconds / 60;
         int seconds = m_remainingSeconds % 60;
-        m_timerLabel->setText(QString("Time: %1:%2").arg(minutes).arg(seconds, 2, 10, QChar('0')));
+        m_timerLabel->setText(tr("Time: %1:%2").arg(minutes).arg(seconds, 2, 10, QChar('0')));
         
         // Change color when time is running low (less than 30 seconds)
         if (m_remainingSeconds <= 30) {
@@ -928,12 +928,12 @@ void myChess::onTimerTimeout() {
     } else {
         // Time's up!
         m_moveTimer->stop();
-        m_timerLabel->setText("Time's up!");
+        m_timerLabel->setText(tr("Time's up!"));
         m_timerLabel->setStyleSheet("QLabel { color: red; }");
         
-        QMessageBox::warning(this, "Time Limit Exceeded",
-                           QString("Time limit exceeded for %1's move!")
-                           .arg(m_chessBoard->getCurrentTurn() == PieceColor::WHITE ? "White" : "Black"));
+        QMessageBox::warning(this, tr("Time Limit Exceeded"),
+                           tr("Time limit exceeded for %1's move!")
+                           .arg(m_chessBoard->getCurrentTurn() == PieceColor::WHITE ? tr("White") : tr("Black")));
         
         // Optionally, you could auto-pass the turn or end the game here
         // For now, just show warning and continue the game
