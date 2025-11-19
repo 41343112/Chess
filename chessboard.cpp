@@ -76,7 +76,7 @@ void ChessBoard::initializeBoard() {
     m_enPassantTarget = QPoint(-1, -1);
     m_moveHistory.clear();
     m_isGameOver = false;
-    m_gameStatus = "Game in progress";
+    m_gameStatus = tr("Game in progress");
 }
 
 void ChessBoard::reset() {
@@ -191,18 +191,18 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
                 m_isGameOver = true;
                 PieceColor winner = (m_currentTurn == PieceColor::WHITE) ? PieceColor::BLACK : PieceColor::WHITE;
                 m_gameStatus = (winner == PieceColor::WHITE) ?
-                                   "White wins by checkmate!" : "Black wins by checkmate!";
+                                   tr("White wins by checkmate!") : tr("Black wins by checkmate!");
             } else if (isStalemate(m_currentTurn)) {
                 m_isGameOver = true;
-                m_gameStatus = "Stalemate - Draw!";
+                m_gameStatus = tr("Stalemate - Draw!");
             } else if (isInsufficientMaterial()) {
                 m_isGameOver = true;
-                m_gameStatus = "Draw - Insufficient Material!";
+                m_gameStatus = tr("Draw - Insufficient Material!");
             } else if (isKingInCheck(m_currentTurn)) {
                 m_gameStatus = (m_currentTurn == PieceColor::WHITE) ?
-                                   "White is in check!" : "Black is in check!";
+                                   tr("White is in check!") : tr("Black is in check!");
             } else {
-                m_gameStatus = "Game in progress";
+                m_gameStatus = tr("Game in progress");
             }
 
             return true;
@@ -222,18 +222,18 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
             m_isGameOver = true;
             PieceColor winner = (m_currentTurn == PieceColor::WHITE) ? PieceColor::BLACK : PieceColor::WHITE;
             m_gameStatus = (winner == PieceColor::WHITE) ?
-                               "White wins by checkmate!" : "Black wins by checkmate!";
+                               tr("White wins by checkmate!") : tr("Black wins by checkmate!");
         } else if (isStalemate(m_currentTurn)) {
             m_isGameOver = true;
-            m_gameStatus = "Stalemate - Draw!";
+            m_gameStatus = tr("Stalemate - Draw!");
         } else if (isInsufficientMaterial()) {
             m_isGameOver = true;
-            m_gameStatus = "Draw - Insufficient Material!";
+            m_gameStatus = tr("Draw - Insufficient Material!");
         } else if (isKingInCheck(m_currentTurn)) {
             m_gameStatus = (m_currentTurn == PieceColor::WHITE) ?
-                               "White is in check!" : "Black is in check!";
+                               tr("White is in check!") : tr("Black is in check!");
         } else {
-            m_gameStatus = "Game in progress";
+            m_gameStatus = tr("Game in progress");
         }
 
         return true;
@@ -254,18 +254,18 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
         // The player who just moved (opposite of current turn) wins
         PieceColor winner = (m_currentTurn == PieceColor::WHITE) ? PieceColor::BLACK : PieceColor::WHITE;
         m_gameStatus = (winner == PieceColor::WHITE) ?
-                           "White wins by checkmate!" : "Black wins by checkmate!";
+                           tr("White wins by checkmate!") : tr("Black wins by checkmate!");
     } else if (isStalemate(m_currentTurn)) {
         m_isGameOver = true;
-        m_gameStatus = "Stalemate - Draw!";
+        m_gameStatus = tr("Stalemate - Draw!");
     } else if (isInsufficientMaterial()) {
         m_isGameOver = true;
-        m_gameStatus = "Draw - Insufficient Material!";
+        m_gameStatus = tr("Draw - Insufficient Material!");
     } else if (isKingInCheck(m_currentTurn)) {
         m_gameStatus = (m_currentTurn == PieceColor::WHITE) ?
-                           "White is in check!" : "Black is in check!";
+                           tr("White is in check!") : tr("Black is in check!");
     } else {
-        m_gameStatus = "Game in progress";
+        m_gameStatus = tr("Game in progress");
     }
 
     return true;
@@ -677,7 +677,7 @@ bool ChessBoard::undo() {
         rook->setPosition(QPoint(rookCol, row));
         rook->setMoved(false);  // Rook wasn't moved before castling
 
-        m_gameStatus = "Game in progress";
+        m_gameStatus = tr("Game in progress");
         return true;
     }
 
@@ -699,7 +699,7 @@ bool ChessBoard::undo() {
             lastMove.capturedPiece->setPosition(lastMove.to);
         }
 
-        m_gameStatus = "Game in progress";
+        m_gameStatus = tr("Game in progress");
         return true;
     }
 
@@ -719,7 +719,7 @@ bool ChessBoard::undo() {
             lastMove.capturedPiece->setPosition(QPoint(lastMove.to.x(), captureRow));
         }
 
-        m_gameStatus = "Game in progress";
+        m_gameStatus = tr("Game in progress");
         return true;
     }
 
@@ -741,9 +741,9 @@ bool ChessBoard::undo() {
     // Update game status
     if (isKingInCheck(m_currentTurn)) {
         m_gameStatus = (m_currentTurn == PieceColor::WHITE) ?
-                           "White is in check!" : "Black is in check!";
+                           tr("White is in check!") : tr("Black is in check!");
     } else {
-        m_gameStatus = "Game in progress";
+        m_gameStatus = tr("Game in progress");
     }
 
     return true;

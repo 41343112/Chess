@@ -4,6 +4,7 @@
 #include "chesspiece.h"
 #include <QVector>
 #include <QPoint>
+#include <QObject>
 #include <memory>
 
 struct Move {
@@ -25,7 +26,9 @@ struct Move {
         movedPieceColor(PieceColor::WHITE) {}
 } ;
 
-class ChessBoard {
+class ChessBoard : public QObject {
+    Q_OBJECT
+    
 public:
     ChessBoard();
     ~ChessBoard();
