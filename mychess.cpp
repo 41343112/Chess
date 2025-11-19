@@ -825,11 +825,6 @@ void myChess::onSquareClicked() {
                 if (m_chessBoard->getMoveHistory().size() == 1) {
                     m_settingsButton->setEnabled(false);
                 }
-                
-                // Restart timer for next player's move
-                if (!m_chessBoard->isGameOver()) {
-                    startMoveTimer();
-                }
             }
             updateBoard();
 
