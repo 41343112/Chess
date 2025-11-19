@@ -14,9 +14,15 @@ struct Move {
     bool wasEnPassant;
     bool wasPromotion;
     PieceType promotedTo;
+    bool movedPieceHadMoved;  // Track if the moved piece had moved before this move
+    QPoint previousEnPassantTarget;  // Store the en passant target before this move
+    PieceType movedPieceType;  // Store the type of piece that moved (needed for promotion undo)
+    PieceColor movedPieceColor;  // Store the color of piece that moved
 
     Move() : capturedPiece(nullptr), wasCastling(false), wasEnPassant(false),
-        wasPromotion(false), promotedTo(PieceType::QUEEN) {}
+        wasPromotion(false), promotedTo(PieceType::QUEEN), movedPieceHadMoved(false),
+        previousEnPassantTarget(-1, -1), movedPieceType(PieceType::PAWN), 
+        movedPieceColor(PieceColor::WHITE) {}
 } ;
 
 class ChessBoard {
@@ -54,6 +60,8 @@ public:
 
     QString getGameStatus() const { return m_gameStatus; }
     bool isGameOver() const { return m_isGameOver; }
+
+    bool undo();  // Undo the last move
 
 private:
     ChessPiece* m_board[8][8];
