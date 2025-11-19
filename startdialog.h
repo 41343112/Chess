@@ -19,17 +19,14 @@ public:
     // Getters for time control settings
     bool isTimeControlEnabled() const;
     int getTimeControlSeconds() const;
-    int getIncrementSeconds() const;
 
 private slots:
     void onTimeControlCheckChanged(int state);
     void onTimeSliderChanged(int value);
-    void onIncrementSliderChanged(int value);
 
 private:
     void setupUI();
     void updateTimeLabel();
-    void updateIncrementLabel();
     
     QLabel* m_titleLabel;
     QPushButton* m_startButton;
@@ -38,8 +35,6 @@ private:
     QCheckBox* m_timeControlCheckBox;
     QSlider* m_timeSlider;
     QLabel* m_timeValueLabel;
-    QSlider* m_incrementSlider;
-    QLabel* m_incrementValueLabel;
 };
 
 #endif // STARTDIALOG_H

@@ -190,13 +190,13 @@ private:
     QColor m_darkSquareColor;
     bool m_timeControlEnabled;
     int m_timeControlMinutes;
-    int m_incrementSeconds;  // Increment per move in seconds
     
     // Time control
     QTimer* m_gameTimer;
     int m_whiteTimeRemaining;  // in milliseconds (for precision)
     int m_blackTimeRemaining;  // in milliseconds (for precision)
     bool m_isTimerRunning;
+    bool m_hasFirstMoveMade;  // Track if first move has been made
 
     // Navigation state for viewing history
     int m_viewingPosition;  // -1 means viewing current position, 0+ means viewing history
@@ -218,7 +218,6 @@ private:
     void startTimer();
     void stopTimer();
     void resetTimers();
-    void addIncrement();
     QString formatTime(int milliseconds);
 };
 

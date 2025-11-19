@@ -49,8 +49,8 @@ void StartDialog::setupUI()
     timeLayout->addWidget(timeLabel);
     
     m_timeSlider = new QSlider(Qt::Horizontal, this);
-    m_timeSlider->setMinimum(30);
-    m_timeSlider->setMaximum(120);  // 30-60 seconds, 61-120 for 1-60 minutes
+    m_timeSlider->setMinimum(0);  // 0 means no time limit
+    m_timeSlider->setMaximum(120);  // 0-60 seconds, 61-120 for 1-60 minutes
     m_timeSlider->setValue(30);  // Default to 30 seconds
     m_timeSlider->setEnabled(false);
     m_timeSlider->setTickPosition(QSlider::TicksBelow);
@@ -63,31 +63,11 @@ void StartDialog::setupUI()
     updateTimeLabel();
     timeLayout->addWidget(m_timeValueLabel);
     
-    // Increment section
-    QLabel* incrementLabel = new QLabel(QString::fromUtf8("每著增加秒數："), this);
-    timeLayout->addWidget(incrementLabel);
-    
-    m_incrementSlider = new QSlider(Qt::Horizontal, this);
-    m_incrementSlider->setMinimum(0);
-    m_incrementSlider->setMaximum(60);
-    m_incrementSlider->setValue(0);
-    m_incrementSlider->setEnabled(false);
-    m_incrementSlider->setTickPosition(QSlider::TicksBelow);
-    m_incrementSlider->setTickInterval(5);
-    timeLayout->addWidget(m_incrementSlider);
-    
-    m_incrementValueLabel = new QLabel(this);
-    m_incrementValueLabel->setAlignment(Qt::AlignCenter);
-    m_incrementValueLabel->setStyleSheet("QLabel { font-size: 12pt; color: #2C3E50; }");
-    updateIncrementLabel();
-    timeLayout->addWidget(m_incrementValueLabel);
-    
     mainLayout->addWidget(timeGroup);
     
     // Connect signals
     connect(m_timeControlCheckBox, &QCheckBox::stateChanged, this, &StartDialog::onTimeControlCheckChanged);
     connect(m_timeSlider, &QSlider::valueChanged, this, &StartDialog::onTimeSliderChanged);
-    connect(m_incrementSlider, &QSlider::valueChanged, this, &StartDialog::onIncrementSliderChanged);
     
     mainLayout->addStretch();
     
@@ -122,7 +102,6 @@ void StartDialog::onTimeControlCheckChanged(int state)
 {
     bool enabled = (state == Qt::Checked);
     m_timeSlider->setEnabled(enabled);
-    m_incrementSlider->setEnabled(enabled);
 }
 
 void StartDialog::onTimeSliderChanged(int /* value */)
@@ -130,18 +109,16 @@ void StartDialog::onTimeSliderChanged(int /* value */)
     updateTimeLabel();
 }
 
-void StartDialog::onIncrementSliderChanged(int /* value */)
-{
-    updateIncrementLabel();
-}
-
 void StartDialog::updateTimeLabel()
 {
     int value = m_timeSlider->value();
     QString text;
     
-    if (value <= 60) {
-        // 30-60 seconds
+    if (value == 0) {
+        // 0 means no time limit
+        text = QString::fromUtf8("無限制");
+    } else if (value <= 60) {
+        // 1-60 seconds
         text = QString::fromUtf8("%1 秒").arg(value);
     } else {
         // 61-120 maps to 1-60 minutes
@@ -150,12 +127,6 @@ void StartDialog::updateTimeLabel()
     }
     
     m_timeValueLabel->setText(text);
-}
-
-void StartDialog::updateIncrementLabel()
-{
-    int value = m_incrementSlider->value();
-    m_incrementValueLabel->setText(QString::fromUtf8("%1 秒").arg(value));
 }
 
 bool StartDialog::isTimeControlEnabled() const
@@ -167,7 +138,10 @@ int StartDialog::getTimeControlSeconds() const
 {
     int value = m_timeSlider->value();
     
-    if (value <= 60) {
+    if (value == 0) {
+        // 0 means no time limit
+        return 0;
+    } else if (value <= 60) {
         // 1-60 seconds
         return value;
     } else {
@@ -175,9 +149,4 @@ int StartDialog::getTimeControlSeconds() const
         int minutes = value - 60;
         return minutes * 60;
     }
-}
-
-int StartDialog::getIncrementSeconds() const
-{
-    return m_incrementSlider->value();
 }
