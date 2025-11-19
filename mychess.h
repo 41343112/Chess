@@ -143,6 +143,7 @@ private slots:
     void onUndo();
     void onFlipBoard();
     void onSettings();
+    void showStartDialog();
 
 private:
     Ui::myChess *ui;

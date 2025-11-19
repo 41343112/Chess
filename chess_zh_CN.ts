@@ -210,4 +210,19 @@
         <translation>黑方</translation>
     </message>
 </context>
+<context>
+    <name>StartDialog</name>
+    <message>
+        <source>Chess Game</source>
+        <translation>國際象棋遊戲</translation>
+    </message>
+    <message>
+        <source>Welcome to Chess Game</source>
+        <translation>歡迎來到國際象棋遊戲</translation>
+    </message>
+    <message>
+        <source>Start Game</source>
+        <translation>開始遊戲</translation>
+    </message>
+</context>
 </TS>

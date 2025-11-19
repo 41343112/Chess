@@ -1,6 +1,7 @@
 #include "mychess.h"
 #include "ui_mychess.h"
 #include "settingsdialog.h"
+#include "startdialog.h"
 #include <QApplication>
 #include <QPainter>
 #include <QIcon>
@@ -309,6 +310,9 @@ myChess::myChess(QWidget *parent)
     setupUI();
     applySettings();
     updateBoard();
+    
+    // Show start dialog on launch
+    QTimer::singleShot(100, this, &myChess::showStartDialog);
 }
 
 myChess::~myChess()
@@ -497,19 +501,8 @@ void myChess::resizeEvent(QResizeEvent* event) {
 }
 
 void myChess::onNewGame() {
-    QMessageBox::StandardButton reply = QMessageBox::question(
-        this, tr("New Game"), tr("Start a new game?"),
-        QMessageBox::Yes | QMessageBox::No);
-
-    if (reply == QMessageBox::Yes) {
-        m_chessBoard->reset();
-        m_hasSelection = false;
-        clearHighlights();
-        updateBoard();
-        
-        // Enable settings button for new game
-        m_settingsButton->setEnabled(true);
-    }
+    // Show start dialog for new game
+    showStartDialog();
 }
 
 void myChess::onUndo() {
@@ -882,4 +875,18 @@ void myChess::applySettings() {
     m_checkSound->setVolume(1.0);
     m_checkmateSound->setVolume(1.0);
     m_castlingSound->setVolume(1.0);
+}
+
+void myChess::showStartDialog() {
+    StartDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        // Reset the board for a new game
+        m_chessBoard->reset();
+        m_hasSelection = false;
+        clearHighlights();
+        updateBoard();
+        
+        // Enable settings button for new game
+        m_settingsButton->setEnabled(true);
+    }
 }
