@@ -190,6 +190,7 @@ private:
     // Navigation state for viewing history
     int m_viewingPosition;  // -1 means viewing current position, 0+ means viewing history
     bool m_isViewingHistory;
+    ChessPiece* m_tempViewBoard[8][8];  // Temporary board for viewing history
 
     void setupUI();
     void updateBoard();
@@ -201,6 +202,7 @@ private:
     void applySettings();
     void updateNavigationButtons();
     void displayBoardAtPosition(int position);
+    void clearTempViewBoard();
 };
 
 #endif // MYCHESS_H

@@ -313,12 +313,20 @@ myChess::myChess(QWidget *parent)
     applySettings();
     updateBoard();
     
+    // Initialize temp view board
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            m_tempViewBoard[i][j] = nullptr;
+        }
+    }
+    
     // Show start dialog on launch
     QTimer::singleShot(100, this, &myChess::showStartDialog);
 }
 
 myChess::~myChess()
 {
+    clearTempViewBoard();
     delete m_chessBoard;
     delete ui;
 }
@@ -947,22 +955,37 @@ void myChess::showStartDialog() {
 }
 
 void myChess::onPreviousMove() {
+    int historySize = m_chessBoard->getMoveHistory().size();
+    if (historySize == 0) return;
+    
     if (m_isViewingHistory) {
         // Already viewing history, move back one position
         if (m_viewingPosition > 0) {
             m_viewingPosition--;
-            displayBoardAtPosition(m_viewingPosition);
+            if (m_viewingPosition == 0) {
+                // Show initial position
+                clearTempViewBoard();
+                PieceColor turn;
+                m_chessBoard->getBoardStateAtMove(-1, m_tempViewBoard, turn);
+                for (int row = 0; row < 8; ++row) {
+                    for (int col = 0; col < 8; ++col) {
+                        m_squares[row][col]->setPiece(m_tempViewBoard[row][col]);
+                        m_squares[row][col]->setInCheck(false);
+                    }
+                }
+                m_turnLabel->setText(tr("Turn: White"));
+                m_statusLabel->setText(tr("Viewing history - Initial position"));
+            } else {
+                displayBoardAtPosition(m_viewingPosition - 1);
+            }
             updateNavigationButtons();
         }
     } else {
         // Not viewing history yet, start from current position - 1
-        int historySize = m_chessBoard->getMoveHistory().size();
-        if (historySize > 0) {
-            m_viewingPosition = historySize - 1;
-            m_isViewingHistory = true;
-            displayBoardAtPosition(m_viewingPosition);
-            updateNavigationButtons();
-        }
+        m_viewingPosition = historySize;
+        m_isViewingHistory = true;
+        displayBoardAtPosition(historySize - 1);
+        updateNavigationButtons();
     }
 }
 
@@ -970,26 +993,55 @@ void myChess::onNextMove() {
     if (!m_isViewingHistory) return;
     
     int historySize = m_chessBoard->getMoveHistory().size();
-    if (m_viewingPosition < historySize - 1) {
+    if (m_viewingPosition < historySize) {
         m_viewingPosition++;
-        displayBoardAtPosition(m_viewingPosition);
-        updateNavigationButtons();
-    } else if (m_viewingPosition == historySize - 1) {
-        // Move to current position
-        onBackToCurrent();
+        if (m_viewingPosition == historySize) {
+            // Move to current position
+            onBackToCurrent();
+        } else {
+            displayBoardAtPosition(m_viewingPosition - 1);
+            updateNavigationButtons();
+        }
     }
 }
 
 void myChess::onBackToStart() {
+    int historySize = m_chessBoard->getMoveHistory().size();
+    if (historySize == 0) {
+        // No moves yet, nothing to show
+        return;
+    }
+    
+    // Position -1 in viewing means we want to see the initial state (before any moves)
+    // But we use 0 to mean the initial state for clarity
     m_viewingPosition = 0;
     m_isViewingHistory = true;
-    displayBoardAtPosition(0);
+    
+    // Clear temp board and display initial position
+    clearTempViewBoard();
+    
+    // Create initial board state (before any moves)
+    PieceColor turn;
+    m_chessBoard->getBoardStateAtMove(-1, m_tempViewBoard, turn);
+    
+    // Update the display
+    for (int row = 0; row < 8; ++row) {
+        for (int col = 0; col < 8; ++col) {
+            m_squares[row][col]->setPiece(m_tempViewBoard[row][col]);
+            m_squares[row][col]->setInCheck(false);
+        }
+    }
+    
+    m_turnLabel->setText(tr("Turn: White"));
+    m_statusLabel->setText(tr("Viewing history - Initial position"));
+    
     updateNavigationButtons();
 }
 
 void myChess::onBackToCurrent() {
     m_viewingPosition = -1;
     m_isViewingHistory = false;
+    clearTempViewBoard();
     updateBoard();
     updateNavigationButtons();
 }
@@ -999,18 +1051,24 @@ void myChess::updateNavigationButtons() {
     
     if (m_isViewingHistory) {
         // Enable/disable based on position in history
+        // Position 0 = initial, Position N = after N-th move
         m_backToStartButton->setEnabled(m_viewingPosition > 0);
         m_previousMoveButton->setEnabled(m_viewingPosition > 0);
-        m_nextMoveButton->setEnabled(true);
+        m_nextMoveButton->setEnabled(m_viewingPosition < historySize);
         m_backToCurrentButton->setEnabled(true);
         
         // Disable game actions while viewing history
         m_undoButton->setEnabled(false);
         
         // Visual indication that we're in viewing mode
-        QString statusText = tr("Viewing history - Move %1 of %2")
-                                 .arg(m_viewingPosition + 1)
-                                 .arg(historySize);
+        QString statusText;
+        if (m_viewingPosition == 0) {
+            statusText = tr("Viewing history - Initial position");
+        } else {
+            statusText = tr("Viewing history - Move %1 of %2")
+                             .arg(m_viewingPosition)
+                             .arg(historySize);
+        }
         m_statusLabel->setText(statusText);
     } else {
         // At current position
@@ -1034,18 +1092,20 @@ void myChess::displayBoardAtPosition(int position) {
         return;
     }
     
+    // Clear any previous temp board
+    clearTempViewBoard();
+    
     // We need to reconstruct the board state at the given move
     // Position 0 means after the first move
     // We'll create a temporary board state by replaying moves
     
-    ChessPiece* tempBoard[8][8];
     PieceColor turn;
-    m_chessBoard->getBoardStateAtMove(position, tempBoard, turn);
+    m_chessBoard->getBoardStateAtMove(position, m_tempViewBoard, turn);
     
     // Update the display with this temporary state
     for (int row = 0; row < 8; ++row) {
         for (int col = 0; col < 8; ++col) {
-            m_squares[row][col]->setPiece(tempBoard[row][col]);
+            m_squares[row][col]->setPiece(m_tempViewBoard[row][col]);
             m_squares[row][col]->setInCheck(false);
         }
     }
@@ -1054,4 +1114,15 @@ void myChess::displayBoardAtPosition(int position) {
     QString turnText = (turn == PieceColor::WHITE) ?
                            tr("Turn: White") : tr("Turn: Black");
     m_turnLabel->setText(turnText);
+}
+
+void myChess::clearTempViewBoard() {
+    for (int i = 0; i < 8; ++i) {
+        for (int j = 0; j < 8; ++j) {
+            if (m_tempViewBoard[i][j] != nullptr) {
+                delete m_tempViewBoard[i][j];
+                m_tempViewBoard[i][j] = nullptr;
+            }
+        }
+    }
 }
