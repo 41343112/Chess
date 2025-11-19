@@ -118,7 +118,7 @@ void StartDialog::onTimeControlCheckChanged(int state)
     m_incrementSpinBox->setEnabled(enabled);
 }
 
-void StartDialog::onTimeSliderChanged(int value)
+void StartDialog::onTimeSliderChanged(int /* value */)
 {
     updateTimeLabel();
 }

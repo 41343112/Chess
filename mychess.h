@@ -220,7 +220,7 @@ private:
     void stopTimer();
     void resetTimers();
     void addIncrement();
-    QString formatTime(int seconds);
+    QString formatTime(int milliseconds);
 };
 
 #endif // MYCHESS_H
