@@ -8,6 +8,11 @@
 	
     </qresource>
 
+    <!-- Translation files -->
+    <qresource prefix="/translations">
+        <file>chess_zh_CN.qm</file>
+    </qresource>
+
     <!-- 新增 images 資源 (請把對應檔案放到專案 images/ 目錄) -->
     <qresource prefix="/images">
         <file>images/pawn.png</file>
