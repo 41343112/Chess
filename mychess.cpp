@@ -1317,7 +1317,7 @@ QString myChess::formatTime(int milliseconds) {
     
     // Show 1 decimal place when time is less than 10 seconds
     if (totalSeconds < 10) {
-        return QString("%1.%2").arg(secs).arg(deciseconds);
+        return QString("0:%1.%2").arg(secs).arg(deciseconds);
     } else {
         // Don't pad minutes with leading zero for single-digit minutes
         return QString("%1:%2").arg(minutes).arg(secs, 2, 10, QChar('0'));
