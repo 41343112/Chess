@@ -281,11 +281,20 @@ myChess::myChess(QWidget *parent)
     , m_darkSquareColor("#B58863")
     , m_viewingPosition(-1)
     , m_isViewingHistory(false)
+    , m_timeControlEnabled(false)
+    , m_timeControlMinutes(10)
+    , m_whiteTimeRemaining(0)
+    , m_blackTimeRemaining(0)
+    , m_isTimerRunning(false)
 {
     ui->setupUi(this);
     setWindowTitle(tr("Chess Game - Like Chess.com"));
 
     m_chessBoard = new ChessBoard();
+    
+    // Initialize timer
+    m_gameTimer = new QTimer(this);
+    connect(m_gameTimer, &QTimer::timeout, this, &myChess::onTimerTick);
 
     // Initialize sound effects
     m_moveSound = new QSoundEffect(this);
@@ -364,6 +373,19 @@ void myChess::setupUI() {
     statusLayout->addStretch();
     statusLayout->addWidget(m_statusLabel);
     mainLayout->addLayout(statusLayout);
+    
+    // Time control labels
+    QHBoxLayout* timeLayout = new QHBoxLayout();
+    m_whiteTimeLabel = new QLabel(tr("White: --:--"), this);
+    m_whiteTimeLabel->setFont(QFont("Arial", 16, QFont::Bold));
+    m_whiteTimeLabel->setAlignment(Qt::AlignLeft);
+    m_blackTimeLabel = new QLabel(tr("Black: --:--"), this);
+    m_blackTimeLabel->setFont(QFont("Arial", 16, QFont::Bold));
+    m_blackTimeLabel->setAlignment(Qt::AlignRight);
+    timeLayout->addWidget(m_whiteTimeLabel);
+    timeLayout->addStretch();
+    timeLayout->addWidget(m_blackTimeLabel);
+    mainLayout->addLayout(timeLayout);
 
     // Chess board - with equal row and column stretch for proportional scaling
     QGridLayout* boardLayout = new QGridLayout();
@@ -576,6 +598,8 @@ void myChess::onUndo() {
 }
 
 void myChess::showGameOverDialog() {
+    stopTimer();
+    
     QMessageBox msgBox(this);
     msgBox.setWindowTitle(tr("Game Over"));
     msgBox.setText(m_chessBoard->getGameStatus());
@@ -914,6 +938,8 @@ void myChess::loadSettings() {
     m_lightSquareColor = settings.value("lightSquareColor", QColor("#F0D9B5")).value<QColor>();
     m_darkSquareColor = settings.value("darkSquareColor", QColor("#B58863")).value<QColor>();
     m_language = settings.value("language", "en").toString();
+    m_timeControlEnabled = settings.value("timeControlEnabled", false).toBool();
+    m_timeControlMinutes = settings.value("timeControlMinutes", 10).toInt();
 }
 
 void myChess::applySettings() {
@@ -933,6 +959,10 @@ void myChess::applySettings() {
     m_checkSound->setVolume(1.0);
     m_checkmateSound->setVolume(1.0);
     m_castlingSound->setVolume(1.0);
+    
+    // Apply time control settings
+    resetTimers();
+    updateTimeDisplay();
 }
 
 void myChess::showStartDialog() {
@@ -951,12 +981,21 @@ void myChess::showStartDialog() {
         
         // Enable settings button for new game
         m_settingsButton->setEnabled(true);
+        
+        // Reset and start timer if enabled
+        resetTimers();
+        startTimer();
     }
 }
 
 void myChess::onPreviousMove() {
     int historySize = m_chessBoard->getMoveHistory().size();
     if (historySize == 0) return;
+    
+    // Pause timer when viewing history
+    if (!m_isViewingHistory) {
+        stopTimer();
+    }
     
     if (m_isViewingHistory) {
         // Already viewing history, move back one position
@@ -1012,6 +1051,9 @@ void myChess::onBackToStart() {
         return;
     }
     
+    // Pause timer when viewing history
+    stopTimer();
+    
     // Position -1 in viewing means we want to see the initial state (before any moves)
     // But we use 0 to mean the initial state for clarity
     m_viewingPosition = 0;
@@ -1044,6 +1086,11 @@ void myChess::onBackToCurrent() {
     clearTempViewBoard();
     updateBoard();
     updateNavigationButtons();
+    
+    // Resume timer if game is not over
+    if (!m_chessBoard->isGameOver()) {
+        startTimer();
+    }
 }
 
 void myChess::updateNavigationButtons() {
@@ -1125,4 +1172,72 @@ void myChess::clearTempViewBoard() {
             }
         }
     }
+}
+
+void myChess::onTimerTick() {
+    if (!m_isTimerRunning || m_chessBoard->isGameOver()) {
+        return;
+    }
+    
+    // Decrement the current player's time
+    if (m_chessBoard->getCurrentTurn() == PieceColor::WHITE) {
+        m_whiteTimeRemaining--;
+        if (m_whiteTimeRemaining <= 0) {
+            m_whiteTimeRemaining = 0;
+            stopTimer();
+            QMessageBox::information(this, tr("Time Out"), 
+                tr("White ran out of time! Black wins by timeout."));
+            m_statusLabel->setText(tr("Black wins by timeout"));
+            return;
+        }
+    } else {
+        m_blackTimeRemaining--;
+        if (m_blackTimeRemaining <= 0) {
+            m_blackTimeRemaining = 0;
+            stopTimer();
+            QMessageBox::information(this, tr("Time Out"), 
+                tr("Black ran out of time! White wins by timeout."));
+            m_statusLabel->setText(tr("White wins by timeout"));
+            return;
+        }
+    }
+    
+    updateTimeDisplay();
+}
+
+void myChess::updateTimeDisplay() {
+    if (m_timeControlEnabled) {
+        m_whiteTimeLabel->setText(tr("White: %1").arg(formatTime(m_whiteTimeRemaining)));
+        m_blackTimeLabel->setText(tr("Black: %1").arg(formatTime(m_blackTimeRemaining)));
+        m_whiteTimeLabel->setVisible(true);
+        m_blackTimeLabel->setVisible(true);
+    } else {
+        m_whiteTimeLabel->setVisible(false);
+        m_blackTimeLabel->setVisible(false);
+    }
+}
+
+void myChess::startTimer() {
+    if (m_timeControlEnabled && !m_isTimerRunning) {
+        m_isTimerRunning = true;
+        m_gameTimer->start(1000);  // Update every second
+    }
+}
+
+void myChess::stopTimer() {
+    m_isTimerRunning = false;
+    m_gameTimer->stop();
+}
+
+void myChess::resetTimers() {
+    stopTimer();
+    m_whiteTimeRemaining = m_timeControlMinutes * 60;
+    m_blackTimeRemaining = m_timeControlMinutes * 60;
+    updateTimeDisplay();
+}
+
+QString myChess::formatTime(int seconds) {
+    int minutes = seconds / 60;
+    int secs = seconds % 60;
+    return QString("%1:%2").arg(minutes, 2, 10, QChar('0')).arg(secs, 2, 10, QChar('0'));
 }

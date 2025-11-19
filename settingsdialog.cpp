@@ -78,6 +78,31 @@ void SettingsDialog::setupUI()
     
     mainLayout->addWidget(languageGroup);
 
+    // Time control group
+    QGroupBox* timeGroup = new QGroupBox(tr("Time Control"), this);
+    QVBoxLayout* timeLayout = new QVBoxLayout(timeGroup);
+    
+    m_timeControlCheckBox = new QCheckBox(tr("Enable Time Control"), this);
+    m_timeControlCheckBox->setChecked(false);
+    timeLayout->addWidget(m_timeControlCheckBox);
+    
+    QHBoxLayout* timeInputLayout = new QHBoxLayout();
+    QLabel* timeLabel = new QLabel(tr("Total Time per Player (minutes):"), this);
+    m_timeControlSpinBox = new QSpinBox(this);
+    m_timeControlSpinBox->setMinimum(1);
+    m_timeControlSpinBox->setMaximum(180);
+    m_timeControlSpinBox->setValue(10);
+    m_timeControlSpinBox->setEnabled(false);
+    
+    timeInputLayout->addWidget(timeLabel);
+    timeInputLayout->addWidget(m_timeControlSpinBox);
+    timeInputLayout->addStretch();
+    timeLayout->addLayout(timeInputLayout);
+    
+    connect(m_timeControlCheckBox, &QCheckBox::stateChanged, this, &SettingsDialog::onTimeControlCheckChanged);
+    
+    mainLayout->addWidget(timeGroup);
+
     // Reset to defaults button
     m_resetDefaultsButton = new QPushButton(tr("Reset All Settings to Default"), this);
     m_resetDefaultsButton->setStyleSheet("QPushButton { background-color: #FFE4B5; }");
@@ -155,7 +180,14 @@ void SettingsDialog::onResetDefaultsClicked()
         updateColorButtonStyle(m_lightSquareColorButton, m_lightSquareColor);
         updateColorButtonStyle(m_darkSquareColorButton, m_darkSquareColor);
         m_languageComboBox->setCurrentIndex(0); // English
+        m_timeControlCheckBox->setChecked(false);
+        m_timeControlSpinBox->setValue(10);
     }
+}
+
+void SettingsDialog::onTimeControlCheckChanged(int state)
+{
+    m_timeControlSpinBox->setEnabled(state == Qt::Checked);
 }
 
 void SettingsDialog::onOkClicked()
@@ -189,6 +221,16 @@ QString SettingsDialog::getLanguage() const
     return m_languageComboBox->currentData().toString();
 }
 
+bool SettingsDialog::isTimeControlEnabled() const
+{
+    return m_timeControlCheckBox->isChecked();
+}
+
+int SettingsDialog::getTimeControlMinutes() const
+{
+    return m_timeControlSpinBox->value();
+}
+
 void SettingsDialog::loadSettings()
 {
     QSettings settings("ChessGame", "Settings");
@@ -206,6 +248,11 @@ void SettingsDialog::loadSettings()
     if (index >= 0) {
         m_languageComboBox->setCurrentIndex(index);
     }
+    
+    // Load time control settings
+    m_timeControlCheckBox->setChecked(settings.value("timeControlEnabled", false).toBool());
+    m_timeControlSpinBox->setValue(settings.value("timeControlMinutes", 10).toInt());
+    m_timeControlSpinBox->setEnabled(m_timeControlCheckBox->isChecked());
 }
 
 void SettingsDialog::saveSettings()
@@ -216,4 +263,6 @@ void SettingsDialog::saveSettings()
     settings.setValue("lightSquareColor", m_lightSquareColor);
     settings.setValue("darkSquareColor", m_darkSquareColor);
     settings.setValue("language", m_languageComboBox->currentData().toString());
+    settings.setValue("timeControlEnabled", m_timeControlCheckBox->isChecked());
+    settings.setValue("timeControlMinutes", m_timeControlSpinBox->value());
 }

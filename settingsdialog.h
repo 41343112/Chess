@@ -23,6 +23,8 @@ public:
     QColor getLightSquareColor() const;
     QColor getDarkSquareColor() const;
     QString getLanguage() const;
+    bool isTimeControlEnabled() const;
+    int getTimeControlMinutes() const;
 
     // Load/Save settings
     void loadSettings();
@@ -35,6 +37,7 @@ private slots:
     void onResetDefaultsClicked();
     void onOkClicked();
     void onCancelClicked();
+    void onTimeControlCheckChanged(int state);
 
 private:
     void setupUI();
@@ -46,6 +49,8 @@ private:
     QPushButton* m_resetColorsButton;
     QComboBox* m_languageComboBox;
     QPushButton* m_resetDefaultsButton;
+    QCheckBox* m_timeControlCheckBox;
+    QSpinBox* m_timeControlSpinBox;
     
     QColor m_lightSquareColor;
     QColor m_darkSquareColor;
