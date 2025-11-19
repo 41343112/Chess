@@ -6,7 +6,6 @@
 #include <QLabel>
 #include <QSlider>
 #include <QSpinBox>
-#include <QCheckBox>
 
 class StartDialog : public QDialog
 {
@@ -17,12 +16,10 @@ public:
     ~StartDialog();
     
     // Getters for time control settings
-    bool isTimeControlEnabled() const;
-    int getTimeControlSeconds() const;  // Returns -1 for unlimited time
+    int getTimeControlSeconds() const;  // Returns time in seconds (minimum 30)
     int getIncrementSeconds() const;
 
 private slots:
-    void onTimeControlCheckChanged(int state);
     void onTimeSliderChanged(int value);
     void onIncrementSliderChanged(int value);
 
@@ -35,7 +32,6 @@ private:
     QPushButton* m_startButton;
     
     // Time control widgets
-    QCheckBox* m_timeControlCheckBox;
     QSlider* m_timeSlider;
     QLabel* m_timeValueLabel;
     QSlider* m_incrementSlider;
