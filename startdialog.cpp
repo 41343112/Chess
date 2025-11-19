@@ -14,10 +14,12 @@ StartDialog::StartDialog(QWidget *parent)
     QSettings settings("ChessGame", "Settings");
     QString savedLanguage = settings.value("language", "en").toString();
     
-    // Set the combo box to match saved language
+    // Set the combo box to match saved language (block signals to avoid triggering onLanguageChanged)
     int index = m_languageComboBox->findData(savedLanguage);
     if (index >= 0) {
+        m_languageComboBox->blockSignals(true);
         m_languageComboBox->setCurrentIndex(index);
+        m_languageComboBox->blockSignals(false);
         // Apply the language
         applyLanguage(savedLanguage);
     }
