@@ -160,32 +160,32 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
         return;
     }
 
-    if ((event->pos() - m_dragStartPosition).manhattanLength() < QApplication::startDragDistance()) {
-        return;
-    }
-
+    // Start drag on first mouse move (no distance threshold for immediate response)
     // Only allow dragging if there's a piece on this square (text or icon)
-    if (text().isEmpty() && icon().isNull()) {
+    if (text().isEmpty() && icon().isNull() && m_draggedPieceText.isEmpty()) {
         return;
     }
 
     // Store the piece text and temporarily hide it from the original square
-    m_draggedPieceText = text();
-    setText("");
-    m_isDragging = true;  // Set dragging flag
+    if (!m_isDragging) {
+        m_draggedPieceText = text();
+        setText("");  // Hide piece immediately on first move
+        m_isDragging = true;
 
-    // Check with parent if drag should proceed
-    myChess* parent = qobject_cast<myChess*>(window());
-    bool dragAllowed = false;
-    if (parent) {
-        dragAllowed = parent->onSquareDragStarted(m_row, m_col);
-    }
+        // Check with parent if drag should proceed
+        myChess* parent = qobject_cast<myChess*>(window());
+        bool dragAllowed = false;
+        if (parent) {
+            dragAllowed = parent->onSquareDragStarted(m_row, m_col);
+        }
 
-    // If drag not allowed (e.g., game over or wrong turn), restore text and return
-    if (!dragAllowed) {
-        setText(m_draggedPieceText);
-        m_draggedPieceText.clear();
-        return;
+        // If drag not allowed (e.g., game over or wrong turn), restore text and return
+        if (!dragAllowed) {
+            setText(m_draggedPieceText);
+            m_draggedPieceText.clear();
+            m_isDragging = false;
+            return;
+        }
     }
 
     QDrag* drag = new QDrag(this);
@@ -197,9 +197,15 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
 
     // Create a pixmap for the drag: prefer icon/pixmap if present
     QPixmap dragPixmap;
-    if (!icon().isNull()) {
-        dragPixmap = icon().pixmap(iconSize());
-    } else {
+    if (m_piece && !m_piece->getPixmap().isNull()) {
+        // Use the piece's pixmap
+        dragPixmap = m_piece->getPixmap();
+        int s = qMin(width(), height());
+        if (s > 0) {
+            dragPixmap = dragPixmap.scaled(s, s, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        }
+    } else if (!m_draggedPieceText.isEmpty()) {
+        // Fall back to text representation
         dragPixmap = QPixmap(size());
         dragPixmap.fill(Qt::transparent);
         QPainter painter(&dragPixmap);
@@ -211,9 +217,11 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
         painter.drawText(textRect, Qt::AlignCenter, m_draggedPieceText);
     }
 
-    drag->setPixmap(dragPixmap);
-    // Center the drag icon on the mouse cursor
-    drag->setHotSpot(QPoint(dragPixmap.width() / 2, dragPixmap.height() / 2));
+    if (!dragPixmap.isNull()) {
+        drag->setPixmap(dragPixmap);
+        // Center the drag icon on the mouse cursor
+        drag->setHotSpot(QPoint(dragPixmap.width() / 2, dragPixmap.height() / 2));
+    }
 
     Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
 
