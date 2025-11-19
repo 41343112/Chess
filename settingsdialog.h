@@ -22,8 +22,6 @@ public:
     bool isUndoEnabled() const;
     QColor getLightSquareColor() const;
     QColor getDarkSquareColor() const;
-    bool isTimeControlEnabled() const;
-    int getTimeControlMinutes() const;
 
     // Load/Save settings
     void loadSettings();
@@ -36,7 +34,6 @@ private slots:
     void onResetDefaultsClicked();
     void onOkClicked();
     void onCancelClicked();
-    void onTimeControlCheckChanged(int state);
 
 private:
     void setupUI();
@@ -47,8 +44,6 @@ private:
     QPushButton* m_darkSquareColorButton;
     QPushButton* m_resetColorsButton;
     QPushButton* m_resetDefaultsButton;
-    QCheckBox* m_timeControlCheckBox;
-    QSpinBox* m_timeControlSpinBox;
     
     QColor m_lightSquareColor;
     QColor m_darkSquareColor;

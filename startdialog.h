@@ -18,11 +18,12 @@ public:
     
     // Getters for time control settings
     bool isTimeControlEnabled() const;
-    int getTimeControlSeconds() const;
+    int getTimeControlSeconds() const;  // Returns -1 for unlimited time
     int getIncrementSeconds() const;
 
 private slots:
     void onTimeControlCheckChanged(int state);
+    void onUnlimitedTimeCheckChanged(int state);
     void onTimeSliderChanged(int value);
     void onIncrementSliderChanged(int value);
 
@@ -36,6 +37,7 @@ private:
     
     // Time control widgets
     QCheckBox* m_timeControlCheckBox;
+    QCheckBox* m_unlimitedTimeCheckBox;
     QSlider* m_timeSlider;
     QLabel* m_timeValueLabel;
     QSlider* m_incrementSlider;
