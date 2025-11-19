@@ -15,6 +15,7 @@
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QResizeEvent>
+#include <QKeyEvent>
 #include <QSoundEffect>
 #include <QTimer>
 #include <QSettings>
@@ -136,6 +137,8 @@ public:
 protected:
     // Override to control board size when window resizes
     void resizeEvent(QResizeEvent* event) override;
+    // Override to handle keyboard input for move navigation
+    void keyPressEvent(QKeyEvent* event) override;
 
 private slots:
     void onSquareClicked();

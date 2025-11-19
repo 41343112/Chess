@@ -540,6 +540,22 @@ void myChess::resizeEvent(QResizeEvent* event) {
     }
 }
 
+void myChess::keyPressEvent(QKeyEvent* event) {
+    // Handle left/right arrow keys for move navigation
+    if (event->key() == Qt::Key_Left) {
+        // Left arrow key - go to previous move
+        onPreviousMove();
+        event->accept();
+    } else if (event->key() == Qt::Key_Right) {
+        // Right arrow key - go to next move
+        onNextMove();
+        event->accept();
+    } else {
+        // Pass other key events to the base class
+        QMainWindow::keyPressEvent(event);
+    }
+}
+
 void myChess::onNewGame() {
     // Show start dialog for new game
     showStartDialog();
