@@ -17,6 +17,16 @@ ChessBoard::~ChessBoard() {
 }
 
 void ChessBoard::clearBoard() {
+    // First, clean up captured pieces in move history
+    for (Move& move : m_moveHistory) {
+        if (move.capturedPiece != nullptr) {
+            delete move.capturedPiece;
+            move.capturedPiece = nullptr;
+        }
+    }
+    m_moveHistory.clear();
+    
+    // Then clean up the board
     for (int i = 0; i < 8; ++i) {
         for (int j = 0; j < 8; ++j) {
             if (m_board[i][j] != nullptr) {
@@ -136,16 +146,21 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
     move.from = from;
     move.to = to;
     move.capturedPiece = getPieceAt(to);
+    move.movedPieceHadMoved = piece->hasMoved();
+    move.previousEnPassantTarget = m_enPassantTarget;
+    move.movedPieceType = piece->getType();
+    move.movedPieceColor = piece->getColor();
 
     // Handle en passant capture
     if (piece->getType() == PieceType::PAWN && to == m_enPassantTarget) {
         int captureRow = (piece->getColor() == PieceColor::WHITE) ? to.y() + 1 : to.y() - 1;
         move.capturedPiece = m_board[captureRow][to.x()];
         move.wasEnPassant = true;
-        delete m_board[captureRow][to.x()];
+        // Don't delete the captured piece - keep it for undo
         m_board[captureRow][to.x()] = nullptr;
     } else if (move.capturedPiece != nullptr) {
-        delete move.capturedPiece;
+        // Don't delete the captured piece - keep it for undo
+        // Just remove it from the board
     }
 
     // Clear en passant target
@@ -617,4 +632,119 @@ void ChessBoard::performCastling(PieceColor color, bool kingSide) {
     m_board[row][rookCol] = nullptr;
     rook->setPosition(QPoint(newRookCol, row));
     rook->setMoved(true);
+}
+
+bool ChessBoard::undo() {
+    // Cannot undo if there are no moves
+    if (m_moveHistory.isEmpty()) {
+        return false;
+    }
+
+    // Get the last move
+    Move lastMove = m_moveHistory.takeLast();
+
+    // Reset game over state if we're undoing
+    m_isGameOver = false;
+
+    // Switch turn back (since we switched it after making the move)
+    switchTurn();
+
+    // Restore en passant target
+    m_enPassantTarget = lastMove.previousEnPassantTarget;
+
+    // Handle castling undo
+    if (lastMove.wasCastling) {
+        // Determine which side and row
+        int row = lastMove.to.y();
+        bool kingSide = lastMove.to.x() > lastMove.from.x();
+        int kingCol = 4;
+        int rookCol = kingSide ? 7 : 0;
+        int newKingCol = kingSide ? 6 : 2;
+        int newRookCol = kingSide ? 5 : 3;
+
+        ChessPiece* king = m_board[row][newKingCol];
+        ChessPiece* rook = m_board[row][newRookCol];
+
+        // Move king back
+        m_board[row][kingCol] = king;
+        m_board[row][newKingCol] = nullptr;
+        king->setPosition(QPoint(kingCol, row));
+        king->setMoved(lastMove.movedPieceHadMoved);
+
+        // Move rook back
+        m_board[row][rookCol] = rook;
+        m_board[row][newRookCol] = nullptr;
+        rook->setPosition(QPoint(rookCol, row));
+        rook->setMoved(false);  // Rook wasn't moved before castling
+
+        m_gameStatus = "Game in progress";
+        return true;
+    }
+
+    // Handle promotion undo
+    if (lastMove.wasPromotion) {
+        // Delete the promoted piece (Queen)
+        ChessPiece* promotedPiece = m_board[lastMove.to.y()][lastMove.to.x()];
+        delete promotedPiece;
+
+        // Create a new pawn at the original position
+        ChessPiece* pawn = new Pawn(lastMove.movedPieceColor, lastMove.from);
+        pawn->setMoved(lastMove.movedPieceHadMoved);
+        m_board[lastMove.from.y()][lastMove.from.x()] = pawn;
+        m_board[lastMove.to.y()][lastMove.to.x()] = nullptr;
+
+        // Restore captured piece if any
+        if (lastMove.capturedPiece != nullptr) {
+            m_board[lastMove.to.y()][lastMove.to.x()] = lastMove.capturedPiece;
+            lastMove.capturedPiece->setPosition(lastMove.to);
+        }
+
+        m_gameStatus = "Game in progress";
+        return true;
+    }
+
+    // Handle en passant undo
+    if (lastMove.wasEnPassant) {
+        // Move the piece back
+        ChessPiece* piece = m_board[lastMove.to.y()][lastMove.to.x()];
+        m_board[lastMove.from.y()][lastMove.from.x()] = piece;
+        m_board[lastMove.to.y()][lastMove.to.x()] = nullptr;
+        piece->setPosition(lastMove.from);
+        piece->setMoved(lastMove.movedPieceHadMoved);
+
+        // Restore the captured pawn
+        if (lastMove.capturedPiece != nullptr) {
+            int captureRow = (piece->getColor() == PieceColor::WHITE) ? lastMove.to.y() + 1 : lastMove.to.y() - 1;
+            m_board[captureRow][lastMove.to.x()] = lastMove.capturedPiece;
+            lastMove.capturedPiece->setPosition(QPoint(lastMove.to.x(), captureRow));
+        }
+
+        m_gameStatus = "Game in progress";
+        return true;
+    }
+
+    // Handle normal move undo
+    ChessPiece* piece = m_board[lastMove.to.y()][lastMove.to.x()];
+    
+    // Move the piece back to its original position
+    m_board[lastMove.from.y()][lastMove.from.x()] = piece;
+    m_board[lastMove.to.y()][lastMove.to.x()] = nullptr;
+    piece->setPosition(lastMove.from);
+    piece->setMoved(lastMove.movedPieceHadMoved);
+
+    // Restore captured piece if any
+    if (lastMove.capturedPiece != nullptr) {
+        m_board[lastMove.to.y()][lastMove.to.x()] = lastMove.capturedPiece;
+        lastMove.capturedPiece->setPosition(lastMove.to);
+    }
+
+    // Update game status
+    if (isKingInCheck(m_currentTurn)) {
+        m_gameStatus = (m_currentTurn == PieceColor::WHITE) ?
+                           "White is in check!" : "Black is in check!";
+    } else {
+        m_gameStatus = "Game in progress";
+    }
+
+    return true;
 }

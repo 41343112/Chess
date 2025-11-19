@@ -491,11 +491,27 @@ void myChess::onNewGame() {
 }
 
 void myChess::onUndo() {
-    // This is a simplified version - a full implementation would need to restore
-    // the previous board state from move history
-    QMessageBox::information(this, "Undo",
-                             "Undo feature is not fully implemented in this version.\n"
-                             "Use 'New Game' to start over.");
+    // Attempt to undo the last move
+    if (m_chessBoard->undo()) {
+        // Clear any selection
+        m_hasSelection = false;
+        m_selectedSquare = QPoint(-1, -1);
+        
+        // Update the board display
+        updateBoard();
+        clearHighlights();
+        
+        // Update turn label
+        QString turnText = (m_chessBoard->getCurrentTurn() == PieceColor::WHITE) ?
+                               "Turn: White" : "Turn: Black";
+        m_turnLabel->setText(turnText);
+        
+        // Update status label
+        m_statusLabel->setText(m_chessBoard->getGameStatus());
+    } else {
+        QMessageBox::information(this, "Undo",
+                                 "No moves to undo!");
+    }
 }
 
 void myChess::showGameOverDialog() {
