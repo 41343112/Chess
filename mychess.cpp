@@ -160,7 +160,11 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
         return;
     }
 
-    if ((event->pos() - m_dragStartPosition).manhattanLength() < QApplication::startDragDistance()) {
+    // Start drag immediately on any movement (remove distance threshold)
+    // This makes the piece snap to cursor as soon as user clicks and moves even slightly
+    if (m_isDragging) {
+        // Already dragging, just pass to base class
+        QPushButton::mouseMoveEvent(event);
         return;
     }
 
@@ -185,6 +189,7 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     if (!dragAllowed) {
         setText(m_draggedPieceText);
         m_draggedPieceText.clear();
+        m_isDragging = false;
         return;
     }
 
