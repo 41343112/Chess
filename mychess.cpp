@@ -303,6 +303,7 @@ myChess::myChess(QWidget *parent)
     , m_whiteTimeRemaining(0)
     , m_blackTimeRemaining(0)
     , m_isTimerRunning(false)
+    , m_firstMoveMade(false)
 {
     ui->setupUi(this);
     setWindowTitle(tr("Chess Game - Like Chess.com"));
@@ -667,6 +668,12 @@ void myChess::onSquareDragEnded(int row, int col) {
     m_hasSelection = false;
     clearHighlights();
     if (moveSuccess) {
+        // Start timer on first move
+        if (!m_firstMoveMade && m_timeControlEnabled) {
+            startTimer();
+            m_firstMoveMade = true;
+        }
+        
         // Add increment to the player who just moved
         addIncrement();
         
@@ -890,6 +897,12 @@ void myChess::onSquareClicked() {
             m_hasSelection = false;
             clearHighlights();
             if (moveSuccess) {
+                // Start timer on first move
+                if (!m_firstMoveMade && m_timeControlEnabled) {
+                    startTimer();
+                    m_firstMoveMade = true;
+                }
+                
                 // Add increment to the player who just moved
                 addIncrement();
                 
@@ -954,8 +967,6 @@ void myChess::loadSettings() {
     m_undoEnabled = settings.value("undoEnabled", true).toBool();
     m_lightSquareColor = settings.value("lightSquareColor", QColor("#F0D9B5")).value<QColor>();
     m_darkSquareColor = settings.value("darkSquareColor", QColor("#B58863")).value<QColor>();
-    m_timeControlEnabled = settings.value("timeControlEnabled", false).toBool();
-    m_timeControlMinutes = settings.value("timeControlMinutes", 10).toInt();
 }
 
 void myChess::applySettings() {
@@ -985,14 +996,23 @@ void myChess::showStartDialog() {
     StartDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
         // Get time control settings from dialog
-        m_timeControlEnabled = dialog.isTimeControlEnabled();
-        int timeSeconds = dialog.getTimeControlSeconds();
+        int timeSeconds = dialog.getTimeControlSeconds();  // Returns -1 for unlimited
         m_incrementSeconds = dialog.getIncrementSeconds();
         
-        // Convert seconds to minutes for compatibility with settings
-        m_timeControlMinutes = timeSeconds / 60;
-        if (m_timeControlMinutes == 0 && timeSeconds > 0) {
-            m_timeControlMinutes = 1;  // At least 1 minute for compatibility
+        // Check if unlimited time
+        if (timeSeconds == -1) {
+            m_timeControlEnabled = false;  // Unlimited time means no timer
+        } else {
+            m_timeControlEnabled = true;
+            // Convert seconds to minutes for compatibility with settings
+            m_timeControlMinutes = timeSeconds / 60;
+            if (m_timeControlMinutes == 0 && timeSeconds > 0) {
+                m_timeControlMinutes = 1;  // At least 1 minute for compatibility
+            }
+            
+            // Initialize timer with the configured time (but don't start it yet)
+            m_whiteTimeRemaining = timeSeconds * 1000;  // Convert to milliseconds
+            m_blackTimeRemaining = timeSeconds * 1000;
         }
         
         // Reset the board for a new game
@@ -1009,11 +1029,11 @@ void myChess::showStartDialog() {
         // Enable settings button for new game
         m_settingsButton->setEnabled(true);
         
-        // Reset and start timer with the configured time
-        m_whiteTimeRemaining = timeSeconds * 1000;  // Convert to milliseconds
-        m_blackTimeRemaining = timeSeconds * 1000;
+        // Reset first move flag - timer will start on first move
+        m_firstMoveMade = false;
+        
+        // Update time display but don't start timer yet
         updateTimeDisplay();
-        startTimer();
     }
 }
 

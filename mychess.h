@@ -197,6 +197,7 @@ private:
     int m_whiteTimeRemaining;  // in milliseconds (for precision)
     int m_blackTimeRemaining;  // in milliseconds (for precision)
     bool m_isTimerRunning;
+    bool m_firstMoveMade;  // Track if first move has been made to start timer
 
     // Navigation state for viewing history
     int m_viewingPosition;  // -1 means viewing current position, 0+ means viewing history
