@@ -72,31 +72,31 @@
     </message>
     <message>
         <source>Sound Volume</source>
-        <translation>音效音量</translation>
+        <translation type="vanished">音效音量</translation>
     </message>
     <message>
         <source>Volume:</source>
-        <translation>音量：</translation>
+        <translation type="vanished">音量：</translation>
     </message>
     <message>
         <source>Time Limit</source>
-        <translation>時間限制</translation>
+        <translation type="vanished">時間限制</translation>
     </message>
     <message>
         <source> minutes</source>
-        <translation> 分鐘</translation>
+        <translation type="vanished"> 分鐘</translation>
     </message>
     <message>
         <source>No limit</source>
-        <translation>無限制</translation>
+        <translation type="vanished">無限制</translation>
     </message>
     <message>
         <source>Set time limit per move (0 = no limit)</source>
-        <translation>設定每步移動的時間限制（0 = 無限制）</translation>
+        <translation type="vanished">設定每步移動的時間限制（0 = 無限制）</translation>
     </message>
     <message>
         <source>Minutes per move:</source>
-        <translation>每步分鐘數：</translation>
+        <translation type="vanished">每步分鐘數：</translation>
     </message>
     <message>
         <source>Language</source>
@@ -130,6 +130,57 @@
         <source>Choose Dark Square Color</source>
         <translation>選擇深色方格顏色</translation>
     </message>
+    <message>
+        <source>Time Control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Enable Time Control</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Total Time per Player (minutes):</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>StartDialog</name>
+    <message>
+        <source>Chess Game</source>
+        <translation>國際象棋遊戲</translation>
+    </message>
+    <message>
+        <source>Welcome to Chess Game</source>
+        <translation>歡迎來到國際象棋遊戲</translation>
+    </message>
+    <message>
+        <source>Start Game</source>
+        <translation>開始遊戲</translation>
+    </message>
+    <message>
+        <source>Time Control</source>
+        <translation>時間控制</translation>
+    </message>
+    <message>
+        <source>Enable Time Control</source>
+        <translation>啟用時間控制</translation>
+    </message>
+    <message>
+        <source>Total Time per Player:</source>
+        <translation>每位玩家總時間：</translation>
+    </message>
+    <message>
+        <source>Increment per move (seconds):</source>
+        <translation>每步新增秒數：</translation>
+    </message>
+    <message>
+        <source>seconds</source>
+        <translation>秒</translation>
+    </message>
+    <message>
+        <source>minutes</source>
+        <translation>分鐘</translation>
+    </message>
 </context>
 <context>
     <name>myChess</name>
@@ -155,7 +206,7 @@
     </message>
     <message>
         <source>Start a new game?</source>
-        <translation>開始新遊戲？</translation>
+        <translation type="vanished">開始新遊戲？</translation>
     </message>
     <message>
         <source>Undo</source>
@@ -187,42 +238,91 @@
     </message>
     <message>
         <source>Time: %1:%2</source>
-        <translation>時間：%1:%2</translation>
+        <translation type="vanished">時間：%1:%2</translation>
     </message>
     <message>
-        <source>Time's up!</source>
-        <translation>時間到！</translation>
+        <source>Time&apos;s up!</source>
+        <translation type="vanished">時間到！</translation>
     </message>
     <message>
         <source>Time Limit Exceeded</source>
-        <translation>超過時間限制</translation>
+        <translation type="vanished">超過時間限制</translation>
     </message>
     <message>
-        <source>Time limit exceeded for %1's move!</source>
-        <translation>%1 的移動超過時間限制！</translation>
+        <source>Time limit exceeded for %1&apos;s move!</source>
+        <translation type="vanished">%1 的移動超過時間限制！</translation>
     </message>
     <message>
         <source>White</source>
-        <translation>白方</translation>
+        <translation type="vanished">白方</translation>
     </message>
     <message>
         <source>Black</source>
-        <translation>黑方</translation>
-    </message>
-</context>
-<context>
-    <name>StartDialog</name>
-    <message>
-        <source>Chess Game</source>
-        <translation>國際象棋遊戲</translation>
+        <translation type="vanished">黑方</translation>
     </message>
     <message>
-        <source>Welcome to Chess Game</source>
-        <translation>歡迎來到國際象棋遊戲</translation>
+        <source>myChess</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Start Game</source>
-        <translation>開始遊戲</translation>
+        <source>White: --:--</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Black: --:--</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;|回到一開始</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&lt;上一著</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&gt;下一著</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>&gt;|回到目前棋局</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Viewing history - Initial position</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Viewing history - Move %1 of %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Time Out</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>White ran out of time! Black wins by timeout.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Black wins by timeout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Black ran out of time! White wins by timeout.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>White wins by timeout</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>White: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Black: %1</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 </TS>

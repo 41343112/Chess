@@ -283,6 +283,7 @@ myChess::myChess(QWidget *parent)
     , m_isViewingHistory(false)
     , m_timeControlEnabled(false)
     , m_timeControlMinutes(10)
+    , m_incrementSeconds(0)
     , m_whiteTimeRemaining(0)
     , m_blackTimeRemaining(0)
     , m_isTimerRunning(false)
@@ -292,8 +293,9 @@ myChess::myChess(QWidget *parent)
 
     m_chessBoard = new ChessBoard();
     
-    // Initialize timer
+    // Initialize timer - use 100ms interval for smoother display
     m_gameTimer = new QTimer(this);
+    m_gameTimer->setInterval(100);  // 100ms ticks
     connect(m_gameTimer, &QTimer::timeout, this, &myChess::onTimerTick);
 
     // Initialize sound effects
@@ -649,6 +651,9 @@ void myChess::onSquareDragEnded(int row, int col) {
     m_hasSelection = false;
     clearHighlights();
     if (moveSuccess) {
+        // Add increment to the player who just moved
+        addIncrement();
+        
         // Reset viewing state when a move is made
         m_viewingPosition = -1;
         m_isViewingHistory = false;
@@ -869,6 +874,9 @@ void myChess::onSquareClicked() {
             m_hasSelection = false;
             clearHighlights();
             if (moveSuccess) {
+                // Add increment to the player who just moved
+                addIncrement();
+                
                 // Determine game state after move for sound
                 QString gameStatus = m_chessBoard->getGameStatus();
                 bool isCheckmate = gameStatus.contains("checkmate");
@@ -968,6 +976,17 @@ void myChess::applySettings() {
 void myChess::showStartDialog() {
     StartDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
+        // Get time control settings from dialog
+        m_timeControlEnabled = dialog.isTimeControlEnabled();
+        int timeSeconds = dialog.getTimeControlSeconds();
+        m_incrementSeconds = dialog.getIncrementSeconds();
+        
+        // Convert seconds to minutes for compatibility with settings
+        m_timeControlMinutes = timeSeconds / 60;
+        if (m_timeControlMinutes == 0 && timeSeconds > 0) {
+            m_timeControlMinutes = 1;  // At least 1 minute for compatibility
+        }
+        
         // Reset the board for a new game
         m_chessBoard->reset();
         m_hasSelection = false;
@@ -982,8 +1001,10 @@ void myChess::showStartDialog() {
         // Enable settings button for new game
         m_settingsButton->setEnabled(true);
         
-        // Reset and start timer if enabled
-        resetTimers();
+        // Reset and start timer with the configured time
+        m_whiteTimeRemaining = timeSeconds * 1000;  // Convert to milliseconds
+        m_blackTimeRemaining = timeSeconds * 1000;
+        updateTimeDisplay();
         startTimer();
     }
 }
@@ -1179,9 +1200,9 @@ void myChess::onTimerTick() {
         return;
     }
     
-    // Decrement the current player's time
+    // Decrement the current player's time by 100ms
     if (m_chessBoard->getCurrentTurn() == PieceColor::WHITE) {
-        m_whiteTimeRemaining--;
+        m_whiteTimeRemaining -= 100;
         if (m_whiteTimeRemaining <= 0) {
             m_whiteTimeRemaining = 0;
             stopTimer();
@@ -1191,7 +1212,7 @@ void myChess::onTimerTick() {
             return;
         }
     } else {
-        m_blackTimeRemaining--;
+        m_blackTimeRemaining -= 100;
         if (m_blackTimeRemaining <= 0) {
             m_blackTimeRemaining = 0;
             stopTimer();
@@ -1220,7 +1241,7 @@ void myChess::updateTimeDisplay() {
 void myChess::startTimer() {
     if (m_timeControlEnabled && !m_isTimerRunning) {
         m_isTimerRunning = true;
-        m_gameTimer->start(1000);  // Update every second
+        m_gameTimer->start();  // Use the 100ms interval set in constructor
     }
 }
 
@@ -1231,13 +1252,36 @@ void myChess::stopTimer() {
 
 void myChess::resetTimers() {
     stopTimer();
-    m_whiteTimeRemaining = m_timeControlMinutes * 60;
-    m_blackTimeRemaining = m_timeControlMinutes * 60;
+    m_whiteTimeRemaining = m_timeControlMinutes * 60 * 1000;  // Convert to milliseconds
+    m_blackTimeRemaining = m_timeControlMinutes * 60 * 1000;
     updateTimeDisplay();
 }
 
-QString myChess::formatTime(int seconds) {
-    int minutes = seconds / 60;
-    int secs = seconds % 60;
-    return QString("%1:%2").arg(minutes, 2, 10, QChar('0')).arg(secs, 2, 10, QChar('0'));
+void myChess::addIncrement() {
+    // Add increment to the player who just moved (i.e., not the current turn)
+    if (m_incrementSeconds > 0 && m_timeControlEnabled) {
+        int incrementMs = m_incrementSeconds * 1000;
+        if (m_chessBoard->getCurrentTurn() == PieceColor::WHITE) {
+            // Black just moved, add increment to black
+            m_blackTimeRemaining += incrementMs;
+        } else {
+            // White just moved, add increment to white
+            m_whiteTimeRemaining += incrementMs;
+        }
+        updateTimeDisplay();
+    }
+}
+
+QString myChess::formatTime(int milliseconds) {
+    int totalSeconds = milliseconds / 1000;
+    int minutes = totalSeconds / 60;
+    int secs = totalSeconds % 60;
+    int centiseconds = (milliseconds % 1000) / 10;  // Get 2 decimal places
+    
+    // Show decimal places when time is less than 10 seconds
+    if (totalSeconds < 10) {
+        return QString("%1.%2").arg(secs).arg(centiseconds, 2, 10, QChar('0'));
+    } else {
+        return QString("%1:%2").arg(minutes, 2, 10, QChar('0')).arg(secs, 2, 10, QChar('0'));
+    }
 }
