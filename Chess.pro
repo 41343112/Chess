@@ -15,7 +15,8 @@ SOURCES += \
     settingsdialog.cpp \
     startdialog.cpp \
     promotiondialog.cpp \
-    chessai.cpp
+    chessai.cpp \
+    stockfishengine.cpp
 
 HEADERS += \
     mychess.h \
@@ -24,7 +25,8 @@ HEADERS += \
     settingsdialog.h \
     startdialog.h \
     promotiondialog.h \
-    chessai.h
+    chessai.h \
+    stockfishengine.h
 
 FORMS += \
     mychess.ui

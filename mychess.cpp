@@ -1163,6 +1163,11 @@ void myChess::showStartDialog() {
             }
             m_chessAI = new ChessAI(aiDifficulty);
             
+            // 啟用 Stockfish 引擎用於困難難度
+            if (aiDifficulty == AIDifficulty::HARD) {
+                m_chessAI->setUseStockfish(true);
+            }
+            
             // 設定電腦顏色
             bool playerIsWhite = dialog.isPlayerWhite();
             m_computerColor = playerIsWhite ? PieceColor::BLACK : PieceColor::WHITE;
