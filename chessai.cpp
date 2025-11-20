@@ -1,34 +1,152 @@
 #include "chessai.h"
 #include <QRandomGenerator>
 #include <QDebug>
+#include <QCoreApplication>
+#include <QDir>
 #include <algorithm>
 #include <limits>
 
-ChessAI::ChessAI(AIDifficulty difficulty)
-    : m_difficulty(difficulty)
+ChessAI::ChessAI(AIDifficulty difficulty, QObject* parent)
+    : QObject(parent),
+      m_difficulty(difficulty),
+      m_skillLevel(10),
+      m_useEngine(true),
+      m_engine(nullptr),
+      m_currentBoard(nullptr),
+      m_currentColor(PieceColor::WHITE)
 {
+    m_engine = new UCIEngine(this);
+    
+    connect(m_engine, &UCIEngine::bestMoveFound, this, &ChessAI::onEngineMoveFound);
+    connect(m_engine, &UCIEngine::engineError, this, &ChessAI::onEngineError);
+    
+    // 根據難度設定技能等級
+    updateSkillLevelFromDifficulty();
 }
 
 ChessAI::~ChessAI()
 {
+    // m_engine 會被 Qt 的父物件系統自動刪除
 }
 
-QPair<QPoint, QPoint> ChessAI::getBestMove(ChessBoard* board, PieceColor aiColor)
+void ChessAI::updateSkillLevelFromDifficulty()
 {
-    if (!board) {
-        return QPair<QPoint, QPoint>(QPoint(-1, -1), QPoint(-1, -1));
-    }
-
     switch (m_difficulty) {
     case AIDifficulty::EASY:
-        return getRandomMove(board, aiColor);
+        m_skillLevel = 5;  // 低技能
+        break;
     case AIDifficulty::MEDIUM:
-        return getBasicEvaluationMove(board, aiColor);
+        m_skillLevel = 10;  // 中等技能
+        break;
     case AIDifficulty::HARD:
-        return getMinimaxMove(board, aiColor);
-    default:
-        return getRandomMove(board, aiColor);
+        m_skillLevel = 20;  // 最高技能
+        break;
     }
+    
+    if (m_engine) {
+        m_engine->setSkillLevel(m_skillLevel);
+    }
+}
+
+bool ChessAI::initializeEngine(const QString& enginePath)
+{
+    if (!m_engine) {
+        return false;
+    }
+    
+    bool success = m_engine->initialize(enginePath);
+    if (success) {
+        m_engine->setSkillLevel(m_skillLevel);
+    }
+    
+    return success;
+}
+
+void ChessAI::setDifficulty(AIDifficulty difficulty)
+{
+    m_difficulty = difficulty;
+    updateSkillLevelFromDifficulty();
+}
+
+void ChessAI::setSkillLevel(int level)
+{
+    m_skillLevel = qBound(0, level, 20);
+    if (m_engine) {
+        m_engine->setSkillLevel(m_skillLevel);
+    }
+}
+
+void ChessAI::getBestMove(ChessBoard* board, PieceColor aiColor)
+{
+    m_currentBoard = board;
+    m_currentColor = aiColor;
+    
+    if (m_useEngine && m_engine && m_engine->isReady()) {
+        // 使用 UCI 引擎
+        m_engine->getBestMove(board, aiColor);
+    } else {
+        // 使用內建 AI（備用）
+        QPair<QPoint, QPoint> move;
+        
+        switch (m_difficulty) {
+        case AIDifficulty::EASY:
+            move = getRandomMove(board, aiColor);
+            break;
+        case AIDifficulty::MEDIUM:
+            move = getBasicEvaluationMove(board, aiColor);
+            break;
+        case AIDifficulty::HARD:
+            move = getMinimaxMove(board, aiColor);
+            break;
+        default:
+            move = getRandomMove(board, aiColor);
+            break;
+        }
+        
+        // 發射移動訊號
+        if (move.first != QPoint(-1, -1)) {
+            emit moveReady(move.first, move.second);
+        } else {
+            emit engineError("No valid moves available");
+        }
+    }
+}
+
+void ChessAI::onEngineMoveFound(QString fromUCI, QString toUCI)
+{
+    QPoint from = uciToPosition(fromUCI);
+    QPoint to = uciToPosition(toUCI);
+    
+    if (from != QPoint(-1, -1) && to != QPoint(-1, -1)) {
+        emit moveReady(from, to);
+    } else {
+        emit engineError("Invalid move from engine");
+    }
+}
+
+void ChessAI::onEngineError(QString error)
+{
+    qDebug() << "Engine error:" << error;
+    
+    // 引擎錯誤時，使用內建 AI 作為備用
+    m_useEngine = false;
+    if (m_currentBoard) {
+        getBestMove(m_currentBoard, m_currentColor);
+    }
+}
+
+QPoint ChessAI::uciToPosition(const QString& uci)
+{
+    if (uci.length() < 2) return QPoint(-1, -1);
+    
+    int col = uci[0].toLatin1() - 'a';
+    int row = uci[1].toLatin1() - '1';
+    
+    if (row < 0 || row > 7 || col < 0 || col > 7) {
+        return QPoint(-1, -1);
+    }
+    
+    return QPoint(row, col);
 }
 
 QVector<QPair<QPoint, QPoint>> ChessAI::getAllValidMoves(ChessBoard* board, PieceColor color)

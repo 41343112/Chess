@@ -35,19 +35,21 @@ public:
     
     // Getters for game mode and difficulty
     GameMode getGameMode() const;
-    ComputerDifficulty getDifficulty() const;
+    int getDifficultyLevel() const;  // 返回 0-20 的技能等級
     bool isPlayerWhite() const;  // In computer mode, is player white or black
 
 private slots:
     void onTimeSliderChanged(int value);
     void onIncrementSliderChanged(int value);
     void onGameModeChanged();
+    void onDifficultySliderChanged(int value);
 
 private:
     void setupUI();
     void updateTimeLabel();
     void updateIncrementLabel();
     void updateDifficultyVisibility();
+    void updateDifficultyLabel();
     
     QLabel* m_titleLabel;
     QPushButton* m_startButton;
@@ -65,7 +67,8 @@ private:
     
     // Computer game widgets
     QWidget* m_computerOptionsWidget;
-    QComboBox* m_difficultyCombo;
+    QSlider* m_difficultySlider;  // 改用 QSlider
+    QLabel* m_difficultyValueLabel;  // 顯示難度值
     QRadioButton* m_playAsWhiteRadio;
     QRadioButton* m_playAsBlackRadio;
     QButtonGroup* m_colorGroup;
