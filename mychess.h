@@ -128,6 +128,7 @@ public:
     bool onSquareDragStarted(int row, int col);
     void onSquareDragEnded(int row, int col);
     void onSquareDragCancelled(int row, int col);
+    bool isDragInProgress() const { return m_hasSelection; }
 
     // 設定/取得棋盤最小尺寸(像素)
     void setMinBoardSize(int px);

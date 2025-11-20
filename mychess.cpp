@@ -145,14 +145,19 @@ void ChessSquare::mousePressEvent(QMouseEvent* event) {
         m_dragStartPosition = event->pos();
     } else if (event->button() == Qt::RightButton) {
         // 右鍵點擊：如果正在拖曳則取消拖曳
-        if (m_isDragging) {
-            // 取消拖曳 - 恢復棋子文字/圖示
-            if (!m_draggedPieceText.isEmpty()) setText(m_draggedPieceText);
+        // 檢查本地拖曳狀態或父視窗中的任何拖曳
+        myChess* parent = qobject_cast<myChess*>(window());
+        bool anyDragInProgress = m_isDragging || (parent && parent->isDragInProgress());
+        
+        if (anyDragInProgress) {
+            // 取消拖曳 - 恢復棋子文字/圖示（如果在此格子上）
+            if (m_isDragging && !m_draggedPieceText.isEmpty()) {
+                setText(m_draggedPieceText);
+            }
             m_draggedPieceText.clear();
             m_isDragging = false;
 
             // 通知父視窗取消拖曳
-            myChess* parent = qobject_cast<myChess*>(window());
             if (parent) {
                 parent->onSquareDragCancelled(m_row, m_col);
             }
@@ -245,8 +250,9 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     // 如果拖曳未被接受（取消或失敗），恢復棋子文字/圖示
     if (dropAction == Qt::IgnoreAction) {
         setText(m_draggedPieceText);
-        // 通知父視窗拖曳已取消
-        if (parent) {
+        // 通知父視窗拖曳已取消（僅當父視窗仍有選擇時）
+        // 如果右鍵已取消拖曳，父視窗已清除選擇，因此避免重複通知
+        if (parent && parent->isDragInProgress()) {
             parent->onSquareDragCancelled(m_row, m_col);
         }
     }
