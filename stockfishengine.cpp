@@ -35,15 +35,19 @@ QString StockfishEngine::findStockfishPath()
                   << "engine/stockfish-windows-x86-64-avx2.exe"
                   << "stockfish.exe";
 #elif defined(Q_OS_LINUX)
-    possiblePaths << appDir + "/engine/stockfish"
+    possiblePaths << appDir + "/engine/stockfish-linux"
+                  << appDir + "/engine/stockfish"
                   << appDir + "/stockfish"
+                  << "engine/stockfish-linux"
                   << "engine/stockfish"
                   << "/usr/games/stockfish"
                   << "/usr/local/bin/stockfish"
                   << "stockfish";
 #elif defined(Q_OS_MACOS)
-    possiblePaths << appDir + "/engine/stockfish"
+    possiblePaths << appDir + "/engine/stockfish-macos"
+                  << appDir + "/engine/stockfish"
                   << appDir + "/stockfish"
+                  << "engine/stockfish-macos"
                   << "engine/stockfish"
                   << "/usr/local/bin/stockfish"
                   << "stockfish";
