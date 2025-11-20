@@ -2,6 +2,7 @@
 #include "ui_mychess.h"
 #include "settingsdialog.h"
 #include "startdialog.h"
+#include "promotiondialog.h"
 #include <QApplication>
 #include <QPainter>
 #include <QIcon>
@@ -666,6 +667,23 @@ void myChess::onSquareDragEnded(int row, int col) {
     ChessPiece* targetPiece = m_chessBoard->getPieceAt(targetPos);
     bool isCapture = (targetPiece != nullptr);
 
+    // 檢查是否會導致升變
+    if (m_chessBoard->wouldBePromotion(m_selectedSquare, targetPos) && 
+        m_chessBoard->canMove(m_selectedSquare, targetPos)) {
+        // 顯示升變對話框
+        ChessPiece* piece = m_chessBoard->getPieceAt(m_selectedSquare);
+        PromotionDialog dialog(piece->getColor(), this);
+        if (dialog.exec() == QDialog::Accepted) {
+            m_chessBoard->setPromotionPieceType(dialog.getSelectedPieceType());
+        } else {
+            // 使用者取消升變對話框
+            m_hasSelection = false;
+            clearHighlights();
+            updateBoard();
+            return;
+        }
+    }
+
     // 嘗試進行移動
     bool moveSuccess = m_chessBoard->movePiece(m_selectedSquare, targetPos);
     m_hasSelection = false;
@@ -891,11 +909,28 @@ void myChess::onSquareClicked() {
             m_hasSelection = false;
             clearHighlights();
         } else {
-            // Try to make the move
             // Check if there's a piece at the destination for capture sound
             ChessPiece* targetPiece = m_chessBoard->getPieceAt(clickedPos);
             bool isCapture = (targetPiece != nullptr);
 
+            // 檢查是否會導致升變
+            if (m_chessBoard->wouldBePromotion(m_selectedSquare, clickedPos) && 
+                m_chessBoard->canMove(m_selectedSquare, clickedPos)) {
+                // 顯示升變對話框
+                ChessPiece* piece = m_chessBoard->getPieceAt(m_selectedSquare);
+                PromotionDialog dialog(piece->getColor(), this);
+                if (dialog.exec() == QDialog::Accepted) {
+                    m_chessBoard->setPromotionPieceType(dialog.getSelectedPieceType());
+                } else {
+                    // 使用者取消升變對話框
+                    m_hasSelection = false;
+                    clearHighlights();
+                    updateBoard();
+                    return;
+                }
+            }
+
+            // Try to make the move
             bool moveSuccess = m_chessBoard->movePiece(m_selectedSquare, clickedPos);
             m_hasSelection = false;
             clearHighlights();
@@ -1246,6 +1281,7 @@ void myChess::onTimerTick() {
         if (m_whiteTimeRemaining <= 0) {
             m_whiteTimeRemaining = 0;
             stopTimer();
+            m_chessBoard->setGameOver(tr("Black wins by timeout"));
             QMessageBox::information(this, tr("Time Out"), 
                 tr("White ran out of time! Black wins by timeout."));
             m_statusLabel->setText(tr("Black wins by timeout"));
@@ -1256,6 +1292,7 @@ void myChess::onTimerTick() {
         if (m_blackTimeRemaining <= 0) {
             m_blackTimeRemaining = 0;
             stopTimer();
+            m_chessBoard->setGameOver(tr("White wins by timeout"));
             QMessageBox::information(this, tr("Time Out"), 
                 tr("Black ran out of time! White wins by timeout."));
             m_statusLabel->setText(tr("White wins by timeout"));
