@@ -730,13 +730,11 @@ void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
 }
 
 void myChess::playMoveSound(bool isCapture, bool isCheck, bool isCheckmate, bool isCastling) {
-    // Priority: checkmate > check > castling > capture > move
+    // Priority: checkmate > check > capture > move
     if (isCheckmate) {
         m_checkmateSound->play();
     } else if (isCheck) {
         m_checkSound->play();
-    } else if (isCastling) {
-        m_castlingSound->play();
     } else if (isCapture) {
         m_captureSound->play();
     } else {
