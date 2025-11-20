@@ -284,7 +284,11 @@ QPair<QPoint, QPoint> StockfishEngine::getBestMove(ChessBoard* board, PieceColor
     
     // Parse bestmove from response
     // Format: "bestmove e2e4" or "bestmove e2e4 ponder e7e5"
+#if QT_VERSION >= QT_VERSION_CHECK(5, 14, 0)
     QStringList parts = response.split(' ', Qt::SkipEmptyParts);
+#else
+    QStringList parts = response.split(' ', QString::SkipEmptyParts);
+#endif
     for (int i = 0; i < parts.size(); ++i) {
         if (parts[i] == "bestmove" && i + 1 < parts.size()) {
             m_bestMove = parts[i + 1];
