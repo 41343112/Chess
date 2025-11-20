@@ -40,7 +40,7 @@ bool StockfishEngine::initialize(const QString& enginePath)
     }
 
     qDebug() << "Starting Stockfish engine:" << enginePath;
-    m_process->start(enginePath);
+    m_process->start(enginePath, QStringList());
 
     if (!m_process->waitForStarted(5000)) {
         qWarning() << "Failed to start Stockfish engine";
