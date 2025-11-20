@@ -28,9 +28,6 @@ ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     // 確保按鈕將圖示顯示在中央
     setIcon(QIcon());
     setIconSize(size());
-    
-    // 安裝事件過濾器以偵測全域事件
-    qApp->installEventFilter(this);
 }
 
 void ChessSquare::setPiece(ChessPiece* piece) {
@@ -208,6 +205,9 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
         return;
     }
 
+    // 在開始拖曳時安裝事件過濾器以偵測右鍵
+    qApp->installEventFilter(this);
+
     QDrag* drag = new QDrag(this);
     m_currentDrag = drag;  // 儲存拖曳物件指標
     QMimeData* mimeData = new QMimeData;
@@ -237,6 +237,9 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     drag->setHotSpot(QPoint(dragPixmap.width() / 2, dragPixmap.height() / 2));
 
     Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
+
+    // 拖曳結束後移除事件過濾器
+    qApp->removeEventFilter(this);
 
     // 清除拖曳旗標和指標
     m_isDragging = false;
@@ -299,6 +302,9 @@ bool ChessSquare::eventFilter(QObject* watched, QEvent* event) {
             if (parent) {
                 parent->onSquareDragCancelled(m_row, m_col);
             }
+            
+            // 移除事件過濾器（在取消時）
+            qApp->removeEventFilter(this);
             
             // 取消拖曳操作 - 透過關鍵事件模擬 Escape 鍵
             // 這會導致 drag->exec() 返回 Qt::IgnoreAction
