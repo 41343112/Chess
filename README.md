@@ -3,6 +3,7 @@
 使用 Qt/C++ 開發的完整國際象棋遊戲，具有圖形化使用者介面
 
 ## 🎉 新功能
+- **Stockfish 引擎整合**：困難難度使用世界頂尖的 Stockfish 引擎！🔥 最新整合
 - **與電腦對戰**：選擇難度（簡單、中等、困難）與 AI 對手對戰！⭐ 最新功能
 - **語言選擇**：支援中文和英文介面切換！⭐ 最新功能
 - **恢復預設值**：一鍵重置所有設定到預設值！⭐ 最新功能
@@ -16,6 +17,7 @@
 詳細的新功能文件請參閱 [NEW_FEATURES.md](docs/features/NEW_FEATURES.md) 和 [FEATURE_SUMMARY.md](docs/features/FEATURE_SUMMARY.md)。
 
 **最新功能文件**：
+- **[STOCKFISH_INTEGRATION.md](docs/features/STOCKFISH_INTEGRATION.md)** - Stockfish 引擎整合說明 🔥 最新
 - **[COMPUTER_OPPONENT.md](docs/features/COMPUTER_OPPONENT.md)** - 電腦對戰功能說明 ⭐ 最新
 - [SETTINGS_NEW_FEATURES.md](docs/features/SETTINGS_NEW_FEATURES.md) - 語言選擇和恢復預設值功能說明
 - [VISUAL_GUIDE_NEW_FEATURES.md](docs/guides/VISUAL_GUIDE_NEW_FEATURES.md) - 新功能視覺化使用指南
@@ -120,7 +122,10 @@
 - ✅ **電腦對戰模式** - 與 AI 對手對戰，三種難度可選 ⭐ 最新功能
   - 簡單：隨機移動，適合初學者
   - 中等：評估棋子價值和位置，有策略性
-  - 困難：使用 Minimax 演算法，預測多步
+  - 困難：**使用 Stockfish 引擎**，專業級對手 🔥 最新整合
+    - Stockfish 是世界頂尖的開源國際象棋引擎
+    - 支援 UCI 協定通訊
+    - 自動容錯機制（若引擎無法啟動則使用 Minimax）
 
 ### 完整的國際象棋規則實作
 - ✅ 所有棋子移動（兵、車、馬、象、后、王）
@@ -452,10 +457,17 @@ Chess.exe
   - 考慮材質優勢（兵=100, 馬=320, 象=330, 車=500, 后=900）
   - 中心控制獎勵
   - 優先吃子
-- **困難難度**：Minimax 演算法搭配 Alpha-Beta 剪枝
-  - 搜尋深度：3 層 (3-ply)
-  - 完整評估函數
-  - 預測多步並選擇最優策略
+- **困難難度**：**Stockfish 引擎** 🔥 最新整合
+  - 世界頂尖的開源國際象棋引擎
+  - UCI 協定通訊
+  - 技能等級 20（最強設定）
+  - 思考時間：2 秒
+  - 容錯機制：若引擎無法啟動則自動使用 Minimax 演算法
+    - Minimax 搜尋深度：3 層 (3-ply)
+    - Alpha-Beta 剪枝優化
+    - 完整評估函數
+
+詳細資訊請參閱 [STOCKFISH_INTEGRATION.md](docs/features/STOCKFISH_INTEGRATION.md)
 
 ## 未來改進
 
