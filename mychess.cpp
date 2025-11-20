@@ -610,6 +610,12 @@ void myChess::onUndo() {
         
         // Update status label
         m_statusLabel->setText(m_chessBoard->getGameStatus());
+        
+        // Play check sound if king is in check after undo
+        QString gameStatus = m_chessBoard->getGameStatus();
+        if (gameStatus.contains("check") && !gameStatus.contains("checkmate")) {
+            m_checkSound->play();
+        }
     } else {
         QMessageBox::information(this, tr("Undo"),
                                  tr("No moves to undo!"));
@@ -1243,6 +1249,7 @@ void myChess::onTimerTick() {
         if (m_whiteTimeRemaining <= 0) {
             m_whiteTimeRemaining = 0;
             stopTimer();
+            m_chessBoard->setGameOver(true, tr("Black wins by timeout"));
             QMessageBox::information(this, tr("Time Out"), 
                 tr("White ran out of time! Black wins by timeout."));
             m_statusLabel->setText(tr("Black wins by timeout"));
@@ -1253,6 +1260,7 @@ void myChess::onTimerTick() {
         if (m_blackTimeRemaining <= 0) {
             m_blackTimeRemaining = 0;
             stopTimer();
+            m_chessBoard->setGameOver(true, tr("White wins by timeout"));
             QMessageBox::information(this, tr("Time Out"), 
                 tr("Black ran out of time! White wins by timeout."));
             m_statusLabel->setText(tr("White wins by timeout"));

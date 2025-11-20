@@ -63,6 +63,7 @@ public:
 
     QString getGameStatus() const { return m_gameStatus; }
     bool isGameOver() const { return m_isGameOver; }
+    void setGameOver(bool gameOver, const QString& status = QString());
 
     bool undo();  // Undo the last move
     void getBoardStateAtMove(int moveIndex, ChessPiece* outputBoard[8][8], PieceColor& turn) const;

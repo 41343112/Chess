@@ -749,6 +749,13 @@ bool ChessBoard::undo() {
     return true;
 }
 
+void ChessBoard::setGameOver(bool gameOver, const QString& status) {
+    m_isGameOver = gameOver;
+    if (!status.isEmpty()) {
+        m_gameStatus = status;
+    }
+}
+
 void ChessBoard::getBoardStateAtMove(int moveIndex, ChessPiece* outputBoard[8][8], PieceColor& turn) const {
     // Initialize output board to nullptr
     for (int i = 0; i < 8; ++i) {
