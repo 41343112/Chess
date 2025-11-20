@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     
-    // Load translation based on user settings
+    // 根據使用者設定載入翻譯
     QSettings settings("ChessGame", "Settings");
     QString language = settings.value("language", "en").toString();
     

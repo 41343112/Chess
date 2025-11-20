@@ -31,7 +31,7 @@ void SettingsDialog::setupUI()
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(15);
 
-    // Undo functionality group
+    // 悔棋功能群組
     QGroupBox* undoGroup = new QGroupBox(tr("Undo Functionality"), this);
     QVBoxLayout* undoLayout = new QVBoxLayout(undoGroup);
     m_undoEnabledCheckBox = new QCheckBox(tr("Enable Undo Button"), this);
@@ -39,7 +39,7 @@ void SettingsDialog::setupUI()
     undoLayout->addWidget(m_undoEnabledCheckBox);
     mainLayout->addWidget(undoGroup);
 
-    // Chessboard colors group
+    // 棋盤顏色群組
     QGroupBox* colorGroup = new QGroupBox(tr("Chessboard Colors"), this);
     QFormLayout* colorLayout = new QFormLayout(colorGroup);
     
@@ -61,13 +61,13 @@ void SettingsDialog::setupUI()
     colorLayout->addRow(m_resetColorsButton);
     mainLayout->addWidget(colorGroup);
 
-    // Reset to defaults button
+    // 重設為預設值按鈕
     m_resetDefaultsButton = new QPushButton(tr("Reset All Settings to Default"), this);
     m_resetDefaultsButton->setStyleSheet("QPushButton { background-color: #FFE4B5; }");
     connect(m_resetDefaultsButton, &QPushButton::clicked, this, &SettingsDialog::onResetDefaultsClicked);
     mainLayout->addWidget(m_resetDefaultsButton);
 
-    // Dialog buttons
+    // 對話框按鈕
     QDialogButtonBox* buttonBox = new QDialogButtonBox(
         QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
     connect(buttonBox, &QDialogButtonBox::accepted, this, &SettingsDialog::onOkClicked);
@@ -131,7 +131,7 @@ void SettingsDialog::onResetDefaultsClicked()
         QMessageBox::Yes | QMessageBox::No);
     
     if (reply == QMessageBox::Yes) {
-        // Reset all settings to defaults
+        // 將所有設定重設為預設值
         m_undoEnabledCheckBox->setChecked(true);
         m_lightSquareColor = DEFAULT_LIGHT_COLOR;
         m_darkSquareColor = DEFAULT_DARK_COLOR;

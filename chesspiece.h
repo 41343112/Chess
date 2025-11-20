@@ -36,7 +36,7 @@ public:
     // 新增：回傳棋子圖像（若無對應圖像可回傳 null pixmap）
     QPixmap getPixmap() const;
 
-    // Virtual method for checking valid moves
+    // 檢查移動是否有效的虛擬方法
     virtual bool isValidMove(QPoint newPos, class ChessBoard* board) const = 0;
 
 protected:
