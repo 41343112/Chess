@@ -43,6 +43,8 @@ public:
 
     bool movePiece(QPoint from, QPoint to, bool checkOnly = false);
     bool canMove(QPoint from, QPoint to) const;
+    bool wouldBePromotion(QPoint from, QPoint to) const;  // 檢查移動是否會導致升變
+    void setPromotionPieceType(PieceType type) { m_promotionPieceType = type; }  // 設定升變棋子類型
 
     bool isKingInCheck(PieceColor color) const;
     bool isCheckmate(PieceColor color);  // 檢查國王是否被將軍且無有效移動
@@ -63,6 +65,7 @@ public:
 
     QString getGameStatus() const { return m_gameStatus; }
     bool isGameOver() const { return m_isGameOver; }
+    void setGameOver(const QString& status);  // 設定遊戲結束狀態
 
     bool undo();  // 撤銷上一步移動
     void getBoardStateAtMove(int moveIndex, ChessPiece* outputBoard[8][8], PieceColor& turn) const;
@@ -74,6 +77,7 @@ private:
     QPoint m_enPassantTarget;
     QString m_gameStatus;
     bool m_isGameOver;
+    PieceType m_promotionPieceType;  // 儲存玩家選擇的升變棋子類型
 
     void clearBoard();
     bool wouldBeInCheck(QPoint from, QPoint to, PieceColor color) const; // 常量查詢

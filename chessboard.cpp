@@ -3,7 +3,7 @@
 
 ChessBoard::ChessBoard()
     : m_currentTurn(PieceColor::WHITE), m_enPassantTarget(-1, -1),
-    m_isGameOver(false) {
+    m_isGameOver(false), m_promotionPieceType(PieceType::QUEEN) {
     for (int i = 0; i < 8; ++i) {
         for (int j = 0; j < 8; ++j) {
             m_board[i][j] = nullptr;
@@ -120,6 +120,18 @@ bool ChessBoard::canMove(QPoint from, QPoint to) const {
     return true;
 }
 
+bool ChessBoard::wouldBePromotion(QPoint from, QPoint to) const {
+    ChessPiece* piece = getPieceAt(from);
+    if (piece == nullptr) return false;
+    if (piece->getType() != PieceType::PAWN) return false;
+    
+    // 檢查兵是否會到達對方底線
+    if (piece->getColor() == PieceColor::WHITE && to.y() == 0) return true;
+    if (piece->getColor() == PieceColor::BLACK && to.y() == 7) return true;
+    
+    return false;
+}
+
 bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
     ChessPiece* piece = getPieceAt(from);
     if (piece == nullptr) return false;
@@ -177,12 +189,35 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
         if ((piece->getColor() == PieceColor::WHITE && to.y() == 0) ||
             (piece->getColor() == PieceColor::BLACK && to.y() == 7)) {
             move.wasPromotion = true;
-            move.promotedTo = PieceType::QUEEN;
+            move.promotedTo = m_promotionPieceType;
             delete piece;
-            piece = new Queen(m_currentTurn, to);
+            
+            // 根據選擇的類型建立新棋子
+            switch (m_promotionPieceType) {
+                case PieceType::QUEEN:
+                    piece = new Queen(m_currentTurn, to);
+                    break;
+                case PieceType::ROOK:
+                    piece = new Rook(m_currentTurn, to);
+                    break;
+                case PieceType::BISHOP:
+                    piece = new Bishop(m_currentTurn, to);
+                    break;
+                case PieceType::KNIGHT:
+                    piece = new Knight(m_currentTurn, to);
+                    break;
+                default:
+                    piece = new Queen(m_currentTurn, to);
+                    break;
+            }
+            
             m_board[from.y()][from.x()] = nullptr;
             m_board[to.y()][to.x()] = piece;
             piece->setMoved(true);
+            
+            // 重設為預設值（后）以供下次使用
+            m_promotionPieceType = PieceType::QUEEN;
+            
             m_moveHistory.append(move);
             switchTurn();
 
@@ -274,6 +309,11 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
 void ChessBoard::switchTurn() {
     m_currentTurn = (m_currentTurn == PieceColor::WHITE) ?
                         PieceColor::BLACK : PieceColor::WHITE;
+}
+
+void ChessBoard::setGameOver(const QString& status) {
+    m_isGameOver = true;
+    m_gameStatus = status;
 }
 
 QPoint ChessBoard::findKing(PieceColor color) const {
