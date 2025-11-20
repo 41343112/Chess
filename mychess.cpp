@@ -906,7 +906,7 @@ void myChess::onSquareClicked() {
                     m_firstMoveMade = true;
                 }
                 
-                // Add increment to the player who just moved
+                // 為剛移動的玩家增加時間增量
                 addIncrement();
                 
                 // Determine game state after move for sound
@@ -1047,20 +1047,20 @@ void myChess::onPreviousMove() {
     int historySize = m_chessBoard->getMoveHistory().size();
     if (historySize == 0) return;
     
-    // Play move sound for navigation
+    // 為導航播放移動音效
     m_moveSound->play();
     
-    // Pause timer when viewing history
+    // 查看歷史記錄時暫停計時器
     if (!m_isViewingHistory) {
         stopTimer();
     }
     
     if (m_isViewingHistory) {
-        // Already viewing history, move back one position
+        // 已在查看歷史記錄，向後移動一個位置
         if (m_viewingPosition > 0) {
             m_viewingPosition--;
             if (m_viewingPosition == 0) {
-                // Show initial position
+                // 顯示初始位置
                 clearTempViewBoard();
                 PieceColor turn;
                 m_chessBoard->getBoardStateAtMove(-1, m_tempViewBoard, turn);
@@ -1078,7 +1078,7 @@ void myChess::onPreviousMove() {
             updateNavigationButtons();
         }
     } else {
-        // Not viewing history yet, start from current position - 1
+        // 尚未查看歷史記錄，從目前位置 - 1 開始
         m_viewingPosition = historySize;
         m_isViewingHistory = true;
         displayBoardAtPosition(historySize - 1);
@@ -1089,14 +1089,14 @@ void myChess::onPreviousMove() {
 void myChess::onNextMove() {
     if (!m_isViewingHistory) return;
     
-    // Play move sound for navigation
+    // 為導航播放移動音效
     m_moveSound->play();
     
     int historySize = m_chessBoard->getMoveHistory().size();
     if (m_viewingPosition < historySize) {
         m_viewingPosition++;
         if (m_viewingPosition == historySize) {
-            // Move to current position
+            // 移動到目前位置
             onBackToCurrent();
         } else {
             displayBoardAtPosition(m_viewingPosition - 1);
@@ -1108,7 +1108,7 @@ void myChess::onNextMove() {
 void myChess::onBackToStart() {
     int historySize = m_chessBoard->getMoveHistory().size();
     if (historySize == 0) {
-        // No moves yet, nothing to show
+        // 尚無移動，無法顯示
         return;
     }
     
@@ -1148,7 +1148,7 @@ void myChess::onBackToCurrent() {
     updateBoard();
     updateNavigationButtons();
     
-    // Resume timer if game is not over
+    // 如果遊戲未結束則恢復計時器
     if (!m_chessBoard->isGameOver()) {
         startTimer();
     }
@@ -1240,7 +1240,7 @@ void myChess::onTimerTick() {
         return;
     }
     
-    // Decrement the current player's time by 100ms
+    // 將目前玩家的時間減少 100ms
     if (m_chessBoard->getCurrentTurn() == PieceColor::WHITE) {
         m_whiteTimeRemaining -= 100;
         if (m_whiteTimeRemaining <= 0) {
@@ -1298,7 +1298,7 @@ void myChess::resetTimers() {
 }
 
 void myChess::addIncrement() {
-    // Add increment to the player who just moved (i.e., not the current turn)
+    // 為剛移動的玩家增加時間增量 (i.e., not the current turn)
     if (m_incrementSeconds > 0 && m_timeControlEnabled) {
         int incrementMs = m_incrementSeconds * 1000;
         if (m_chessBoard->getCurrentTurn() == PieceColor::WHITE) {
@@ -1318,7 +1318,7 @@ QString myChess::formatTime(int milliseconds) {
     int secs = totalSeconds % 60;
     int deciseconds = (milliseconds % 1000) / 100;  // Get 1 decimal place
     
-    // Show 1 decimal place when time is less than 10 seconds
+    // 時間少於 10 秒時顯示 1 位小數
     if (totalSeconds < 10) {
         return QString("%1.%2").arg(secs).arg(deciseconds);
     } else {
