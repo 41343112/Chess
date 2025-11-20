@@ -973,24 +973,24 @@ void myChess::loadSettings() {
 }
 
 void myChess::applySettings() {
-    // Apply undo button visibility
+    // 套用悔棋按鈕可見性
     m_undoButton->setEnabled(m_undoEnabled);
     
-    // Apply colors to all squares
+    // 將顏色套用到所有格子
     for (int row = 0; row < 8; ++row) {
         for (int col = 0; col < 8; ++col) {
             m_squares[row][col]->setColors(m_lightSquareColor, m_darkSquareColor);
         }
     }
     
-    // Set sound effects to full volume (100%)
+    // 將音效設定為最大音量（100%）
     m_moveSound->setVolume(1.0);
     m_captureSound->setVolume(1.0);
     m_checkSound->setVolume(1.0);
     m_checkmateSound->setVolume(1.0);
     m_castlingSound->setVolume(1.0);
     
-    // Apply time control settings
+    // 套用時間控制設定
     resetTimers();
     updateTimeDisplay();
 }
@@ -998,47 +998,47 @@ void myChess::applySettings() {
 void myChess::showStartDialog() {
     StartDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
-        // Get time control settings from dialog
-        int timeSeconds = dialog.getTimeControlSeconds();  // Returns time in seconds, or 0 for no limit
+        // 從對話框取得時間控制設定
+        int timeSeconds = dialog.getTimeControlSeconds();  // 返回秒數，若無限制則為 0
         m_incrementSeconds = dialog.getIncrementSeconds();
         
-        // Enable or disable time control based on the setting
+        // 根據設定啟用或停用時間控制
         if (timeSeconds == 0) {
-            // No time limit
+            // 無時間限制
             m_timeControlEnabled = false;
             m_timeControlMinutes = 0;
         } else {
-            // Time control is enabled
+            // 啟用時間控制
             m_timeControlEnabled = true;
-            // Convert seconds to minutes for compatibility with settings
+            // 將秒數轉換為分鐘以與設定相容
             m_timeControlMinutes = timeSeconds / 60;
             if (m_timeControlMinutes == 0 && timeSeconds > 0) {
-                m_timeControlMinutes = 1;  // At least 1 minute for compatibility
+                m_timeControlMinutes = 1;  // 至少 1 分鐘以保持相容性
             }
         }
         
-        // Initialize timer with the configured time (but don't start it yet)
-        m_whiteTimeRemaining = timeSeconds * 1000;  // Convert to milliseconds
+        // 以配置的時間初始化計時器（但尚未啟動）
+        m_whiteTimeRemaining = timeSeconds * 1000;  // 轉換為毫秒
         m_blackTimeRemaining = timeSeconds * 1000;
         
-        // Reset the board for a new game
+        // 重設棋盤以開始新遊戲
         m_chessBoard->reset();
         m_hasSelection = false;
         clearHighlights();
         updateBoard();
         
-        // Reset viewing state
+        // 重設檢視狀態
         m_viewingPosition = -1;
         m_isViewingHistory = false;
         updateNavigationButtons();
         
-        // Enable settings button for new game
+        // 為新遊戲啟用設定按鈕
         m_settingsButton->setEnabled(true);
         
-        // Reset first move flag - timer will start on first move
+        // 重設第一步移動旗標 - 計時器將在第一步移動時啟動
         m_firstMoveMade = false;
         
-        // Update time display but don't start timer yet
+        // 更新時間顯示但尚未啟動計時器
         updateTimeDisplay();
     }
 }

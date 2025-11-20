@@ -105,16 +105,16 @@ bool ChessBoard::canMove(QPoint from, QPoint to) const {
     if (piece == nullptr) return false;
     if (piece->getColor() != m_currentTurn) return false;
 
-    // Check if the piece can move according to its rules
+    // 檢查棋子是否可以根據其規則移動
     if (!piece->isValidMove(to, const_cast<ChessBoard*>(this))) return false;
 
-    // Additional validation for castling moves
+    // 王車易位的額外驗證
     if (piece->getType() == PieceType::KING && abs(to.x() - from.x()) == 2) {
         bool kingSide = to.x() > from.x();
         if (!canCastle(m_currentTurn, kingSide)) return false;
     }
 
-    // Check if this move would leave the king in check
+    // 檢查此移動是否會讓國王陷入將軍
     if (wouldBeInCheck(from, to, m_currentTurn)) return false;
 
     return true;
@@ -124,24 +124,24 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
     ChessPiece* piece = getPieceAt(from);
     if (piece == nullptr) return false;
 
-    // Check if it's the correct player's turn
+    // 檢查是否輪到正確的玩家
     if (piece->getColor() != m_currentTurn) return false;
 
-    // Check if the move is valid for the piece
+    // 檢查移動對該棋子是否有效
     if (!piece->isValidMove(to, this)) return false;
 
-    // Additional validation for castling moves
+    // 王車易位的額外驗證
     if (piece->getType() == PieceType::KING && abs(to.x() - from.x()) == 2) {
         bool kingSide = to.x() > from.x();
         if (!canCastle(m_currentTurn, kingSide)) return false;
     }
 
-    // Check if this move would leave the king in check
+    // 檢查此移動是否會讓國王陷入將軍
     if (wouldBeInCheck(from, to, m_currentTurn)) return false;
 
     if (checkOnly) return true;
 
-    // Record move for history
+    // 記錄移動歷史
     Move move;
     move.from = from;
     move.to = to;
@@ -151,29 +151,29 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
     move.movedPieceType = piece->getType();
     move.movedPieceColor = piece->getColor();
 
-    // Handle en passant capture
+    // 處理吃過路兵
     if (piece->getType() == PieceType::PAWN && to == m_enPassantTarget) {
         int captureRow = (piece->getColor() == PieceColor::WHITE) ? to.y() + 1 : to.y() - 1;
         move.capturedPiece = m_board[captureRow][to.x()];
         move.wasEnPassant = true;
-        // Don't delete the captured piece - keep it for undo
+        // 不刪除被吃掉的棋子 - 保留以便撤銷
         m_board[captureRow][to.x()] = nullptr;
     } else if (move.capturedPiece != nullptr) {
-        // Don't delete the captured piece - keep it for undo
-        // Just remove it from the board
+        // 不刪除被吃掉的棋子 - 保留以便撤銷
+        // 只從棋盤上移除
     }
 
-    // Clear en passant target
+    // 清除吃過路兵目標
     m_enPassantTarget = QPoint(-1, -1);
 
-    // Set en passant target if pawn moved two squares
+    // 如果兵移動兩格，設定吃過路兵目標
     if (piece->getType() == PieceType::PAWN) {
         int dy = to.y() - from.y();
         if (abs(dy) == 2) {
             m_enPassantTarget = QPoint(from.x(), from.y() + dy / 2);
         }
 
-        // Handle pawn promotion
+        // 處理兵升變
         if ((piece->getColor() == PieceColor::WHITE && to.y() == 0) ||
             (piece->getColor() == PieceColor::BLACK && to.y() == 7)) {
             move.wasPromotion = true;
@@ -186,7 +186,7 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
             m_moveHistory.append(move);
             switchTurn();
 
-            // Check for checkmate/stalemate/insufficient material for the NEW current player
+            // 檢查新的目前玩家是否將死/逼和/棋子不足
             if (isCheckmate(m_currentTurn)) {
                 m_isGameOver = true;
                 PieceColor winner = (m_currentTurn == PieceColor::WHITE) ? PieceColor::BLACK : PieceColor::WHITE;
@@ -209,7 +209,7 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
         }
     }
 
-    // Handle castling
+    // 處理王車易位
     if (piece->getType() == PieceType::KING && abs(to.x() - from.x()) == 2) {
         move.wasCastling = true;
         bool kingSide = to.x() > from.x();
@@ -217,7 +217,7 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
         m_moveHistory.append(move);
         switchTurn();
 
-        // Check for checkmate/stalemate/insufficient material for the NEW current player
+        // 檢查新的目前玩家是否將死/逼和/棋子不足
         if (isCheckmate(m_currentTurn)) {
             m_isGameOver = true;
             PieceColor winner = (m_currentTurn == PieceColor::WHITE) ? PieceColor::BLACK : PieceColor::WHITE;
@@ -239,7 +239,7 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
         return true;
     }
 
-    // Execute the move
+    // 執行移動
     m_board[to.y()][to.x()] = piece;
     m_board[from.y()][from.x()] = nullptr;
     piece->setPosition(to);
@@ -248,10 +248,10 @@ bool ChessBoard::movePiece(QPoint from, QPoint to, bool checkOnly) {
     m_moveHistory.append(move);
     switchTurn();
 
-    // Check for checkmate/stalemate/insufficient material for the NEW current player (who is about to move)
+    // 檢查新的目前玩家（即將移動的玩家）是否將死/逼和/棋子不足
     if (isCheckmate(m_currentTurn)) {
         m_isGameOver = true;
-        // The player who just moved (opposite of current turn) wins
+        // 剛移動的玩家（與目前回合相反）獲勝
         PieceColor winner = (m_currentTurn == PieceColor::WHITE) ? PieceColor::BLACK : PieceColor::WHITE;
         m_gameStatus = (winner == PieceColor::WHITE) ?
                            tr("White wins by checkmate!") : tr("Black wins by checkmate!");
@@ -665,35 +665,35 @@ bool ChessBoard::undo() {
         ChessPiece* king = m_board[row][newKingCol];
         ChessPiece* rook = m_board[row][newRookCol];
 
-        // Move king back
+        // 將王移回
         m_board[row][kingCol] = king;
         m_board[row][newKingCol] = nullptr;
         king->setPosition(QPoint(kingCol, row));
         king->setMoved(lastMove.movedPieceHadMoved);
 
-        // Move rook back
+        // 將車移回
         m_board[row][rookCol] = rook;
         m_board[row][newRookCol] = nullptr;
         rook->setPosition(QPoint(rookCol, row));
-        rook->setMoved(false);  // Rook wasn't moved before castling
+        rook->setMoved(false);  // 王車易位前車尚未移動
 
         m_gameStatus = tr("Game in progress");
         return true;
     }
 
-    // Handle promotion undo
+    // 處理升變撤銷
     if (lastMove.wasPromotion) {
-        // Delete the promoted piece (Queen)
+        // 刪除升變的棋子（后）
         ChessPiece* promotedPiece = m_board[lastMove.to.y()][lastMove.to.x()];
         delete promotedPiece;
 
-        // Create a new pawn at the original position
+        // 在原始位置建立新的兵
         ChessPiece* pawn = new Pawn(lastMove.movedPieceColor, lastMove.from);
         pawn->setMoved(lastMove.movedPieceHadMoved);
         m_board[lastMove.from.y()][lastMove.from.x()] = pawn;
         m_board[lastMove.to.y()][lastMove.to.x()] = nullptr;
 
-        // Restore captured piece if any
+        // 恢復被吃掉的棋子（如果有）
         if (lastMove.capturedPiece != nullptr) {
             m_board[lastMove.to.y()][lastMove.to.x()] = lastMove.capturedPiece;
             lastMove.capturedPiece->setPosition(lastMove.to);
@@ -703,16 +703,16 @@ bool ChessBoard::undo() {
         return true;
     }
 
-    // Handle en passant undo
+    // 處理吃過路兵撤銷
     if (lastMove.wasEnPassant) {
-        // Move the piece back
+        // 將棋子移回
         ChessPiece* piece = m_board[lastMove.to.y()][lastMove.to.x()];
         m_board[lastMove.from.y()][lastMove.from.x()] = piece;
         m_board[lastMove.to.y()][lastMove.to.x()] = nullptr;
         piece->setPosition(lastMove.from);
         piece->setMoved(lastMove.movedPieceHadMoved);
 
-        // Restore the captured pawn
+        // 恢復被吃掉的兵
         if (lastMove.capturedPiece != nullptr) {
             int captureRow = (piece->getColor() == PieceColor::WHITE) ? lastMove.to.y() + 1 : lastMove.to.y() - 1;
             m_board[captureRow][lastMove.to.x()] = lastMove.capturedPiece;
@@ -723,22 +723,22 @@ bool ChessBoard::undo() {
         return true;
     }
 
-    // Handle normal move undo
+    // 處理正常移動撤銷
     ChessPiece* piece = m_board[lastMove.to.y()][lastMove.to.x()];
     
-    // Move the piece back to its original position
+    // 將棋子移回原始位置
     m_board[lastMove.from.y()][lastMove.from.x()] = piece;
     m_board[lastMove.to.y()][lastMove.to.x()] = nullptr;
     piece->setPosition(lastMove.from);
     piece->setMoved(lastMove.movedPieceHadMoved);
 
-    // Restore captured piece if any
+    // 恢復被吃掉的棋子（如果有）
     if (lastMove.capturedPiece != nullptr) {
         m_board[lastMove.to.y()][lastMove.to.x()] = lastMove.capturedPiece;
         lastMove.capturedPiece->setPosition(lastMove.to);
     }
 
-    // Update game status
+    // 更新遊戲狀態
     if (isKingInCheck(m_currentTurn)) {
         m_gameStatus = (m_currentTurn == PieceColor::WHITE) ?
                            tr("White is in check!") : tr("Black is in check!");
@@ -750,59 +750,59 @@ bool ChessBoard::undo() {
 }
 
 void ChessBoard::getBoardStateAtMove(int moveIndex, ChessPiece* outputBoard[8][8], PieceColor& turn) const {
-    // Initialize output board to nullptr
+    // 初始化輸出棋盤為 nullptr
     for (int i = 0; i < 8; ++i) {
         for (int j = 0; j < 8; ++j) {
             outputBoard[i][j] = nullptr;
         }
     }
     
-    // Create initial board state
-    // Place pawns
+    // 建立初始棋盤狀態
+    // 放置兵
     for (int col = 0; col < 8; ++col) {
         outputBoard[1][col] = new Pawn(PieceColor::BLACK, QPoint(col, 1));
         outputBoard[6][col] = new Pawn(PieceColor::WHITE, QPoint(col, 6));
     }
 
-    // Place rooks
+    // 放置車
     outputBoard[0][0] = new Rook(PieceColor::BLACK, QPoint(0, 0));
     outputBoard[0][7] = new Rook(PieceColor::BLACK, QPoint(7, 0));
     outputBoard[7][0] = new Rook(PieceColor::WHITE, QPoint(0, 7));
     outputBoard[7][7] = new Rook(PieceColor::WHITE, QPoint(7, 7));
 
-    // Place knights
+    // 放置馬
     outputBoard[0][1] = new Knight(PieceColor::BLACK, QPoint(1, 0));
     outputBoard[0][6] = new Knight(PieceColor::BLACK, QPoint(6, 0));
     outputBoard[7][1] = new Knight(PieceColor::WHITE, QPoint(1, 7));
     outputBoard[7][6] = new Knight(PieceColor::WHITE, QPoint(6, 7));
 
-    // Place bishops
+    // 放置象
     outputBoard[0][2] = new Bishop(PieceColor::BLACK, QPoint(2, 0));
     outputBoard[0][5] = new Bishop(PieceColor::BLACK, QPoint(5, 0));
     outputBoard[7][2] = new Bishop(PieceColor::WHITE, QPoint(2, 7));
     outputBoard[7][5] = new Bishop(PieceColor::WHITE, QPoint(5, 7));
 
-    // Place queens
+    // 放置后
     outputBoard[0][3] = new Queen(PieceColor::BLACK, QPoint(3, 0));
     outputBoard[7][3] = new Queen(PieceColor::WHITE, QPoint(3, 7));
 
-    // Place kings
+    // 放置王
     outputBoard[0][4] = new King(PieceColor::BLACK, QPoint(4, 0));
     outputBoard[7][4] = new King(PieceColor::WHITE, QPoint(4, 7));
     
     turn = PieceColor::WHITE;
     
-    // If moveIndex is -1 or 0, return initial state
+    // 如果 moveIndex 為 -1 或 0，返回初始狀態
     if (moveIndex < 0) {
         return;
     }
     
-    // Replay moves up to and including moveIndex
+    // 重播移動直到並包含 moveIndex
     for (int i = 0; i <= moveIndex && i < m_moveHistory.size(); ++i) {
         const Move& move = m_moveHistory[i];
         
         if (move.wasCastling) {
-            // Handle castling
+            // 處理王車易位
             int row = move.to.y();
             bool kingSide = move.to.x() > move.from.x();
             int kingCol = 4;
@@ -823,35 +823,35 @@ void ChessBoard::getBoardStateAtMove(int moveIndex, ChessPiece* outputBoard[8][8
             rook->setPosition(QPoint(newRookCol, row));
             rook->setMoved(true);
         } else if (move.wasEnPassant) {
-            // Handle en passant
+            // 處理吃過路兵
             ChessPiece* piece = outputBoard[move.from.y()][move.from.x()];
             outputBoard[move.to.y()][move.to.x()] = piece;
             outputBoard[move.from.y()][move.from.x()] = nullptr;
             piece->setPosition(move.to);
             piece->setMoved(true);
             
-            // Remove captured pawn
+            // 移除被吃掉的兵
             int captureRow = (piece->getColor() == PieceColor::WHITE) ? move.to.y() + 1 : move.to.y() - 1;
             if (outputBoard[captureRow][move.to.x()] != nullptr) {
                 delete outputBoard[captureRow][move.to.x()];
                 outputBoard[captureRow][move.to.x()] = nullptr;
             }
         } else if (move.wasPromotion) {
-            // Handle promotion
+            // 處理升變
             ChessPiece* pawn = outputBoard[move.from.y()][move.from.x()];
             if (outputBoard[move.to.y()][move.to.x()] != nullptr) {
                 delete outputBoard[move.to.y()][move.to.x()];
             }
             outputBoard[move.from.y()][move.from.x()] = nullptr;
             
-            // Create promoted piece (Queen)
+            // 建立升變的棋子（后）
             ChessPiece* promotedPiece = new Queen(pawn->getColor(), move.to);
             promotedPiece->setMoved(true);
             outputBoard[move.to.y()][move.to.x()] = promotedPiece;
             
             delete pawn;
         } else {
-            // Normal move
+            // 正常移動
             ChessPiece* piece = outputBoard[move.from.y()][move.from.x()];
             if (outputBoard[move.to.y()][move.to.x()] != nullptr) {
                 delete outputBoard[move.to.y()][move.to.x()];
@@ -864,7 +864,7 @@ void ChessBoard::getBoardStateAtMove(int moveIndex, ChessPiece* outputBoard[8][8
             }
         }
         
-        // Switch turn
+        // 切換回合
         turn = (turn == PieceColor::WHITE) ? PieceColor::BLACK : PieceColor::WHITE;
     }
 }
