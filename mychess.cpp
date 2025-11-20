@@ -682,9 +682,9 @@ void myChess::onSquareDragEnded(int row, int col) {
         m_isViewingHistory = false;
         
         // Determine game state after move for sound
-        QString gameStatus = m_chessBoard->getGameStatus();
-        bool isCheckmate = gameStatus.contains("checkmate");
-        bool isCheck = gameStatus.contains("check") && !isCheckmate;
+        // Use ChessBoard API methods instead of parsing translated strings
+        bool isCheckmate = m_chessBoard->isGameOver() && m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn());
+        bool isCheck = !isCheckmate && m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn());
         
         // Check if the last move was castling or en passant
         bool isCastling = false;
@@ -907,9 +907,9 @@ void myChess::onSquareClicked() {
                 addIncrement();
                 
                 // Determine game state after move for sound
-                QString gameStatus = m_chessBoard->getGameStatus();
-                bool isCheckmate = gameStatus.contains("checkmate");
-                bool isCheck = gameStatus.contains("check") && !isCheckmate;
+                // Use ChessBoard API methods instead of parsing translated strings
+                bool isCheckmate = m_chessBoard->isGameOver() && m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn());
+                bool isCheck = !isCheckmate && m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn());
                 
                 // Check if the last move was castling or en passant
                 bool isCastling = false;
