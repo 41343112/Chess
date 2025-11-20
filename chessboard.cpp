@@ -884,8 +884,25 @@ void ChessBoard::getBoardStateAtMove(int moveIndex, ChessPiece* outputBoard[8][8
             }
             outputBoard[move.from.y()][move.from.x()] = nullptr;
             
-            // 建立升變的棋子（后）
-            ChessPiece* promotedPiece = new Queen(pawn->getColor(), move.to);
+            // 根據儲存的類型建立升變的棋子
+            ChessPiece* promotedPiece = nullptr;
+            switch (move.promotedTo) {
+                case PieceType::QUEEN:
+                    promotedPiece = new Queen(pawn->getColor(), move.to);
+                    break;
+                case PieceType::ROOK:
+                    promotedPiece = new Rook(pawn->getColor(), move.to);
+                    break;
+                case PieceType::BISHOP:
+                    promotedPiece = new Bishop(pawn->getColor(), move.to);
+                    break;
+                case PieceType::KNIGHT:
+                    promotedPiece = new Knight(pawn->getColor(), move.to);
+                    break;
+                default:
+                    promotedPiece = new Queen(pawn->getColor(), move.to);
+                    break;
+            }
             promotedPiece->setMoved(true);
             outputBoard[move.to.y()][move.to.x()] = promotedPiece;
             
