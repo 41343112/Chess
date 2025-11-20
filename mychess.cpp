@@ -740,7 +740,7 @@ void myChess::playMoveSound(bool isCapture, bool isCheck, bool isCheckmate, bool
     } else if (isCapture) {
         m_captureSound->play();
     } else {
-        m_moveSound->play();
+        m_checkmateSound->play();
     }
 }
 
