@@ -6,6 +6,20 @@
 #include <QLabel>
 #include <QSlider>
 #include <QSpinBox>
+#include <QComboBox>
+#include <QRadioButton>
+#include <QButtonGroup>
+
+enum class GameMode {
+    HUMAN_VS_HUMAN,
+    HUMAN_VS_COMPUTER
+};
+
+enum class ComputerDifficulty {
+    EASY,
+    MEDIUM,
+    HARD
+};
 
 class StartDialog : public QDialog
 {
@@ -18,15 +32,22 @@ public:
     // Getters for time control settings
     int getTimeControlSeconds() const;  // Returns time in seconds (0 = no limit, 30-59 seconds, or 1-60 minutes in seconds)
     int getIncrementSeconds() const;
+    
+    // Getters for game mode and difficulty
+    GameMode getGameMode() const;
+    ComputerDifficulty getDifficulty() const;
+    bool isPlayerWhite() const;  // In computer mode, is player white or black
 
 private slots:
     void onTimeSliderChanged(int value);
     void onIncrementSliderChanged(int value);
+    void onGameModeChanged();
 
 private:
     void setupUI();
     void updateTimeLabel();
     void updateIncrementLabel();
+    void updateDifficultyVisibility();
     
     QLabel* m_titleLabel;
     QPushButton* m_startButton;
@@ -36,6 +57,18 @@ private:
     QLabel* m_timeValueLabel;
     QSlider* m_incrementSlider;
     QLabel* m_incrementValueLabel;
+    
+    // Game mode widgets
+    QRadioButton* m_humanVsHumanRadio;
+    QRadioButton* m_humanVsComputerRadio;
+    QButtonGroup* m_gameModeGroup;
+    
+    // Computer game widgets
+    QWidget* m_computerOptionsWidget;
+    QComboBox* m_difficultyCombo;
+    QRadioButton* m_playAsWhiteRadio;
+    QRadioButton* m_playAsBlackRadio;
+    QButtonGroup* m_colorGroup;
 };
 
 #endif // STARTDIALOG_H

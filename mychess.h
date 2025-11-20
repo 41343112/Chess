@@ -21,6 +21,7 @@
 #include <QSettings>
 #include <QTranslator>
 #include "chessboard.h"
+#include "chessai.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -152,6 +153,7 @@ private slots:
     void onBackToStart();
     void onBackToCurrent();
     void onTimerTick();
+    void makeComputerMove();  // 新增：電腦移動
 
 private:
     Ui::myChess *ui;
@@ -210,6 +212,12 @@ private:
     // 拖曳狀態追蹤
     bool m_isDragInProgress;
     QPoint m_dragSourceSquare;
+    
+    // AI 相關
+    ChessAI* m_chessAI;
+    bool m_isComputerGame;
+    PieceColor m_computerColor;
+    bool m_isComputerThinking;
 
     void setupUI();
     void updateBoard();

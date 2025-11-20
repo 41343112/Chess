@@ -319,6 +319,10 @@ myChess::myChess(QWidget *parent)
     , m_firstMoveMade(false)
     , m_isDragInProgress(false)
     , m_dragSourceSquare(-1, -1)
+    , m_chessAI(nullptr)
+    , m_isComputerGame(false)
+    , m_computerColor(PieceColor::BLACK)
+    , m_isComputerThinking(false)
 {
     ui->setupUi(this);
     setWindowTitle(tr("Chess Game - Like Chess.com"));
@@ -374,6 +378,7 @@ myChess::~myChess()
 {
     clearTempViewBoard();
     delete m_chessBoard;
+    delete m_chessAI;
     delete ui;
 }
 
@@ -653,7 +658,12 @@ void myChess::showGameOverDialog() {
 
 bool myChess::onSquareDragStarted(int row, int col) {
     // 查看歷史記錄時停用拖曳
-    if (m_isViewingHistory || m_chessBoard->isGameOver()) {
+    if (m_isViewingHistory || m_chessBoard->isGameOver() || m_isComputerThinking) {
+        return false;
+    }
+    
+    // 電腦遊戲模式下，不允許拖曳電腦的棋子
+    if (m_isComputerGame && m_chessBoard->getCurrentTurn() == m_computerColor) {
         return false;
     }
 
@@ -749,6 +759,11 @@ void myChess::onSquareDragEnded(int row, int col) {
         // 第一步移動後停用設定
         if (m_chessBoard->getMoveHistory().size() == 1) {
             m_settingsButton->setEnabled(false);
+        }
+        
+        // 觸發電腦移動（如果是電腦遊戲且未結束）
+        if (m_isComputerGame && !m_chessBoard->isGameOver()) {
+            QTimer::singleShot(500, this, &myChess::makeComputerMove);
         }
     }
     updateBoard();
@@ -938,7 +953,12 @@ void myChess::highlightValidMoves(QPoint from) {
 
 void myChess::onSquareClicked() {
     // Disable piece selection/movement when viewing history
-    if (m_isViewingHistory || m_chessBoard->isGameOver()) {
+    if (m_isViewingHistory || m_chessBoard->isGameOver() || m_isComputerThinking) {
+        return;
+    }
+    
+    // 電腦遊戲模式下，不允許選擇電腦的棋子
+    if (m_isComputerGame && m_chessBoard->getCurrentTurn() == m_computerColor) {
         return;
     }
 
@@ -1028,6 +1048,11 @@ void myChess::onSquareClicked() {
                 if (m_chessBoard->getMoveHistory().size() == 1) {
                     m_settingsButton->setEnabled(false);
                 }
+                
+                // 觸發電腦移動（如果是電腦遊戲且未結束）
+                if (m_isComputerGame && !m_chessBoard->isGameOver()) {
+                    QTimer::singleShot(500, this, &myChess::makeComputerMove);
+                }
             }
             updateBoard();
             updateNavigationButtons();
@@ -1111,6 +1136,44 @@ void myChess::showStartDialog() {
         m_whiteTimeRemaining = timeSeconds * 1000;  // 轉換為毫秒
         m_blackTimeRemaining = timeSeconds * 1000;
         
+        // 取得遊戲模式和 AI 設定
+        GameMode gameMode = dialog.getGameMode();
+        m_isComputerGame = (gameMode == GameMode::HUMAN_VS_COMPUTER);
+        
+        if (m_isComputerGame) {
+            // 設定 AI
+            ComputerDifficulty difficulty = dialog.getDifficulty();
+            AIDifficulty aiDifficulty;
+            switch (difficulty) {
+            case ComputerDifficulty::EASY:
+                aiDifficulty = AIDifficulty::EASY;
+                break;
+            case ComputerDifficulty::HARD:
+                aiDifficulty = AIDifficulty::HARD;
+                break;
+            case ComputerDifficulty::MEDIUM:
+            default:
+                aiDifficulty = AIDifficulty::MEDIUM;
+                break;
+            }
+            
+            // 建立或更新 AI
+            if (m_chessAI) {
+                delete m_chessAI;
+            }
+            m_chessAI = new ChessAI(aiDifficulty);
+            
+            // 設定電腦顏色
+            bool playerIsWhite = dialog.isPlayerWhite();
+            m_computerColor = playerIsWhite ? PieceColor::BLACK : PieceColor::WHITE;
+        } else {
+            // 玩家對戰模式 - 清除 AI
+            if (m_chessAI) {
+                delete m_chessAI;
+                m_chessAI = nullptr;
+            }
+        }
+        
         // 重設棋盤以開始新遊戲
         m_chessBoard->reset();
         m_hasSelection = false;
@@ -1130,6 +1193,11 @@ void myChess::showStartDialog() {
         
         // 更新時間顯示但尚未啟動計時器
         updateTimeDisplay();
+        
+        // 如果電腦是白方（先手），觸發電腦移動
+        if (m_isComputerGame && m_computerColor == PieceColor::WHITE) {
+            QTimer::singleShot(500, this, &myChess::makeComputerMove);
+        }
     }
 }
 
@@ -1417,4 +1485,84 @@ QString myChess::formatTime(int milliseconds) {
         // Don't pad minutes with leading zero for single-digit minutes
         return QString("%1:%2").arg(minutes).arg(secs, 2, 10, QChar('0'));
     }
+}
+
+void myChess::makeComputerMove() {
+    // 檢查是否是電腦遊戲且輪到電腦
+    if (!m_isComputerGame || m_isComputerThinking || m_chessBoard->isGameOver()) {
+        return;
+    }
+    
+    if (m_chessBoard->getCurrentTurn() != m_computerColor) {
+        return;
+    }
+    
+    // 標記電腦正在思考
+    m_isComputerThinking = true;
+    m_statusLabel->setText(tr("Computer is thinking..."));
+    QApplication::processEvents();
+    
+    // 取得電腦的最佳移動
+    QPair<QPoint, QPoint> bestMove = m_chessAI->getBestMove(m_chessBoard, m_computerColor);
+    
+    if (bestMove.first == QPoint(-1, -1) || bestMove.second == QPoint(-1, -1)) {
+        // 沒有有效移動
+        m_isComputerThinking = false;
+        updateBoard();
+        return;
+    }
+    
+    // 檢查是否會吃子（用於音效）
+    ChessPiece* targetPiece = m_chessBoard->getPieceAt(bestMove.second);
+    bool isCapture = (targetPiece != nullptr);
+    
+    // 檢查是否會導致升變
+    if (m_chessBoard->wouldBePromotion(bestMove.first, bestMove.second) && 
+        m_chessBoard->canMove(bestMove.first, bestMove.second)) {
+        // 電腦總是升變為后
+        m_chessBoard->setPromotionPieceType(PieceType::QUEEN);
+    }
+    
+    // 執行移動
+    bool moveSuccess = m_chessBoard->movePiece(bestMove.first, bestMove.second);
+    
+    if (moveSuccess) {
+        // Start timer on first move
+        if (!m_firstMoveMade && m_timeControlEnabled) {
+            startTimer();
+            m_firstMoveMade = true;
+        }
+        
+        // 為剛移動的玩家增加時間增量
+        addIncrement();
+        
+        // 確定移動後的遊戲狀態以播放音效
+        bool isCheckmate = m_chessBoard->isGameOver() && m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn());
+        bool isCheck = !isCheckmate && m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn());
+        
+        // 檢查最後一步是否是王車易位
+        bool isCastling = false;
+        bool wasEnPassant = false;
+        const QVector<Move>& history = m_chessBoard->getMoveHistory();
+        if (!history.isEmpty()) {
+            isCastling = history.last().wasCastling;
+            wasEnPassant = history.last().wasEnPassant;
+        }
+        
+        // 吃過路兵也是吃子
+        if (wasEnPassant) {
+            isCapture = true;
+        }
+        
+        playMoveSound(isCapture, isCheck, isCheckmate, isCastling);
+        
+        // 停用設定按鈕在第一步移動後
+        if (m_chessBoard->getMoveHistory().size() == 1) {
+            m_settingsButton->setEnabled(false);
+        }
+    }
+    
+    m_isComputerThinking = false;
+    updateBoard();
+    updateNavigationButtons();
 }
