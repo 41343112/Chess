@@ -144,7 +144,8 @@ void ChessSquare::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         m_dragStartPosition = event->pos();
     } else if (event->button() == Qt::RightButton) {
-        // 右鍵點擊：如果正在拖曳則取消拖曳
+        // 右鍵點擊：如果正在拖曳則視為不合法移動並取消拖曳
+        // 這可以在任何格子上發生，不僅限於拖曳的原始格子
         // 檢查本地拖曳狀態或父視窗中的任何拖曳
         myChess* parent = qobject_cast<myChess*>(window());
         bool anyDragInProgress = m_isDragging || (parent && parent->isDragInProgress());
@@ -171,7 +172,8 @@ void ChessSquare::mousePressEvent(QMouseEvent* event) {
 }
 
 void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
-    // 檢查在潛在拖曳期間是否按下右鍵 - 取消拖曳
+    // 檢查在拖曳開始前是否已按下右鍵 - 取消拖曳
+    // 這會在 drag->exec() 被呼叫之前檢測到右鍵
     if (event->buttons() & Qt::RightButton) {
         // 取消任何正在進行的拖曳或選擇
         myChess* parent = qobject_cast<myChess*>(window());
