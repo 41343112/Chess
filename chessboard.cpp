@@ -17,7 +17,7 @@ ChessBoard::~ChessBoard() {
 }
 
 void ChessBoard::clearBoard() {
-    // First, clean up captured pieces in move history
+    // 首先，清理移動歷史記錄中被吃掉的棋子
     for (Move& move : m_moveHistory) {
         if (move.capturedPiece != nullptr) {
             delete move.capturedPiece;
@@ -26,7 +26,7 @@ void ChessBoard::clearBoard() {
     }
     m_moveHistory.clear();
     
-    // Then clean up the board
+    // 然後清理棋盤
     for (int i = 0; i < 8; ++i) {
         for (int j = 0; j < 8; ++j) {
             if (m_board[i][j] != nullptr) {
@@ -40,35 +40,35 @@ void ChessBoard::clearBoard() {
 void ChessBoard::initializeBoard() {
     clearBoard();
 
-    // Place pawns
+    // 放置兵
     for (int col = 0; col < 8; ++col) {
         m_board[1][col] = new Pawn(PieceColor::BLACK, QPoint(col, 1));
         m_board[6][col] = new Pawn(PieceColor::WHITE, QPoint(col, 6));
     }
 
-    // Place rooks
+    // 放置車
     m_board[0][0] = new Rook(PieceColor::BLACK, QPoint(0, 0));
     m_board[0][7] = new Rook(PieceColor::BLACK, QPoint(7, 0));
     m_board[7][0] = new Rook(PieceColor::WHITE, QPoint(0, 7));
     m_board[7][7] = new Rook(PieceColor::WHITE, QPoint(7, 7));
 
-    // Place knights
+    // 放置馬
     m_board[0][1] = new Knight(PieceColor::BLACK, QPoint(1, 0));
     m_board[0][6] = new Knight(PieceColor::BLACK, QPoint(6, 0));
     m_board[7][1] = new Knight(PieceColor::WHITE, QPoint(1, 7));
     m_board[7][6] = new Knight(PieceColor::WHITE, QPoint(6, 7));
 
-    // Place bishops
+    // 放置象
     m_board[0][2] = new Bishop(PieceColor::BLACK, QPoint(2, 0));
     m_board[0][5] = new Bishop(PieceColor::BLACK, QPoint(5, 0));
     m_board[7][2] = new Bishop(PieceColor::WHITE, QPoint(2, 7));
     m_board[7][5] = new Bishop(PieceColor::WHITE, QPoint(5, 7));
 
-    // Place queens
+    // 放置后
     m_board[0][3] = new Queen(PieceColor::BLACK, QPoint(3, 0));
     m_board[7][3] = new Queen(PieceColor::WHITE, QPoint(3, 7));
 
-    // Place kings
+    // 放置王
     m_board[0][4] = new King(PieceColor::BLACK, QPoint(4, 0));
     m_board[7][4] = new King(PieceColor::WHITE, QPoint(4, 7));
 

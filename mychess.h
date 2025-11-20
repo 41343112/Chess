@@ -27,18 +27,18 @@ class myChess;
 }
 QT_END_NAMESPACE
 
-// Helper widget to maintain square aspect ratio for the board
+// 輔助小工具，用於維持棋盤的正方形比例
 class SquareBoardWidget : public QWidget {
     Q_OBJECT
 
 public:
     explicit SquareBoardWidget(QWidget* parent = nullptr) : QWidget(parent) {
-        // Expanding so it gets available space; do NOT force large minimum here so it can shrink
+        // 擴展以獲得可用空間；不強制設定大的最小值以便縮小
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         setContentsMargins(0, 0, 0, 0);
     }
 
-    // Let layout system know we have a height-for-width relationship
+    // 讓佈局系統知道我們有高度與寬度的關聯
     bool hasHeightForWidth() const override { return true; }
     int heightForWidth(int width) const override { return width; }
 
@@ -52,7 +52,7 @@ protected:
     void resizeEvent(QResizeEvent* event) override {
         QWidget::resizeEvent(event);
 
-        // Keep inner layout square within the widget
+        // 保持內部佈局在小工具內呈正方形
         int w = width();
         int h = height();
         int size = qMin(w, h);
@@ -72,8 +72,8 @@ class ChessSquare : public QPushButton {
 public:
     enum HighlightType {
         None,
-        Movable,      // Blue border - empty square
-        Capturable    // Red border - has opponent piece
+        Movable,      // 藍色邊框 - 空格
+        Capturable    // 紅色邊框 - 有對手棋子
     };
 
     ChessSquare(int row, int col, QWidget* parent = nullptr);
@@ -107,14 +107,14 @@ private:
     bool m_isSelected;
     bool m_isInCheck;
     QPoint m_dragStartPosition;
-    QString m_draggedPieceText;  // Store piece text during drag
-    bool m_isDragging;  // Track if currently dragging
-    ChessPiece* m_piece;  // Store piece pointer for icon regeneration on resize
+    QString m_draggedPieceText;  // 在拖曳期間儲存棋子文字
+    bool m_isDragging;  // 追蹤是否正在拖曳
+    ChessPiece* m_piece;  // 儲存棋子指標，用於調整大小時重新生成圖示
     QColor m_lightColor;
     QColor m_darkColor;
 
     void updateStyle();
-    void updatePieceDisplay();  // Helper to update icon/text display
+    void updatePieceDisplay();  // 更新圖示/文字顯示的輔助函數
 };
 
 class myChess : public QMainWindow
@@ -134,7 +134,7 @@ public:
     int  minBoardSize() const;
 
 protected:
-    // Override to control board size when window resizes
+    // 重載以在視窗調整大小時控制棋盤大小
     void resizeEvent(QResizeEvent* event) override;
 
 private slots:
@@ -178,31 +178,31 @@ private:
 
     bool m_isBoardFlipped;
 
-    // Make the board widget a member so resizeEvent can control it
+    // 將棋盤小工具設為成員，以便 resizeEvent 可以控制它
     SquareBoardWidget* m_boardWidget;
 
     // 可設定的最小棋盤尺寸(像素)，預設 40
     int m_minBoardSize;
 
-    // Settings
+    // 設定
     bool m_undoEnabled;
     QColor m_lightSquareColor;
     QColor m_darkSquareColor;
     bool m_timeControlEnabled;
     int m_timeControlMinutes;
-    int m_incrementSeconds;  // Increment per move in seconds
+    int m_incrementSeconds;  // 每步移動增加的秒數
     
-    // Time control
+    // 時間控制
     QTimer* m_gameTimer;
-    int m_whiteTimeRemaining;  // in milliseconds (for precision)
-    int m_blackTimeRemaining;  // in milliseconds (for precision)
+    int m_whiteTimeRemaining;  // 以毫秒為單位（更精確）
+    int m_blackTimeRemaining;  // 以毫秒為單位（更精確）
     bool m_isTimerRunning;
-    bool m_firstMoveMade;  // Track if first move has been made to start timer
+    bool m_firstMoveMade;  // 追蹤是否已進行第一步移動以啟動計時器
 
-    // Navigation state for viewing history
-    int m_viewingPosition;  // -1 means viewing current position, 0+ means viewing history
+    // 用於查看歷史記錄的導航狀態
+    int m_viewingPosition;  // -1 表示查看目前位置，0+ 表示查看歷史記錄
     bool m_isViewingHistory;
-    ChessPiece* m_tempViewBoard[8][8];  // Temporary board for viewing history
+    ChessPiece* m_tempViewBoard[8][8];  // 用於查看歷史記錄的臨時棋盤
 
     void setupUI();
     void updateBoard();

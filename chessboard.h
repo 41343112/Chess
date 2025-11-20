@@ -15,10 +15,10 @@ struct Move {
     bool wasEnPassant;
     bool wasPromotion;
     PieceType promotedTo;
-    bool movedPieceHadMoved;  // Track if the moved piece had moved before this move
-    QPoint previousEnPassantTarget;  // Store the en passant target before this move
-    PieceType movedPieceType;  // Store the type of piece that moved (needed for promotion undo)
-    PieceColor movedPieceColor;  // Store the color of piece that moved
+    bool movedPieceHadMoved;  // 追蹤移動的棋子在此移動前是否已移動過
+    QPoint previousEnPassantTarget;  // 儲存此移動前的吃過路兵目標
+    PieceType movedPieceType;  // 儲存移動的棋子類型（用於撤銷升變）
+    PieceColor movedPieceColor;  // 儲存移動的棋子顏色
 
     Move() : capturedPiece(nullptr), wasCastling(false), wasEnPassant(false),
         wasPromotion(false), promotedTo(PieceType::QUEEN), movedPieceHadMoved(false),
@@ -45,9 +45,9 @@ public:
     bool canMove(QPoint from, QPoint to) const;
 
     bool isKingInCheck(PieceColor color) const;
-    bool isCheckmate(PieceColor color);  // Checks if king is in check with no valid moves
-    bool isStalemate(PieceColor color);  // Checks if not in check but no valid moves
-    bool isInsufficientMaterial() const;  // Checks if there's insufficient material for checkmate
+    bool isCheckmate(PieceColor color);  // 檢查國王是否被將軍且無有效移動
+    bool isStalemate(PieceColor color);  // 檢查是否未被將軍但無有效移動
+    bool isInsufficientMaterial() const;  // 檢查是否棋子不足以將死
 
     PieceColor getCurrentTurn() const { return m_currentTurn; }
     void switchTurn();
@@ -64,7 +64,7 @@ public:
     QString getGameStatus() const { return m_gameStatus; }
     bool isGameOver() const { return m_isGameOver; }
 
-    bool undo();  // Undo the last move
+    bool undo();  // 撤銷上一步移動
     void getBoardStateAtMove(int moveIndex, ChessPiece* outputBoard[8][8], PieceColor& turn) const;
 
 private:
@@ -76,11 +76,11 @@ private:
     bool m_isGameOver;
 
     void clearBoard();
-    bool wouldBeInCheck(QPoint from, QPoint to, PieceColor color) const; // const query
+    bool wouldBeInCheck(QPoint from, QPoint to, PieceColor color) const; // 常量查詢
     QPoint findKing(PieceColor color) const;
     bool hasAnyValidMoves(PieceColor color);
 
-    // helpers that operate on a provided board array:
+    // 在提供的棋盤陣列上操作的輔助函數：
     QPoint findKingOnBoard(ChessPiece* const board[8][8], PieceColor color) const;
     bool isSquareAttacked(ChessPiece* const board[8][8], QPoint square, PieceColor attackerColor) const;
 };

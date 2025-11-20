@@ -6,24 +6,24 @@
 #include <QPainter>
 #include <QIcon>
 
-// ChessSquare implementation
+// ChessSquare 實作
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     : QPushButton(parent), m_row(row), m_col(col),
     m_highlightType(None), m_isSelected(false), m_isInCheck(false),
     m_isDragging(false), m_piece(nullptr),
     m_lightColor("#F0D9B5"), m_darkColor("#B58863") {
     m_isLight = (row + col) % 2 == 0;
-    // Lower minimum size so board can shrink more
+    // 降低最小尺寸以便棋盤可以進一步縮小
     setMinimumSize(16, 16);
-    // Use Expanding so grid cells expand to fill the board; enable height-for-width
+    // 使用 Expanding 使網格單元擴展以填滿棋盤；啟用高度與寬度的關聯
     QSizePolicy policy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    policy.setHeightForWidth(true);  // Enable height-for-width aspect ratio
+    policy.setHeightForWidth(true);  // 啟用高度與寬度的比例
     setSizePolicy(policy);
     setFont(QFont("Arial", 32));
     updateStyle();
     setAcceptDrops(true);
 
-    // Ensure button displays icon centered
+    // 確保按鈕將圖示顯示在中央
     setIcon(QIcon());
     setIconSize(size());
 }
@@ -37,9 +37,9 @@ void ChessSquare::updatePieceDisplay() {
     if (m_piece != nullptr) {
         QPixmap pix = m_piece->getPixmap();
         if (!pix.isNull()) {
-            // Use icon (scaled to fit)
+            // 使用圖示（縮放以適應）
             int s = qMin(width(), height());
-            // Ensure we have a reasonable size to scale to
+            // 確保有合理的尺寸可以縮放
             if (s > 0) {
                 QPixmap scaled = pix.scaled(s, s, Qt::KeepAspectRatio, Qt::SmoothTransformation);
                 setIcon(QIcon(scaled));
@@ -47,7 +47,7 @@ void ChessSquare::updatePieceDisplay() {
             }
             setText("");
         } else {
-            // fallback to text symbol
+            // 回退到文字符號
             setIcon(QIcon());
             setText(m_piece->getSymbol());
         }
@@ -81,25 +81,25 @@ void ChessSquare::setColors(const QColor& lightColor, const QColor& darkColor) {
 void ChessSquare::updateStyle() {
     QString baseColor = m_isLight ? m_lightColor.name() : m_darkColor.name();
     QString selectedColor = "#FFD700";
-    QString checkColor = "#FF6B6B";  // Red color for check
+    QString checkColor = "#FF6B6B";  // 將軍的紅色
 
     QString bgColor = baseColor;
     QString borderColor = "#000";
     int borderWidth = 1;
 
-    // Priority: check > selected > highlight
+    // 優先順序：將軍 > 選中 > 高亮
     if (m_isInCheck) {
         bgColor = checkColor;
     } else if (m_isSelected) {
         bgColor = selectedColor;
     }
 
-    // Add colored borders for movable and capturable squares
+    // 為可移動和可吃子的格子添加彩色邊框
     if (m_highlightType == Movable) {
-        borderColor = "#0066FF";  // Blue for movable squares
+        borderColor = "#0066FF";  // 藍色表示可移動的格子
         borderWidth = 4;
     } else if (m_highlightType == Capturable) {
-        borderColor = "#FF0000";  // Red for capturable squares
+        borderColor = "#FF0000";  // 紅色表示可吃子的格子
         borderWidth =4;
     }
 
@@ -108,8 +108,8 @@ void ChessSquare::updateStyle() {
 }
 
 QSize ChessSquare::sizeHint() const {
-    // Return a square size hint
-    int size = 60;  // Default size
+    // 返回正方形尺寸提示
+    int size = 60;  // 預設尺寸
     return QSize(size, size);
 }
 
@@ -118,23 +118,23 @@ bool ChessSquare::hasHeightForWidth() const {
 }
 
 int ChessSquare::heightForWidth(int width) const {
-    // Return the same value for height to maintain square aspect ratio
+    // 返回相同的高度值以維持正方形比例
     return width;
 }
 
 void ChessSquare::resizeEvent(QResizeEvent* event) {
     QPushButton::resizeEvent(event);
 
-    // Adjust font size based on square size to keep text readable
+    // 根據格子大小調整字體大小以保持文字可讀性
     int size = qMin(width(), height());
     int fontSize = qMax(8, size / 2);
     setFont(QFont("Arial", fontSize));
 
-    // Regenerate icon at new size if we have a piece with an icon
+    // 如果有帶圖示的棋子，以新尺寸重新生成圖示
     if (m_piece != nullptr && !m_piece->getPixmap().isNull()) {
         updatePieceDisplay();
     } else if (!icon().isNull()) {
-        // Update icon size for any existing icon
+        // 更新任何現有圖示的尺寸
         setIconSize(QSize(size, size));
     }
 }
@@ -143,14 +143,14 @@ void ChessSquare::mousePressEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         m_dragStartPosition = event->pos();
     } else if (event->button() == Qt::RightButton) {
-        // Right-click: cancel drag if currently dragging
+        // 右鍵點擊：如果正在拖曳則取消拖曳
         if (m_isDragging) {
-            // Cancel drag - restore the piece text/icon
+            // 取消拖曳 - 恢復棋子文字/圖示
             if (!m_draggedPieceText.isEmpty()) setText(m_draggedPieceText);
             m_draggedPieceText.clear();
             m_isDragging = false;
 
-            // Notify parent to cancel the drag
+            // 通知父視窗取消拖曳
             myChess* parent = qobject_cast<myChess*>(window());
             if (parent) {
                 parent->onSquareDragCancelled(m_row, m_col);
@@ -158,16 +158,16 @@ void ChessSquare::mousePressEvent(QMouseEvent* event) {
 
             return;
         }
-        // Right-click marker functionality removed
+        // 右鍵標記功能已移除
         return;
     }
     QPushButton::mousePressEvent(event);
 }
 
 void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
-    // Check if right button is pressed during potential drag - cancel it
+    // 檢查在潛在拖曳期間是否按下右鍵 - 取消拖曳
     if (event->buttons() & Qt::RightButton) {
-        // Cancel any ongoing drag or selection
+        // 取消任何正在進行的拖曳或選擇
         myChess* parent = qobject_cast<myChess*>(window());
         if (parent && m_isDragging) {
             parent->onSquareDragCancelled(m_row, m_col);
@@ -185,24 +185,24 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
         return;
     }
 
-    // Only allow dragging if there's a piece on this square (text or icon)
+    // 只允許拖曳有棋子的格子（文字或圖示）
     if (text().isEmpty() && icon().isNull()) {
         return;
     }
 
-    // Store the piece text and temporarily hide it from the original square
+    // 儲存棋子文字並暫時從原始格子隱藏它
     m_draggedPieceText = text();
     setText("");
-    m_isDragging = true;  // Set dragging flag
+    m_isDragging = true;  // 設定拖曳旗標
 
-    // Check with parent if drag should proceed
+    // 檢查父視窗是否允許拖曳繼續
     myChess* parent = qobject_cast<myChess*>(window());
     bool dragAllowed = false;
     if (parent) {
         dragAllowed = parent->onSquareDragStarted(m_row, m_col);
     }
 
-    // If drag not allowed (e.g., game over or wrong turn), restore text and return
+    // 如果不允許拖曳（例如遊戲結束或錯誤回合），恢復文字並返回
     if (!dragAllowed) {
         setText(m_draggedPieceText);
         m_draggedPieceText.clear();
@@ -212,11 +212,11 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     QDrag* drag = new QDrag(this);
     QMimeData* mimeData = new QMimeData;
 
-    // Store the source position in the mime data
+    // 將來源位置儲存在 mime 資料中
     mimeData->setText(QString("%1,%2").arg(m_row).arg(m_col));
     drag->setMimeData(mimeData);
 
-    // Create a pixmap for the drag: prefer icon/pixmap if present
+    // 為拖曳建立圖像：優先使用圖示/圖像（如果存在）
     QPixmap dragPixmap;
     if (!icon().isNull()) {
         dragPixmap = icon().pixmap(iconSize());
@@ -227,24 +227,24 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
         painter.setFont(font());
         painter.setPen(Qt::black);
 
-        // Draw the piece symbol centered
+        // 繪製置中的棋子符號
         QRect textRect = rect();
         painter.drawText(textRect, Qt::AlignCenter, m_draggedPieceText);
     }
 
     drag->setPixmap(dragPixmap);
-    // Center the drag icon on the mouse cursor
+    // 將拖曳圖示置於滑鼠游標中央
     drag->setHotSpot(QPoint(dragPixmap.width() / 2, dragPixmap.height() / 2));
 
     Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
 
-    // Clear dragging flag
+    // 清除拖曳旗標
     m_isDragging = false;
 
-    // If drag was not accepted (cancelled or failed), restore the piece text/icon
+    // 如果拖曳未被接受（取消或失敗），恢復棋子文字/圖示
     if (dropAction == Qt::IgnoreAction) {
         setText(m_draggedPieceText);
-        // Notify parent that drag was cancelled
+        // 通知父視窗拖曳已取消
         if (parent) {
             parent->onSquareDragCancelled(m_row, m_col);
         }
@@ -272,7 +272,7 @@ void ChessSquare::dropEvent(QDropEvent* event) {
             int sourceRow = coords[0].toInt();
             int sourceCol = coords[1].toInt();
 
-            // Notify parent to handle the move
+            // 通知父視窗處理移動
             myChess* parent = qobject_cast<myChess*>(window());
             if (parent) {
                 parent->onSquareDragEnded(m_row, m_col);
@@ -283,7 +283,7 @@ void ChessSquare::dropEvent(QDropEvent* event) {
     }
 }
 
-// myChess implementation
+// myChess 實作
 myChess::myChess(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::myChess)
@@ -310,12 +310,12 @@ myChess::myChess(QWidget *parent)
 
     m_chessBoard = new ChessBoard();
     
-    // Initialize timer - use 100ms interval for smoother display
+    // 初始化計時器 - 使用 100ms 間隔以獲得更流暢的顯示
     m_gameTimer = new QTimer(this);
-    m_gameTimer->setInterval(100);  // 100ms ticks
+    m_gameTimer->setInterval(100);  // 100ms 週期
     connect(m_gameTimer, &QTimer::timeout, this, &myChess::onTimerTick);
 
-    // Initialize sound effects
+    // 初始化音效
     m_moveSound = new QSoundEffect(this);
     m_moveSound->setSource(QUrl("qrc:/sounds/sounds/move.wav"));
     m_moveSound->setVolume(1.0);
@@ -341,14 +341,14 @@ myChess::myChess(QWidget *parent)
     applySettings();
     updateBoard();
     
-    // Initialize temp view board
+    // 初始化臨時檢視棋盤
     for (int i = 0; i < 8; ++i) {
         for (int j = 0; j < 8; ++j) {
             m_tempViewBoard[i][j] = nullptr;
         }
     }
     
-    // Show start dialog on launch
+    // 啟動時顯示開始對話框
     QTimer::singleShot(100, this, &myChess::showStartDialog);
 }
 
@@ -375,14 +375,14 @@ int myChess::minBoardSize() const {
 
 
 void myChess::setupUI() {
-    // Create central widget with layout
+    // 建立中央小工具與佈局
     QWidget* centralWidget = new QWidget(this);
     QVBoxLayout* mainLayout = new QVBoxLayout(centralWidget);
-    // Use small margins so the board area can be sized square by height-for-width
+    // 使用小邊距，以便棋盤區域可以透過高度與寬度的關聯調整為正方形
     mainLayout->setContentsMargins(6, 6, 6, 6);
     mainLayout->setSpacing(6);
 
-    // Status labels
+    // 狀態標籤
     QHBoxLayout* statusLayout = new QHBoxLayout();
     m_turnLabel = new QLabel(tr("Turn: White"), this);
     m_turnLabel->setFont(QFont("Arial", 14, QFont::Bold));
@@ -393,7 +393,7 @@ void myChess::setupUI() {
     statusLayout->addWidget(m_statusLabel);
     mainLayout->addLayout(statusLayout);
     
-    // Time control labels
+    // 時間控制標籤
     QHBoxLayout* timeLayout = new QHBoxLayout();
     m_whiteTimeLabel = new QLabel(tr("White: --:--"), this);
     m_whiteTimeLabel->setFont(QFont("Arial", 16, QFont::Bold));
@@ -406,9 +406,9 @@ void myChess::setupUI() {
     timeLayout->addWidget(m_blackTimeLabel);
     mainLayout->addLayout(timeLayout);
 
-    // Chess board - with equal row and column stretch for proportional scaling
+    // 西洋棋棋盤 - 使用相等的行列延展以進行成比例縮放
     QGridLayout* boardLayout = new QGridLayout();
-    // Crucial: no spacing or margins so grid cells can divide the board area exactly
+    // 關鍵：沒有間距或邊距，讓網格單元可以精確劃分棋盤區域
     boardLayout->setSpacing(0);
     boardLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -419,25 +419,25 @@ void myChess::setupUI() {
                     this, &myChess::onSquareClicked);
             boardLayout->addWidget(m_squares[row][col], row, col);
         }
-        // Set equal stretch for all rows to maintain square aspect
+        // 為所有行設定相等的延展以維持正方形
         boardLayout->setRowStretch(row, 1);
     }
 
     for (int col = 0; col < 8; ++col) {
-        // Set equal stretch for all columns to maintain square aspect
+        // 為所有列設定相等的延展以維持正方形
         boardLayout->setColumnStretch(col, 1);
     }
 
-    // Create board widget as a member so resizeEvent can control its size
+    // 將棋盤小工具建立為成員，以便 resizeEvent 可以控制其大小
     m_boardWidget = new SquareBoardWidget(this);
     m_boardWidget->setLayout(boardLayout);
     m_boardWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    // Add widget centered
+    // 將小工具置中添加
     mainLayout->addWidget(m_boardWidget, 1, Qt::AlignCenter);
     mainLayout->setAlignment(m_boardWidget, Qt::AlignCenter);
 
-    // Navigation buttons for viewing history
+    // 用於查看歷史記錄的導航按鈕
     QHBoxLayout* navLayout = new QHBoxLayout();
     m_backToStartButton = new QPushButton(tr("<|回到一開始"), this);
     m_backToStartButton->setFont(QFont("Arial", 12));
@@ -467,7 +467,7 @@ void myChess::setupUI() {
     navLayout->addStretch();
     mainLayout->addLayout(navLayout);
 
-    // Control buttons
+    // 控制按鈕
     QHBoxLayout* buttonLayout = new QHBoxLayout();
     m_newGameButton = new QPushButton(tr("New Game"), this);
     m_newGameButton->setFont(QFont("Arial", 12));
@@ -587,28 +587,28 @@ void myChess::onNewGame() {
 }
 
 void myChess::onUndo() {
-    // Cannot undo while viewing history
+    // 查看歷史記錄時無法撤銷
     if (m_isViewingHistory) {
         return;
     }
     
-    // Attempt to undo the last move
+    // 嘗試撤銷上一步移動
     if (m_chessBoard->undo()) {
-        // Clear any selection
+        // 清除任何選擇
         m_hasSelection = false;
         m_selectedSquare = QPoint(-1, -1);
         
-        // Update the board display
+        // 更新棋盤顯示
         updateBoard();
         clearHighlights();
         updateNavigationButtons();
         
-        // Update turn label
+        // 更新回合標籤
         QString turnText = (m_chessBoard->getCurrentTurn() == PieceColor::WHITE) ?
                                tr("Turn: White") : tr("Turn: Black");
         m_turnLabel->setText(turnText);
         
-        // Update status label
+        // 更新狀態標籤
         m_statusLabel->setText(m_chessBoard->getGameStatus());
     } else {
         QMessageBox::information(this, tr("Undo"),
@@ -619,19 +619,22 @@ void myChess::onUndo() {
 void myChess::showGameOverDialog() {
     stopTimer();
     
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(tr("Game Over"));
-    msgBox.setText(m_chessBoard->getGameStatus());
-    msgBox.setIcon(QMessageBox::Information);
-    msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.exec();
-    
-    // Re-enable settings button when game is over
-    m_settingsButton->setEnabled(true);
+    // 延遲顯示對話框，讓將死音效有時間播放完畢
+    QTimer::singleShot(500, this, [this]() {
+        QMessageBox msgBox(this);
+        msgBox.setWindowTitle(tr("Game Over"));
+        msgBox.setText(m_chessBoard->getGameStatus());
+        msgBox.setIcon(QMessageBox::Information);
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.exec();
+        
+        // 遊戲結束時重新啟用設定按鈕
+        m_settingsButton->setEnabled(true);
+    });
 }
 
 bool myChess::onSquareDragStarted(int row, int col) {
-    // Disable dragging when viewing history
+    // 查看歷史記錄時停用拖曳
     if (m_isViewingHistory || m_chessBoard->isGameOver()) {
         return false;
     }
@@ -639,7 +642,7 @@ bool myChess::onSquareDragStarted(int row, int col) {
     QPoint clickedPos(col, row);
     ChessPiece* piece = m_chessBoard->getPieceAt(clickedPos);
 
-    // Only allow dragging pieces of the current player
+    // 只允許拖曳目前玩家的棋子
     if (piece != nullptr && piece->getColor() == m_chessBoard->getCurrentTurn()) {
         m_selectedSquare = clickedPos;
         m_hasSelection = true;
@@ -659,34 +662,34 @@ void myChess::onSquareDragEnded(int row, int col) {
 
     QPoint targetPos(col, row);
 
-    // Check if there's a piece at the destination for capture sound
+    // 檢查目的地是否有棋子以播放吃子音效
     ChessPiece* targetPiece = m_chessBoard->getPieceAt(targetPos);
     bool isCapture = (targetPiece != nullptr);
 
-    // Try to make the move
+    // 嘗試進行移動
     bool moveSuccess = m_chessBoard->movePiece(m_selectedSquare, targetPos);
     m_hasSelection = false;
     clearHighlights();
     if (moveSuccess) {
-        // Start timer on first move
+        // 第一步移動時啟動計時器
         if (!m_firstMoveMade && m_timeControlEnabled) {
             startTimer();
             m_firstMoveMade = true;
         }
         
-        // Add increment to the player who just moved
+        // 為剛移動的玩家增加時間增量
         addIncrement();
         
-        // Reset viewing state when a move is made
+        // 進行移動時重設檢視狀態
         m_viewingPosition = -1;
         m_isViewingHistory = false;
         
-        // Determine game state after move for sound
-        // Use ChessBoard API methods instead of parsing translated strings
+        // 判斷移動後的遊戲狀態以播放音效
+        // 使用 ChessBoard API 方法而不是解析翻譯字串
         bool isCheckmate = m_chessBoard->isGameOver() && m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn());
         bool isCheck = !isCheckmate && m_chessBoard->isKingInCheck(m_chessBoard->getCurrentTurn());
         
-        // Check if the last move was castling or en passant
+        // 檢查上一步移動是否為王車易位或吃過路兵
         bool isCastling = false;
         bool wasEnPassant = false;
         const QVector<Move>& history = m_chessBoard->getMoveHistory();
@@ -695,14 +698,14 @@ void myChess::onSquareDragEnded(int row, int col) {
             wasEnPassant = history.last().wasEnPassant;
         }
         
-        // En passant is also a capture
+        // 吃過路兵也是吃子
         if (wasEnPassant) {
             isCapture = true;
         }
         
         playMoveSound(isCapture, isCheck, isCheckmate, isCastling);
         
-        // Disable settings after first move
+        // 第一步移動後停用設定
         if (m_chessBoard->getMoveHistory().size() == 1) {
             m_settingsButton->setEnabled(false);
         }
@@ -711,7 +714,7 @@ void myChess::onSquareDragEnded(int row, int col) {
     updateNavigationButtons();
 
     if (!moveSuccess) {
-        // Invalid move - check if selecting a different piece
+        // 無效移動 - 檢查是否選擇不同的棋子
         ChessPiece* piece = m_chessBoard->getPieceAt(targetPos);
         if (piece != nullptr && piece->getColor() == m_chessBoard->getCurrentTurn()) {
             m_selectedSquare = targetPos;
@@ -723,14 +726,14 @@ void myChess::onSquareDragEnded(int row, int col) {
 }
 
 void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
-    // Drag was cancelled via right-click
+    // 透過右鍵取消拖曳
     m_hasSelection = false;
     clearHighlights();
     updateBoard();
 }
 
 void myChess::playMoveSound(bool isCapture, bool isCheck, bool isCheckmate, bool isCastling) {
-    // Priority: checkmate > check > castling > capture > move
+    // 優先順序：將死 > 將軍 > 王車易位 > 吃子 > 移動
     if (isCheckmate) {
         m_checkmateSound->play();
     } else if (isCheck) {

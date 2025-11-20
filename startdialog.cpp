@@ -25,7 +25,7 @@ void StartDialog::setupUI()
     mainLayout->setSpacing(20);
     mainLayout->setContentsMargins(40, 30, 40, 30);
     
-    // Title label
+    // 標題標籤
     m_titleLabel = new QLabel(QString::fromUtf8("歡迎來到象棋遊戲"), this);
     m_titleLabel->setFont(QFont("Arial", 24, QFont::Bold));
     m_titleLabel->setAlignment(Qt::AlignCenter);
@@ -34,19 +34,19 @@ void StartDialog::setupUI()
     mainLayout->addWidget(m_titleLabel);
     mainLayout->addSpacing(10);
     
-    // Time control group
+    // 時間控制群組
     QGroupBox* timeGroup = new QGroupBox(QString::fromUtf8("時間控制"), this);
     QVBoxLayout* timeLayout = new QVBoxLayout(timeGroup);
     timeLayout->setSpacing(15);
     
-    // Time slider section
+    // 時間滑桿區段
     QLabel* timeLabel = new QLabel(QString::fromUtf8("每位玩家總時間："), this);
     timeLayout->addWidget(timeLabel);
     
     m_timeSlider = new QSlider(Qt::Horizontal, this);
-    m_timeSlider->setMinimum(0);  // 0 = No limit
-    m_timeSlider->setMaximum(90);  // 0=No limit, 1-30=30-59 seconds, 31-90=1-60 minutes
-    m_timeSlider->setValue(0);  // Default to no limit
+    m_timeSlider->setMinimum(0);  // 0 = 無限制
+    m_timeSlider->setMaximum(90);  // 0=無限制，1-30=30-59秒，31-90=1-60分鐘
+    m_timeSlider->setValue(0);  // 預設為無限制
     m_timeSlider->setTickPosition(QSlider::TicksBelow);
     m_timeSlider->setTickInterval(10);
     timeLayout->addWidget(m_timeSlider);
@@ -57,7 +57,7 @@ void StartDialog::setupUI()
     updateTimeLabel();
     timeLayout->addWidget(m_timeValueLabel);
     
-    // Increment section
+    // 增量區段
     QLabel* incrementLabel = new QLabel(QString::fromUtf8("每著增加秒數："), this);
     timeLayout->addWidget(incrementLabel);
     
@@ -77,13 +77,13 @@ void StartDialog::setupUI()
     
     mainLayout->addWidget(timeGroup);
     
-    // Connect signals
+    // 連接訊號
     connect(m_timeSlider, &QSlider::valueChanged, this, &StartDialog::onTimeSliderChanged);
     connect(m_incrementSlider, &QSlider::valueChanged, this, &StartDialog::onIncrementSliderChanged);
     
     mainLayout->addStretch();
     
-    // Start button
+    // 開始按鈕
     m_startButton = new QPushButton(QString::fromUtf8("開始遊戲"), this);
     m_startButton->setFont(QFont("Arial", 16, QFont::Bold));
     m_startButton->setMinimumHeight(60);
@@ -126,15 +126,15 @@ void StartDialog::updateTimeLabel()
     QString text;
     
     if (value == 0) {
-        // No limit
+        // 無限制
         text = QString::fromUtf8("無限制");
     } else if (value <= 30) {
-        // 1-30 maps to 30-59 seconds
-        int seconds = 29 + value;  // value=1 -> 30 seconds, value=30 -> 59 seconds
+        // 1-30 對應到 30-59 秒
+        int seconds = 29 + value;  // value=1 -> 30秒，value=30 -> 59秒
         text = QString::fromUtf8("%1 秒").arg(seconds);
     } else {
-        // 31-90 maps to 1-60 minutes
-        int minutes = value - 30;  // value=31 -> 1 minute, value=90 -> 60 minutes
+        // 31-90 對應到 1-60 分鐘
+        int minutes = value - 30;  // value=31 -> 1分鐘，value=90 -> 60分鐘
         text = QString::fromUtf8("%1 分鐘").arg(minutes);
     }
     
@@ -152,14 +152,14 @@ int StartDialog::getTimeControlSeconds() const
     int value = m_timeSlider->value();
     
     if (value == 0) {
-        // No limit - return 0 to indicate no time control
+        // 無限制 - 返回 0 表示沒有時間控制
         return 0;
     } else if (value <= 30) {
-        // 1-30 maps to 30-59 seconds
-        return 29 + value;  // value=1 -> 30 seconds, value=30 -> 59 seconds
+        // 1-30 對應到 30-59 秒
+        return 29 + value;  // value=1 -> 30秒，value=30 -> 59秒
     } else {
-        // 31-90 maps to 1-60 minutes, convert to seconds
-        int minutes = value - 30;  // value=31 -> 1 minute, value=90 -> 60 minutes
+        // 31-90 對應到 1-60 分鐘，轉換為秒數
+        int minutes = value - 30;  // value=31 -> 1分鐘，value=90 -> 60分鐘
         return minutes * 60;
     }
 }
