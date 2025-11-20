@@ -319,10 +319,11 @@ myChess::myChess(QWidget *parent)
     , m_firstMoveMade(false)
     , m_isDragInProgress(false)
     , m_dragSourceSquare(-1, -1)
-    , m_chessAI(nullptr)
+    , m_stockfishEngine(nullptr)
     , m_isComputerGame(false)
     , m_computerColor(PieceColor::BLACK)
     , m_isComputerThinking(false)
+    , m_skillLevel(10)
 {
     ui->setupUi(this);
     setWindowTitle(tr("Chess Game - Like Chess.com"));
@@ -378,7 +379,10 @@ myChess::~myChess()
 {
     clearTempViewBoard();
     delete m_chessBoard;
-    delete m_chessAI;
+    if (m_stockfishEngine) {
+        m_stockfishEngine->shutdown();
+        delete m_stockfishEngine;
+    }
     delete ui;
 }
 
@@ -1141,36 +1145,34 @@ void myChess::showStartDialog() {
         m_isComputerGame = (gameMode == GameMode::HUMAN_VS_COMPUTER);
         
         if (m_isComputerGame) {
-            // 設定 AI
-            ComputerDifficulty difficulty = dialog.getDifficulty();
-            AIDifficulty aiDifficulty;
-            switch (difficulty) {
-            case ComputerDifficulty::EASY:
-                aiDifficulty = AIDifficulty::EASY;
-                break;
-            case ComputerDifficulty::HARD:
-                aiDifficulty = AIDifficulty::HARD;
-                break;
-            case ComputerDifficulty::MEDIUM:
-            default:
-                aiDifficulty = AIDifficulty::MEDIUM;
-                break;
+            // 取得 Stockfish 技能等級 (0-20)
+            m_skillLevel = dialog.getDifficulty();
+            
+            // 建立或更新 Stockfish 引擎
+            if (!m_stockfishEngine) {
+                m_stockfishEngine = new StockfishEngine(this);
+                if (!m_stockfishEngine->initialize()) {
+                    QMessageBox::warning(this, tr("Engine Error"), 
+                        tr("Failed to initialize Stockfish engine. Please check that the engine is properly installed."));
+                    delete m_stockfishEngine;
+                    m_stockfishEngine = nullptr;
+                    m_isComputerGame = false;
+                }
             }
             
-            // 建立或更新 AI
-            if (m_chessAI) {
-                delete m_chessAI;
+            if (m_stockfishEngine) {
+                m_stockfishEngine->setSkillLevel(m_skillLevel);
             }
-            m_chessAI = new ChessAI(aiDifficulty);
             
             // 設定電腦顏色
             bool playerIsWhite = dialog.isPlayerWhite();
             m_computerColor = playerIsWhite ? PieceColor::BLACK : PieceColor::WHITE;
         } else {
-            // 玩家對戰模式 - 清除 AI
-            if (m_chessAI) {
-                delete m_chessAI;
-                m_chessAI = nullptr;
+            // 玩家對戰模式 - 清除引擎
+            if (m_stockfishEngine) {
+                m_stockfishEngine->shutdown();
+                delete m_stockfishEngine;
+                m_stockfishEngine = nullptr;
             }
         }
         
@@ -1497,13 +1499,18 @@ void myChess::makeComputerMove() {
         return;
     }
     
+    if (!m_stockfishEngine) {
+        qWarning() << "Stockfish engine not initialized";
+        return;
+    }
+    
     // 標記電腦正在思考
     m_isComputerThinking = true;
     m_statusLabel->setText(tr("Computer is thinking..."));
     QApplication::processEvents();
     
-    // 取得電腦的最佳移動
-    QPair<QPoint, QPoint> bestMove = m_chessAI->getBestMove(m_chessBoard, m_computerColor);
+    // 取得電腦的最佳移動（使用 Stockfish）
+    QPair<QPoint, QPoint> bestMove = m_stockfishEngine->getBestMove(m_chessBoard, m_computerColor);
     
     if (bestMove.first == QPoint(-1, -1) || bestMove.second == QPoint(-1, -1)) {
         // 沒有有效移動

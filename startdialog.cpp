@@ -60,19 +60,28 @@ void StartDialog::setupUI()
     computerOptionsLayout->setSpacing(10);
     computerOptionsLayout->setContentsMargins(20, 10, 20, 10);
     
-    // 難度選擇
-    QHBoxLayout* difficultyLayout = new QHBoxLayout();
-    QLabel* difficultyLabel = new QLabel(QString::fromUtf8("難度："), this);
-    m_difficultyCombo = new QComboBox(this);
-    m_difficultyCombo->addItem(QString::fromUtf8("簡單"));
-    m_difficultyCombo->addItem(QString::fromUtf8("中等"));
-    m_difficultyCombo->addItem(QString::fromUtf8("困難"));
-    m_difficultyCombo->setCurrentIndex(1); // 預設中等
-    difficultyLayout->addWidget(difficultyLabel);
-    difficultyLayout->addWidget(m_difficultyCombo);
-    difficultyLayout->addStretch();
+    // 難度選擇 - 使用滑桿
+    QLabel* difficultyLabel = new QLabel(QString::fromUtf8("難度等級 (Stockfish 技能等級)："), this);
+    computerOptionsLayout->addWidget(difficultyLabel);
     
-    computerOptionsLayout->addLayout(difficultyLayout);
+    m_difficultySlider = new QSlider(Qt::Horizontal, this);
+    m_difficultySlider->setMinimum(0);  // 最弱
+    m_difficultySlider->setMaximum(20); // 最強
+    m_difficultySlider->setValue(10);   // 預設中等
+    m_difficultySlider->setTickPosition(QSlider::TicksBelow);
+    m_difficultySlider->setTickInterval(2);
+    computerOptionsLayout->addWidget(m_difficultySlider);
+    
+    m_difficultyValueLabel = new QLabel(this);
+    m_difficultyValueLabel->setAlignment(Qt::AlignCenter);
+    m_difficultyValueLabel->setStyleSheet("QLabel { font-size: 14pt; font-weight: bold; color: #2C3E50; }");
+    updateDifficultyLabel();
+    computerOptionsLayout->addWidget(m_difficultyValueLabel);
+    
+    // 連接難度滑桿訊號
+    connect(m_difficultySlider, &QSlider::valueChanged, this, &StartDialog::onDifficultySliderChanged);
+    
+    computerOptionsLayout->addSpacing(10);
     
     // 顏色選擇
     QLabel* colorLabel = new QLabel(QString::fromUtf8("您的顏色："), this);
@@ -238,17 +247,10 @@ GameMode StartDialog::getGameMode() const
     return GameMode::HUMAN_VS_HUMAN;
 }
 
-ComputerDifficulty StartDialog::getDifficulty() const
+int StartDialog::getDifficulty() const
 {
-    switch (m_difficultyCombo->currentIndex()) {
-    case 0:
-        return ComputerDifficulty::EASY;
-    case 2:
-        return ComputerDifficulty::HARD;
-    case 1:
-    default:
-        return ComputerDifficulty::MEDIUM;
-    }
+    // Return skill level directly (0-20)
+    return m_difficultySlider->value();
 }
 
 bool StartDialog::isPlayerWhite() const
@@ -265,4 +267,28 @@ void StartDialog::updateDifficultyVisibility()
 {
     bool isComputerMode = m_humanVsComputerRadio->isChecked();
     m_computerOptionsWidget->setVisible(isComputerMode);
+}
+
+void StartDialog::onDifficultySliderChanged(int /* value */)
+{
+    updateDifficultyLabel();
+}
+
+void StartDialog::updateDifficultyLabel()
+{
+    int level = m_difficultySlider->value();
+    QString description;
+    
+    if (level <= 5) {
+        description = QString::fromUtf8("初學者");
+    } else if (level <= 10) {
+        description = QString::fromUtf8("中等");
+    } else if (level <= 15) {
+        description = QString::fromUtf8("進階");
+    } else {
+        description = QString::fromUtf8("專家");
+    }
+    
+    m_difficultyValueLabel->setText(QString::fromUtf8("等級 %1 (%2)").arg(level).arg(description));
+}
 }

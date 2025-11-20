@@ -21,7 +21,7 @@
 #include <QSettings>
 #include <QTranslator>
 #include "chessboard.h"
-#include "chessai.h"
+#include "stockfishengine.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -214,10 +214,11 @@ private:
     QPoint m_dragSourceSquare;
     
     // AI 相關
-    ChessAI* m_chessAI;
+    StockfishEngine* m_stockfishEngine;
     bool m_isComputerGame;
     PieceColor m_computerColor;
     bool m_isComputerThinking;
+    int m_skillLevel;  // Stockfish skill level (0-20)
 
     void setupUI();
     void updateBoard();
