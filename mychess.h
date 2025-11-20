@@ -10,6 +10,7 @@
 #include <QGridLayout>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QEvent>
 #include <QDrag>
 #include <QMimeData>
 #include <QDragEnterEvent>
@@ -136,6 +137,8 @@ public:
 protected:
     // 重載以在視窗調整大小時控制棋盤大小
     void resizeEvent(QResizeEvent* event) override;
+    // 事件過濾器用於捕捉拖曳期間的右鍵點擊
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 private slots:
     void onSquareClicked();
@@ -203,6 +206,10 @@ private:
     int m_viewingPosition;  // -1 表示查看目前位置，0+ 表示查看歷史記錄
     bool m_isViewingHistory;
     ChessPiece* m_tempViewBoard[8][8];  // 用於查看歷史記錄的臨時棋盤
+    
+    // 拖曳狀態追蹤
+    bool m_isDragInProgress;
+    QPoint m_dragSourceSquare;
 
     void setupUI();
     void updateBoard();

@@ -260,12 +260,24 @@ void ChessSquare::mouseReleaseEvent(QMouseEvent* event) {
 }
 
 void ChessSquare::dragEnterEvent(QDragEnterEvent* event) {
+    // 如果按下右鍵，拒絕拖曳以取消操作
+    if (QApplication::mouseButtons() & Qt::RightButton) {
+        event->ignore();
+        return;
+    }
+    
     if (event->mimeData()->hasText()) {
         event->acceptProposedAction();
     }
 }
 
 void ChessSquare::dropEvent(QDropEvent* event) {
+    // 如果按下右鍵，取消拖曳
+    if (QApplication::mouseButtons() & Qt::RightButton) {
+        event->ignore();
+        return;
+    }
+    
     if (event->mimeData()->hasText()) {
         QString sourceData = event->mimeData()->text();
         QStringList coords = sourceData.split(',');
@@ -305,11 +317,16 @@ myChess::myChess(QWidget *parent)
     , m_blackTimeRemaining(0)
     , m_isTimerRunning(false)
     , m_firstMoveMade(false)
+    , m_isDragInProgress(false)
+    , m_dragSourceSquare(-1, -1)
 {
     ui->setupUi(this);
     setWindowTitle(tr("Chess Game - Like Chess.com"));
 
     m_chessBoard = new ChessBoard();
+    
+    // 安裝事件過濾器以捕捉拖曳期間的右鍵點擊
+    qApp->installEventFilter(this);
     
     // 初始化計時器 - 使用 100ms 間隔以獲得更流暢的顯示
     m_gameTimer = new QTimer(this);
@@ -647,6 +664,8 @@ bool myChess::onSquareDragStarted(int row, int col) {
     if (piece != nullptr && piece->getColor() == m_chessBoard->getCurrentTurn()) {
         m_selectedSquare = clickedPos;
         m_hasSelection = true;
+        m_isDragInProgress = true;
+        m_dragSourceSquare = QPoint(row, col);
         clearHighlights();
         m_squares[row][col]->setSelected(true);
         highlightValidMoves(clickedPos);
@@ -657,6 +676,10 @@ bool myChess::onSquareDragStarted(int row, int col) {
 }
 
 void myChess::onSquareDragEnded(int row, int col) {
+    // 清除拖曳標記
+    m_isDragInProgress = false;
+    m_dragSourceSquare = QPoint(-1, -1);
+    
     if (m_isViewingHistory || m_chessBoard->isGameOver() || !m_hasSelection) {
         return;
     }
@@ -745,9 +768,41 @@ void myChess::onSquareDragEnded(int row, int col) {
 
 void myChess::onSquareDragCancelled(int /*row*/, int /*col*/) {
     // 透過右鍵取消拖曳
+    m_isDragInProgress = false;
+    m_dragSourceSquare = QPoint(-1, -1);
     m_hasSelection = false;
     clearHighlights();
     updateBoard();
+}
+
+bool myChess::eventFilter(QObject* obj, QEvent* event) {
+    // 監聽拖曳期間的右鍵點擊以取消拖曳
+    if (m_isDragInProgress && event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+        if (mouseEvent->button() == Qt::RightButton) {
+            // 右鍵點擊 - 取消拖曳
+            // 恢復來源方格的棋子顯示
+            if (m_dragSourceSquare.x() >= 0 && m_dragSourceSquare.y() >= 0) {
+                ChessSquare* sourceSquare = m_squares[m_dragSourceSquare.x()][m_dragSourceSquare.y()];
+                if (sourceSquare) {
+                    // 恢復棋子顯示
+                    ChessPiece* piece = m_chessBoard->getPieceAt(m_selectedSquare);
+                    if (piece) {
+                        sourceSquare->setPiece(piece);
+                    }
+                }
+            }
+            
+            // 取消拖曳狀態
+            onSquareDragCancelled(m_dragSourceSquare.x(), m_dragSourceSquare.y());
+            
+            // 返回 true 以阻止事件傳播
+            return true;
+        }
+    }
+    
+    // 讓其他事件正常處理
+    return QMainWindow::eventFilter(obj, event);
 }
 
 void myChess::playMoveSound(bool isCapture, bool isCheck, bool isCheckmate, bool isCastling) {
