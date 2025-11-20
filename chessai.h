@@ -7,6 +7,9 @@
 #include <QVector>
 #include <QPair>
 
+// 前向宣告
+class StockfishEngine;
+
 enum class AIDifficulty {
     EASY,
     MEDIUM,
@@ -23,20 +26,33 @@ public:
 
     void setDifficulty(AIDifficulty difficulty) { m_difficulty = difficulty; }
     AIDifficulty getDifficulty() const { return m_difficulty; }
+    
+    // 啟用或停用 Stockfish 引擎
+    void setUseStockfish(bool use);
+    bool isUsingStockfish() const { return m_useStockfish; }
 
 private:
     AIDifficulty m_difficulty;
+    bool m_useStockfish;
+    StockfishEngine* m_stockfishEngine;
 
     // 不同難度的移動策略
     QPair<QPoint, QPoint> getRandomMove(ChessBoard* board, PieceColor aiColor);
     QPair<QPoint, QPoint> getBasicEvaluationMove(ChessBoard* board, PieceColor aiColor);
     QPair<QPoint, QPoint> getMinimaxMove(ChessBoard* board, PieceColor aiColor);
+    QPair<QPoint, QPoint> getStockfishMove(ChessBoard* board, PieceColor aiColor);
 
     // 輔助函數
     QVector<QPair<QPoint, QPoint>> getAllValidMoves(ChessBoard* board, PieceColor color);
     int evaluateBoard(ChessBoard* board, PieceColor aiColor);
     int getPieceValue(ChessPiece* piece);
     int minimax(ChessBoard* board, int depth, int alpha, int beta, bool maximizingPlayer, PieceColor aiColor);
+    
+    // UCI 格式轉換函數
+    QString moveToUci(QPoint from, QPoint to) const;
+    QPair<QPoint, QPoint> uciToMove(const QString& uci) const;
+    QString boardToFen(ChessBoard* board, PieceColor currentTurn) const;
+    QVector<QString> getMovesInUci(ChessBoard* board) const;
 };
 
 #endif // CHESSAI_H
