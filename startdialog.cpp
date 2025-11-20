@@ -6,7 +6,9 @@
 #include <QFont>
 
 StartDialog::StartDialog(QWidget *parent)
-    : QDialog(parent)
+    : QDialog(parent),
+      m_gameModeGroup(new QButtonGroup(this)),
+      m_colorGroup(new QButtonGroup(this))
 {
     setupUI();
 }
@@ -19,7 +21,7 @@ void StartDialog::setupUI()
 {
     setWindowTitle(QString::fromUtf8("象棋遊戲"));
     setModal(true);
-    setMinimumSize(500, 450);
+    setMinimumSize(500, 600);
     
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(20);
@@ -33,6 +35,65 @@ void StartDialog::setupUI()
     
     mainLayout->addWidget(m_titleLabel);
     mainLayout->addSpacing(10);
+    
+    // 遊戲模式群組
+    QGroupBox* gameModeGroup = new QGroupBox(QString::fromUtf8("遊戲模式"), this);
+    QVBoxLayout* gameModeLayout = new QVBoxLayout(gameModeGroup);
+    gameModeLayout->setSpacing(10);
+    
+    m_humanVsHumanRadio = new QRadioButton(QString::fromUtf8("玩家對戰"), this);
+    m_humanVsComputerRadio = new QRadioButton(QString::fromUtf8("與電腦對戰"), this);
+    
+    m_humanVsHumanRadio->setChecked(true);
+    
+    m_gameModeGroup->addButton(m_humanVsHumanRadio, 0);
+    m_gameModeGroup->addButton(m_humanVsComputerRadio, 1);
+    
+    gameModeLayout->addWidget(m_humanVsHumanRadio);
+    gameModeLayout->addWidget(m_humanVsComputerRadio);
+    
+    mainLayout->addWidget(gameModeGroup);
+    
+    // 電腦對戰選項（初始隱藏）
+    m_computerOptionsWidget = new QWidget(this);
+    QVBoxLayout* computerOptionsLayout = new QVBoxLayout(m_computerOptionsWidget);
+    computerOptionsLayout->setSpacing(10);
+    computerOptionsLayout->setContentsMargins(20, 10, 20, 10);
+    
+    // 難度選擇
+    QHBoxLayout* difficultyLayout = new QHBoxLayout();
+    QLabel* difficultyLabel = new QLabel(QString::fromUtf8("難度："), this);
+    m_difficultyCombo = new QComboBox(this);
+    m_difficultyCombo->addItem(QString::fromUtf8("簡單"));
+    m_difficultyCombo->addItem(QString::fromUtf8("中等"));
+    m_difficultyCombo->addItem(QString::fromUtf8("困難"));
+    m_difficultyCombo->setCurrentIndex(1); // 預設中等
+    difficultyLayout->addWidget(difficultyLabel);
+    difficultyLayout->addWidget(m_difficultyCombo);
+    difficultyLayout->addStretch();
+    
+    computerOptionsLayout->addLayout(difficultyLayout);
+    
+    // 顏色選擇
+    QLabel* colorLabel = new QLabel(QString::fromUtf8("您的顏色："), this);
+    computerOptionsLayout->addWidget(colorLabel);
+    
+    m_playAsWhiteRadio = new QRadioButton(QString::fromUtf8("白方（先手）"), this);
+    m_playAsBlackRadio = new QRadioButton(QString::fromUtf8("黑方（後手）"), this);
+    m_playAsWhiteRadio->setChecked(true);
+    
+    m_colorGroup->addButton(m_playAsWhiteRadio, 0);
+    m_colorGroup->addButton(m_playAsBlackRadio, 1);
+    
+    computerOptionsLayout->addWidget(m_playAsWhiteRadio);
+    computerOptionsLayout->addWidget(m_playAsBlackRadio);
+    
+    m_computerOptionsWidget->setVisible(false);
+    mainLayout->addWidget(m_computerOptionsWidget);
+    
+    // 連接遊戲模式改變訊號
+    connect(m_humanVsHumanRadio, &QRadioButton::toggled, this, &StartDialog::onGameModeChanged);
+    connect(m_humanVsComputerRadio, &QRadioButton::toggled, this, &StartDialog::onGameModeChanged);
     
     // 時間控制群組
     QGroupBox* timeGroup = new QGroupBox(QString::fromUtf8("時間控制"), this);
@@ -167,4 +228,41 @@ int StartDialog::getTimeControlSeconds() const
 int StartDialog::getIncrementSeconds() const
 {
     return m_incrementSlider->value();
+}
+
+GameMode StartDialog::getGameMode() const
+{
+    if (m_humanVsComputerRadio->isChecked()) {
+        return GameMode::HUMAN_VS_COMPUTER;
+    }
+    return GameMode::HUMAN_VS_HUMAN;
+}
+
+ComputerDifficulty StartDialog::getDifficulty() const
+{
+    switch (m_difficultyCombo->currentIndex()) {
+    case 0:
+        return ComputerDifficulty::EASY;
+    case 2:
+        return ComputerDifficulty::HARD;
+    case 1:
+    default:
+        return ComputerDifficulty::MEDIUM;
+    }
+}
+
+bool StartDialog::isPlayerWhite() const
+{
+    return m_playAsWhiteRadio->isChecked();
+}
+
+void StartDialog::onGameModeChanged()
+{
+    updateDifficultyVisibility();
+}
+
+void StartDialog::updateDifficultyVisibility()
+{
+    bool isComputerMode = m_humanVsComputerRadio->isChecked();
+    m_computerOptionsWidget->setVisible(isComputerMode);
 }

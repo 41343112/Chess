@@ -14,7 +14,8 @@ SOURCES += \
     chessboard.cpp \
     settingsdialog.cpp \
     startdialog.cpp \
-    promotiondialog.cpp
+    promotiondialog.cpp \
+    chessai.cpp
 
 HEADERS += \
     mychess.h \
@@ -22,7 +23,8 @@ HEADERS += \
     chessboard.h \
     settingsdialog.h \
     startdialog.h \
-    promotiondialog.h
+    promotiondialog.h \
+    chessai.h
 
 FORMS += \
     mychess.ui
