@@ -112,9 +112,11 @@ private:
     ChessPiece* m_piece;  // 儲存棋子指標，用於調整大小時重新生成圖示
     QColor m_lightColor;
     QColor m_darkColor;
+    QDrag* m_currentDrag;  // 追蹤目前的拖曳操作以便取消
 
     void updateStyle();
     void updatePieceDisplay();  // 更新圖示/文字顯示的輔助函數
+    bool eventFilter(QObject* watched, QEvent* event) override;  // 事件過濾器用於偵測拖曳期間的右鍵
 };
 
 class myChess : public QMainWindow

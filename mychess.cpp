@@ -6,13 +6,14 @@
 #include <QApplication>
 #include <QPainter>
 #include <QIcon>
+#include <QKeyEvent>
 
 // ChessSquare 實作
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     : QPushButton(parent), m_row(row), m_col(col),
     m_highlightType(None), m_isSelected(false), m_isInCheck(false),
     m_isDragging(false), m_piece(nullptr),
-    m_lightColor("#F0D9B5"), m_darkColor("#B58863") {
+    m_lightColor("#F0D9B5"), m_darkColor("#B58863"), m_currentDrag(nullptr) {
     m_isLight = (row + col) % 2 == 0;
     // 降低最小尺寸以便棋盤可以進一步縮小
     setMinimumSize(16, 16);
@@ -27,6 +28,9 @@ ChessSquare::ChessSquare(int row, int col, QWidget* parent)
     // 確保按鈕將圖示顯示在中央
     setIcon(QIcon());
     setIconSize(size());
+    
+    // 安裝事件過濾器以偵測全域事件
+    qApp->installEventFilter(this);
 }
 
 void ChessSquare::setPiece(ChessPiece* piece) {
@@ -145,21 +149,12 @@ void ChessSquare::mousePressEvent(QMouseEvent* event) {
         m_dragStartPosition = event->pos();
     } else if (event->button() == Qt::RightButton) {
         // 右鍵點擊：如果正在拖曳則取消拖曳
-        if (m_isDragging) {
-            // 取消拖曳 - 恢復棋子文字/圖示
-            if (!m_draggedPieceText.isEmpty()) setText(m_draggedPieceText);
-            m_draggedPieceText.clear();
-            m_isDragging = false;
-
-            // 通知父視窗取消拖曳
-            myChess* parent = qobject_cast<myChess*>(window());
-            if (parent) {
-                parent->onSquareDragCancelled(m_row, m_col);
-            }
-
-            return;
+        if (m_isDragging && m_currentDrag) {
+            // 取消正在進行的拖曳操作
+            // Qt 沒有直接的 cancel() 方法，但我們可以透過刪除 QDrag 物件來終止
+            // 不過 QDrag::exec() 已經在執行中，我們需要用事件過濾器來處理
+            // 這裡只是標記取消意圖，實際取消在 eventFilter 中處理
         }
-        // 右鍵標記功能已移除
         return;
     }
     QPushButton::mousePressEvent(event);
@@ -168,13 +163,15 @@ void ChessSquare::mousePressEvent(QMouseEvent* event) {
 void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     // 檢查在潛在拖曳期間是否按下右鍵 - 取消拖曳
     if (event->buttons() & Qt::RightButton) {
-        // 取消任何正在進行的拖曳或選擇
-        myChess* parent = qobject_cast<myChess*>(window());
-        if (parent && m_isDragging) {
-            parent->onSquareDragCancelled(m_row, m_col);
+        // 如果正在準備拖曳，取消它
+        if (m_isDragging) {
+            m_isDragging = false;
+            m_draggedPieceText.clear();
+            myChess* parent = qobject_cast<myChess*>(window());
+            if (parent) {
+                parent->onSquareDragCancelled(m_row, m_col);
+            }
         }
-        m_isDragging = false;
-        m_draggedPieceText.clear();
         return;
     }
 
@@ -207,10 +204,12 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
     if (!dragAllowed) {
         setText(m_draggedPieceText);
         m_draggedPieceText.clear();
+        m_isDragging = false;
         return;
     }
 
     QDrag* drag = new QDrag(this);
+    m_currentDrag = drag;  // 儲存拖曳物件指標
     QMimeData* mimeData = new QMimeData;
 
     // 將來源位置儲存在 mime 資料中
@@ -239,8 +238,9 @@ void ChessSquare::mouseMoveEvent(QMouseEvent* event) {
 
     Qt::DropAction dropAction = drag->exec(Qt::MoveAction);
 
-    // 清除拖曳旗標
+    // 清除拖曳旗標和指標
     m_isDragging = false;
+    m_currentDrag = nullptr;
 
     // 如果拖曳未被接受（取消或失敗），恢復棋子文字/圖示
     if (dropAction == Qt::IgnoreAction) {
@@ -282,6 +282,35 @@ void ChessSquare::dropEvent(QDropEvent* event) {
             event->acceptProposedAction();
         }
     }
+}
+
+bool ChessSquare::eventFilter(QObject* watched, QEvent* event) {
+    // 偵測拖曳期間的右鍵點擊以取消拖曳
+    if (m_isDragging && m_currentDrag && event->type() == QEvent::MouseButtonPress) {
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+        if (mouseEvent->button() == Qt::RightButton) {
+            // 恢復棋子到原始位置
+            setText(m_draggedPieceText);
+            m_draggedPieceText.clear();
+            m_isDragging = false;
+            
+            // 通知父視窗取消拖曳
+            myChess* parent = qobject_cast<myChess*>(window());
+            if (parent) {
+                parent->onSquareDragCancelled(m_row, m_col);
+            }
+            
+            // 取消拖曳操作 - 透過關鍵事件模擬 Escape 鍵
+            // 這會導致 drag->exec() 返回 Qt::IgnoreAction
+            QKeyEvent escapeEvent(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
+            QApplication::sendEvent(m_currentDrag, &escapeEvent);
+            m_currentDrag = nullptr;
+            
+            return true;  // 事件已處理
+        }
+    }
+    
+    return QPushButton::eventFilter(watched, event);
 }
 
 // myChess 實作
