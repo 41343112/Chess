@@ -154,6 +154,8 @@ private slots:
     void onBackToCurrent();
     void onTimerTick();
     void makeComputerMove();  // 新增：電腦移動
+    void onAIMoveReady(QPoint from, QPoint to);  // 新增：AI 移動準備好
+    void onAIEngineError(QString error);  // 新增：AI 引擎錯誤
 
 private:
     Ui::myChess *ui;

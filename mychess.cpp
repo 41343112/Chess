@@ -4,6 +4,7 @@
 #include "startdialog.h"
 #include "promotiondialog.h"
 #include <QApplication>
+#include <QCoreApplication>
 #include <QPainter>
 #include <QIcon>
 
@@ -1141,27 +1142,30 @@ void myChess::showStartDialog() {
         m_isComputerGame = (gameMode == GameMode::HUMAN_VS_COMPUTER);
         
         if (m_isComputerGame) {
-            // 設定 AI
-            ComputerDifficulty difficulty = dialog.getDifficulty();
-            AIDifficulty aiDifficulty;
-            switch (difficulty) {
-            case ComputerDifficulty::EASY:
-                aiDifficulty = AIDifficulty::EASY;
-                break;
-            case ComputerDifficulty::HARD:
-                aiDifficulty = AIDifficulty::HARD;
-                break;
-            case ComputerDifficulty::MEDIUM:
-            default:
-                aiDifficulty = AIDifficulty::MEDIUM;
-                break;
-            }
+            // 電腦對戰模式
+            int skillLevel = dialog.getDifficultyLevel();
             
             // 建立或更新 AI
             if (m_chessAI) {
                 delete m_chessAI;
             }
-            m_chessAI = new ChessAI(aiDifficulty);
+            m_chessAI = new ChessAI(AIDifficulty::MEDIUM, this);
+            
+            // 初始化引擎
+            QString enginePath = QCoreApplication::applicationDirPath() + "/engine/stockfish-windows-x86-64-avx2.exe";
+            bool engineInitialized = m_chessAI->initializeEngine(enginePath);
+            
+            if (!engineInitialized) {
+                qDebug() << "Failed to initialize engine, using built-in AI";
+                m_chessAI->setUseEngine(false);
+            }
+            
+            // 設定技能等級
+            m_chessAI->setSkillLevel(skillLevel);
+            
+            // 連接 AI 訊號
+            connect(m_chessAI, &ChessAI::moveReady, this, &myChess::onAIMoveReady);
+            connect(m_chessAI, &ChessAI::engineError, this, &myChess::onAIEngineError);
             
             // 設定電腦顏色
             bool playerIsWhite = dialog.isPlayerWhite();
@@ -1502,29 +1506,24 @@ void myChess::makeComputerMove() {
     m_statusLabel->setText(tr("Computer is thinking..."));
     QApplication::processEvents();
     
-    // 取得電腦的最佳移動
-    QPair<QPoint, QPoint> bestMove = m_chessAI->getBestMove(m_chessBoard, m_computerColor);
-    
-    if (bestMove.first == QPoint(-1, -1) || bestMove.second == QPoint(-1, -1)) {
-        // 沒有有效移動
-        m_isComputerThinking = false;
-        updateBoard();
-        return;
-    }
-    
+    // 請求 AI 移動（非同步）
+    m_chessAI->getBestMove(m_chessBoard, m_computerColor);
+}
+
+void myChess::onAIMoveReady(QPoint from, QPoint to) {
     // 檢查是否會吃子（用於音效）
-    ChessPiece* targetPiece = m_chessBoard->getPieceAt(bestMove.second);
+    ChessPiece* targetPiece = m_chessBoard->getPieceAt(to);
     bool isCapture = (targetPiece != nullptr);
     
     // 檢查是否會導致升變
-    if (m_chessBoard->wouldBePromotion(bestMove.first, bestMove.second) && 
-        m_chessBoard->canMove(bestMove.first, bestMove.second)) {
+    if (m_chessBoard->wouldBePromotion(from, to) &&
+        m_chessBoard->canMove(from, to)) {
         // 電腦總是升變為后
         m_chessBoard->setPromotionPieceType(PieceType::QUEEN);
     }
     
     // 執行移動
-    bool moveSuccess = m_chessBoard->movePiece(bestMove.first, bestMove.second);
+    bool moveSuccess = m_chessBoard->movePiece(from, to);
     
     if (moveSuccess) {
         // Start timer on first move
@@ -1565,4 +1564,11 @@ void myChess::makeComputerMove() {
     m_isComputerThinking = false;
     updateBoard();
     updateNavigationButtons();
+}
+
+void myChess::onAIEngineError(QString error) {
+    qDebug() << "AI Engine Error:" << error;
+    m_statusLabel->setText(tr("Engine error: %1").arg(error));
+    m_isComputerThinking = false;
+    updateBoard();
 }
