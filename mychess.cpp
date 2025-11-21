@@ -1154,8 +1154,12 @@ void myChess::showStartDialog() {
             m_chessAI = new ChessAI(AIDifficulty::MEDIUM, this);
             
             // 初始化引擎 - 根據平台選擇對應的引擎執行檔
+            // Initialize engine - select appropriate engine executable based on platform
             // 注意：以下名稱假設使用 x86-64 架構和 AVX2 指令集
+            // Note: The following names assume x86-64 architecture with AVX2 instruction set
             // 若系統不支援 AVX2 或使用不同架構（如 ARM），請更換對應的引擎執行檔
+            // If your system doesn't support AVX2 or uses a different architecture (e.g., ARM),
+            // please replace with the corresponding engine executable
             QString engineName;
 #ifdef Q_OS_WIN
             engineName = "stockfish-windows-x86-64-avx2.exe";
@@ -1164,7 +1168,7 @@ void myChess::showStartDialog() {
 #elif defined(Q_OS_MAC)
             engineName = "stockfish-macos-x86-64-avx2";
 #else
-            engineName = "stockfish";  // 預設名稱
+            engineName = "stockfish";  // 預設名稱 / Default name
 #endif
             
             QString enginePath = QCoreApplication::applicationDirPath() + "/engine/" + engineName;
