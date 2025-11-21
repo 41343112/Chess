@@ -497,6 +497,11 @@ Chess.exe
 - 放置於 `engine/stockfish-macos-x86-64-avx2`
 - 設定執行權限：`chmod +x engine/stockfish-macos-x86-64-avx2`
 
+**架構相容性說明：**
+- 預設引擎名稱假設使用 x86-64 架構和 AVX2 指令集
+- 若您的系統不支援 AVX2（較舊的 CPU）或使用不同架構（如 ARM），請下載對應版本的 Stockfish 並使用相同的檔案名稱
+- 若引擎無法執行，遊戲會自動切換到內建 AI
+
 若未放置對應引擎檔案，遊戲會自動使用內建 AI，仍可正常進行電腦對戰。
 
 ## 未來改進
