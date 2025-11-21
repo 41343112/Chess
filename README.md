@@ -456,11 +456,16 @@ Chess.exe
 
 ### 電腦 AI 實作 ⭐ 最新
 - **Stockfish UCI 引擎整合**：
-  - 使用業界標準的 Stockfish 引擎（Windows x86-64 AVX2 版本）
+  - 使用業界標準的 Stockfish 引擎
+  - ✅ **多平台支援**：自動偵測作業系統並選擇對應的引擎執行檔 ⭐ 最新修正
+    - Windows: `stockfish-windows-x86-64-avx2.exe`
+    - Linux: `stockfish-linux-x86-64-avx2`
+    - macOS: `stockfish-macos-x86-64-avx2`
   - UCI（通用象棋介面）協議通訊
   - 引擎可調整技能等級 0-20
   - 思考時間：1 秒
   - 自動處理 FEN 棋盤轉換
+  - 引擎不可用時自動切換到內建 AI
 - **內建 AI 備用系統**：
   - 當引擎不可用時自動切換到內建 AI
   - **簡單難度**：隨機選擇合法移動
@@ -472,6 +477,27 @@ Chess.exe
     - 搜尋深度：3 層 (3-ply)
     - 完整評估函數
     - 預測多步並選擇最優策略
+
+### 引擎設定說明 ⭐
+若要在各平台上啟用 Stockfish 引擎，請從 [Stockfish 官方網站](https://stockfishchess.org/download/) 下載對應平台的執行檔，並放置到 `engine/` 目錄：
+
+**Windows:**
+- 下載 `stockfish-windows-x86-64-avx2.exe`（已包含）
+- 放置於 `engine/stockfish-windows-x86-64-avx2.exe`
+
+**Linux:**
+- 下載 Linux 版本的 Stockfish
+- 重新命名為 `stockfish-linux-x86-64-avx2`
+- 放置於 `engine/stockfish-linux-x86-64-avx2`
+- 設定執行權限：`chmod +x engine/stockfish-linux-x86-64-avx2`
+
+**macOS:**
+- 下載 macOS 版本的 Stockfish
+- 重新命名為 `stockfish-macos-x86-64-avx2`
+- 放置於 `engine/stockfish-macos-x86-64-avx2`
+- 設定執行權限：`chmod +x engine/stockfish-macos-x86-64-avx2`
+
+若未放置對應引擎檔案，遊戲會自動使用內建 AI，仍可正常進行電腦對戰。
 
 ## 未來改進
 

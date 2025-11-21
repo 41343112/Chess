@@ -7,6 +7,8 @@
 #include <QCoreApplication>
 #include <QPainter>
 #include <QIcon>
+#include <QFileInfo>
+#include <QFile>
 
 // ChessSquare 實作
 ChessSquare::ChessSquare(int row, int col, QWidget* parent)
@@ -1151,12 +1153,36 @@ void myChess::showStartDialog() {
             }
             m_chessAI = new ChessAI(AIDifficulty::MEDIUM, this);
             
-            // 初始化引擎
-            QString enginePath = QCoreApplication::applicationDirPath() + "/engine/stockfish-windows-x86-64-avx2.exe";
-            bool engineInitialized = m_chessAI->initializeEngine(enginePath);
+            // 初始化引擎 - 根據平台選擇對應的引擎執行檔
+            QString engineName;
+#ifdef Q_OS_WIN
+            engineName = "stockfish-windows-x86-64-avx2.exe";
+#elif defined(Q_OS_LINUX)
+            engineName = "stockfish-linux-x86-64-avx2";
+#elif defined(Q_OS_MAC)
+            engineName = "stockfish-macos-x86-64-avx2";
+#else
+            engineName = "stockfish";  // 預設名稱
+#endif
+            
+            QString enginePath = QCoreApplication::applicationDirPath() + "/engine/" + engineName;
+            
+            // 檢查引擎檔案是否存在
+            QFileInfo engineFile(enginePath);
+            bool engineInitialized = false;
+            
+            if (engineFile.exists() && engineFile.isFile()) {
+                qDebug() << "Attempting to initialize engine:" << enginePath;
+                engineInitialized = m_chessAI->initializeEngine(enginePath);
+                
+                if (!engineInitialized) {
+                    qDebug() << "Failed to initialize engine, using built-in AI";
+                }
+            } else {
+                qDebug() << "Engine file not found:" << enginePath << "- using built-in AI";
+            }
             
             if (!engineInitialized) {
-                qDebug() << "Failed to initialize engine, using built-in AI";
                 m_chessAI->setUseEngine(false);
             }
             
