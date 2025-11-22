@@ -1162,7 +1162,7 @@ void myChess::showStartDialog() {
             // please replace with the corresponding engine executable
             QString engineName;
 #ifdef Q_OS_WIN
-            engineName = "stockfish-windows-x86-64-avx2.exe";
+            engineName = "123.txt";
 #elif defined(Q_OS_LINUX)
             engineName = "stockfish-linux-x86-64-avx2";
 #elif defined(Q_OS_MAC)
@@ -1171,7 +1171,7 @@ void myChess::showStartDialog() {
             engineName = "stockfish";  // 預設名稱 / Default name
 #endif
             
-            QString enginePath = QCoreApplication::applicationDirPath() + "/engine/" + engineName;
+            QString enginePath ="/engine/" + engineName;
             
             // 檢查引擎檔案是否存在
             QFileInfo engineFile(enginePath);
